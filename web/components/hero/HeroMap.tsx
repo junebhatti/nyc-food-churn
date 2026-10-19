@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import DeckGL from "@deck.gl/react";
 import { AmbientLight, DirectionalLight, LightingEffect, LinearInterpolator, type MapViewState } from "@deck.gl/core";
 import { ColumnLayer, SolidPolygonLayer } from "@deck.gl/layers";
@@ -11,6 +11,7 @@ import { LAND } from "@/lib/color";
 import { buildingColor, hexBins, makeScale, rawValue, type Cell } from "@/lib/metrics";
 import type { Building, Neighborhood } from "@/lib/types";
 import MapControls from "./MapControls";
+import { useTrackpad } from "@/lib/useTrackpad";
 
 const CAMERA_TRANSITION = new LinearInterpolator(["bearing", "pitch"]);
 
@@ -62,6 +63,25 @@ export default function HeroMap({ buildings, hoods, land, flat = false, initialZ
     setViewState((v) => ({ ...v, ...target.current, transitionDuration: 450, transitionInterpolator: CAMERA_TRANSITION }) as MapViewState);
   };
   const minZoom = initialZoom - 0.6; // can't zoom out past a little more than the whole city
+
+  // Trackpad: pinch zooms; once the map is clicked, swipe pans and shift+swipe rotates/tilts.
+  const box = useRef<HTMLDivElement>(null);
+  const viewRef = useRef(viewState);
+  useEffect(() => {
+    viewRef.current = viewState;
+  }, [viewState]);
+  const getView = useCallback(() => viewRef.current, []);
+  const setView = useCallback(
+    (v: MapViewState) => {
+      const next = clampView(v, minZoom);
+      viewRef.current = next;
+      target.current = { bearing: next.bearing ?? 0, pitch: next.pitch ?? 0 };
+      setShownTarget(target.current);
+      setViewState(next);
+    },
+    [minZoom],
+  );
+  const trackpad = useTrackpad({ el: box, getView, setView, enabled: !flat });
 
   const scale = useMemo(() => makeScale(buildings, view, hoods), [buildings, view, hoods]);
   const value = useMemo(() => (b: Building) => scale(rawValue(b, view, hoods)), [scale, view, hoods]);
@@ -124,7 +144,7 @@ export default function HeroMap({ buildings, hoods, land, flat = false, initialZ
   ];
 
   return (
-    <>
+    <div ref={box} className="absolute inset-0" onPointerDown={trackpad.activate}>
     <DeckGL
       viewState={viewState}
       onViewStateChange={({ viewState: v, interactionState }) => {
@@ -135,7 +155,8 @@ export default function HeroMap({ buildings, hoods, land, flat = false, initialZ
       }}
       // deck.gl measures the canvas before layout (300x150); re-render once it knows the real size.
       onResize={() => setViewState((v) => ({ ...v }))}
-      controller={flat ? { dragRotate: false, touchRotate: false } : { dragRotate: true }}
+      // Wheel/pinch are handled by useTrackpad, so the page can still scroll past an inactive map.
+      controller={flat ? { dragRotate: false, touchRotate: false } : { dragRotate: true, scrollZoom: false }}
       layers={layers}
       effects={flat ? [] : [lighting]}
       getCursor={({ isHovering }) => (isHovering ? "pointer" : "grab")}
@@ -151,6 +172,13 @@ export default function HeroMap({ buildings, hoods, land, flat = false, initialZ
       }}
     />
     {!flat && <MapControls bearing={viewState.bearing ?? 0} pitch={shownTarget.pitch} targetBearing={shownTarget.bearing} onChange={animateTo} />}
-    </>
+    {!flat && (
+      <div className="label pointer-events-none absolute bottom-4 left-1/2 z-10 -translate-x-1/2 border border-rule bg-paper-raised/90 px-2.5 py-1.5">
+        {trackpad.active
+          ? "Swipe to pan · pinch to zoom · shift+swipe to rotate and tilt"
+          : "Click the map to explore with your trackpad · pinch to zoom"}
+      </div>
+    )}
+    </div>
   );
 }
