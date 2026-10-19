@@ -42,7 +42,7 @@ Stopped for diminishing returns: bars (data/notes/bars.md) and DOHMH gaps round 
    - normalize `boro`; drop (0,0) coordinates
    - correct the 2020–23 delayed purges
    - rerun signals/ratings CAMIS matching on the 85k union
-4. First analysis pass: Kaplan-Meier survival by group, Cox model, cursed-spot × age, beta by group and neighborhood. Pick the 3–4 strongest findings, then design the page.
+4. (done 2026-10-19, see data/notes/analysis_first_pass.md) First analysis pass: Kaplan-Meier survival by group, Cox model, cursed-spot × age, beta by group and neighborhood. Pick the 3–4 strongest findings, then design the page.
 
 ## Constraints
 - Raw data includes research-only sources (UCSD Google Local, the NYT reviews copy). Publish derived stats only, with credit.
