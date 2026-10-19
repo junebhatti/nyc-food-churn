@@ -5,7 +5,7 @@ import type { HalfLifeData, PitchData } from "@/lib/types";
 import halflifeJson from "@/public/data/halflife.json";
 import pitchJson from "@/public/data/pitch.json";
 
-export const metadata: Metadata = { title: "Pitch yours — Half-Life" };
+export const metadata: Metadata = { title: "Pitch yours — NYC Turnover" };
 
 export default function Page() {
   return (

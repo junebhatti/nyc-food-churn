@@ -5,7 +5,7 @@ import type { CursedTestData, HalfLifeData } from "@/lib/types";
 import cursedTestJson from "@/public/data/cursedtest.json";
 import halflifeJson from "@/public/data/halflife.json";
 
-export const metadata: Metadata = { title: "The cursed spot test — Half-Life" };
+export const metadata: Metadata = { title: "The cursed spot test — NYC Turnover" };
 
 export default function Page() {
   return (

@@ -1,7 +1,7 @@
 # Next session
 
 ## What this is
-**Half-Life**, an atlas of NYC food & drink churn, live at https://half-life-nyc.vercel.app.
+**NYC Turnover** (renamed from Half-Life on 2026-10-19), an atlas of NYC food & drink churn, live at https://half-life-nyc.vercel.app. A matching address, nycturnover.vercel.app, is to be added in Vercel's Domains settings, with the old address kept working. "Half-life" stays as the name of story 02 and the 50% chart line, because it's the statistic.
 - Repo: github.com/junebhatti/nyc-food-churn (private). `data/raw/` and `data/processed/` are gitignored.
 - Vercel project `half-life-nyc`, connected to GitHub with Root Directory = `web`. Every push to `main` auto-deploys.
 - Design source: `design/design_handoff_half_life/` (Claude Design). Notes on every data source and analysis: `data/notes/`.

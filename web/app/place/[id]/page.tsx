@@ -10,7 +10,7 @@ export function generateStaticParams() {
 }
 
 export const metadata: Metadata = {
-  title: "Address — Half-Life",
+  title: "Address — NYC Turnover",
   description: "Every food and drink business at one NYC address since 2012: lifespans, health grades, acclaim and links.",
 };
 

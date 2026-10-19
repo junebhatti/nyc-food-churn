@@ -4,7 +4,7 @@ import HalfLife from "@/components/sections/HalfLife";
 import type { HalfLifeData } from "@/lib/types";
 import halflifeJson from "@/public/data/halflife.json";
 
-export const metadata: Metadata = { title: "Half-life — Half-Life" };
+export const metadata: Metadata = { title: "Half-life — NYC Turnover" };
 
 export default function Page() {
   return (

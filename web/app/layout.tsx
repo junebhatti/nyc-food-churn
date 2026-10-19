@@ -18,7 +18,7 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Half-Life — an atlas of NYC restaurant churn",
+  title: "NYC Turnover — an atlas of restaurant churn",
   description:
     "Every NYC restaurant, bar, café, bakery and bodega since 2012: which storefronts can't keep a tenant, how long places last, and whether the rent is worth the risk.",
 };

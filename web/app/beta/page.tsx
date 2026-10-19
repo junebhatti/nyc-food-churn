@@ -4,7 +4,7 @@ import Beta from "@/components/sections/Beta";
 import type { BetaData } from "@/lib/types";
 import betaJson from "@/public/data/beta.json";
 
-export const metadata: Metadata = { title: "Beta — Half-Life" };
+export const metadata: Metadata = { title: "Beta — NYC Turnover" };
 
 export default function Page() {
   return (
