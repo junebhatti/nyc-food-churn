@@ -29,6 +29,12 @@ Data gathering is done. Every source has a note in `data/notes/`; start with `au
 
 Stopped for diminishing returns: bars (data/notes/bars.md) and DOHMH gaps round 3 (dohmh_gaps2.md).
 
+## Site (2026-10-19)
+- Live: https://half-life-nyc.vercel.app (Vercel project `half-life-nyc`, team junaidbhatti). Deployed from `web/` with the CLI (`cd web && npx vercel deploy --prod`); it is NOT connected to GitHub, so pushes don't auto-deploy.
+- Data: `pipeline/export_site.py` writes `web/public/data/`. Rerun it after any `build_*` change, then redeploy.
+- Built sections: hero map + controls, 01 Cursed Addresses, 03 Rent vs Risk, mobile. Not designed yet: 02 Half-life, 04 Beta, 07 Pitch yours, and dark mode.
+- The Rent vs Risk headline was changed to match the data: pricier areas are a little safer, but rent doesn't predict closure once other factors are controlled for.
+
 ## Next steps
 0. **Merge pipeline is BUILT** (2026-10-19): see data/notes/merge.md for commands, outputs (data/processed/) and validation. 69,166 businesses, 39,605 buildings. Rerun build_attach.py + build_checks.py after the menu tiers and traffic index finish.
 1. Rerun a quick audit over everything (data/notes/audit.md lists what to check), then commit and push.
