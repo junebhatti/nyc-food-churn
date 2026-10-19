@@ -30,9 +30,10 @@ Data gathering is done. Every source has a note in `data/notes/`; start with `au
 Stopped for diminishing returns: bars (data/notes/bars.md) and DOHMH gaps round 3 (dohmh_gaps2.md).
 
 ## Next steps
+0. **Merge pipeline is BUILT** (2026-10-19): see data/notes/merge.md for commands, outputs (data/processed/) and validation. 69,166 businesses, 39,605 buildings. Rerun build_attach.py + build_checks.py after the menu tiers and traffic index finish.
 1. Rerun a quick audit over everything (data/notes/audit.md lists what to check), then commit and push.
 2. Offer the user a backup zip of `data/raw` (about 2.5 GB, not in git).
-3. Build the merge pipeline into one business table, applying the corrections in groundtruth.md:
+3. (done) Build the merge pipeline into one business table, applying the corrections in groundtruth.md:
    - merge same-name, same-address permits (−11% closures)
    - closure date = L + 0.37·(U − L) (≈0.3 for 2016–18)
    - opening = earlier of first listing (incl. 1900-01-01 rows) and first inspection
