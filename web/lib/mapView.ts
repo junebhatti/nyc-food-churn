@@ -3,7 +3,7 @@
 import { PathLayer, TextLayer } from "@deck.gl/layers";
 import type { MapViewState } from "@deck.gl/core";
 
-export const NYC_CENTER = { longitude: -73.94, latitude: 40.672 };
+export const NYC_CENTER = { longitude: -73.94, latitude: 40.7 };
 export const BOUNDS = { west: -74.28, east: -73.68, south: 40.48, north: 40.93 };
 export const MAX_ZOOM = 16;
 
@@ -56,6 +56,7 @@ export function boroughLabels(id: string, height: number) {
     background: true,
     getBackgroundColor: [243, 238, 228, 210],
     backgroundPadding: [4, 2],
+    parameters: { depthCompare: "always" }, // always on top of the columns
   });
 }
 

@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import DeckGL from "@deck.gl/react";
-import { AmbientLight, DirectionalLight, LightingEffect, type MapViewState } from "@deck.gl/core";
+import { AmbientLight, DirectionalLight, LightingEffect, LinearInterpolator, type MapViewState } from "@deck.gl/core";
 import { ColumnLayer, SolidPolygonLayer } from "@deck.gl/layers";
 import { useAtlas } from "@/lib/store";
 import { hasCategory } from "@/lib/data";
@@ -10,6 +10,9 @@ import { boroughLabels, clampView, landPolygons, NYC_CENTER, outlineLayer } from
 import { LAND } from "@/lib/color";
 import { buildingColor, hexBins, makeScale, rawValue, type Cell } from "@/lib/metrics";
 import type { Building, Neighborhood } from "@/lib/types";
+import MapControls from "./MapControls";
+
+const CAMERA_TRANSITION = new LinearInterpolator(["bearing", "pitch"]);
 
 // Matte plaster relief: soft ambient plus one light from the west/north-west, no gloss.
 const lighting = new LightingEffect({
@@ -38,13 +41,26 @@ interface Props {
 
 export default function HeroMap({ buildings, hoods, land, flat = false, initialZoom = 10.2, onHover, onTap }: Props) {
   const { year, view, category } = useAtlas();
-  // North-up like a printed map: Bronx at the top, Brooklyn and Queens to the right of Manhattan.
+  // Opens top-down and north-up like a street map (Bronx at the top, Brooklyn and Queens to the
+  // right of Manhattan); the controls tilt into the 3D relief and rotate it.
   const [viewState, setViewState] = useState<MapViewState>({
     ...NYC_CENTER,
     zoom: initialZoom,
-    pitch: flat ? 0 : 40,
+    pitch: 0,
     bearing: 0,
   });
+  // Where the camera is heading. Button clicks build on this, not on the mid-animation camera,
+  // so "3D" then "rotate" quickly doesn't cancel the tilt.
+  const target = useRef({ bearing: 0, pitch: 0 });
+  const [shownTarget, setShownTarget] = useState({ bearing: 0, pitch: 0 }); // mirror for rendering the controls
+  const setTarget = (t: { bearing: number; pitch: number }) => {
+    target.current = t;
+    setShownTarget(t);
+  };
+  const animateTo = (next: { bearing?: number; pitch?: number }) => {
+    setTarget({ ...target.current, ...next });
+    setViewState((v) => ({ ...v, ...target.current, transitionDuration: 450, transitionInterpolator: CAMERA_TRANSITION }) as MapViewState);
+  };
   const minZoom = initialZoom - 0.6; // can't zoom out past a little more than the whole city
 
   const scale = useMemo(() => makeScale(buildings, view, hoods), [buildings, view, hoods]);
@@ -104,13 +120,21 @@ export default function HeroMap({ buildings, hoods, land, flat = false, initialZ
           pickable: true,
           transitions: { getFillColor: 300 },
         }),
-    boroughLabels("boroughs", flat ? 0 : 2800),
+    boroughLabels("boroughs", (viewState.pitch ?? 0) > 5 ? 2800 : 0),
   ];
 
   return (
+    <>
     <DeckGL
       viewState={viewState}
-      onViewStateChange={({ viewState: v }) => setViewState(clampView(v as MapViewState, minZoom))}
+      onViewStateChange={({ viewState: v, interactionState }) => {
+        const next = clampView(v as MapViewState, minZoom);
+        // A drag or wheel (not an animation step) sets a new resting camera.
+        if (!interactionState?.inTransition) setTarget({ bearing: next.bearing ?? 0, pitch: next.pitch ?? 0 });
+        setViewState(next);
+      }}
+      // deck.gl measures the canvas before layout (300x150); re-render once it knows the real size.
+      onResize={() => setViewState((v) => ({ ...v }))}
       controller={flat ? { dragRotate: false, touchRotate: false } : { dragRotate: true }}
       layers={layers}
       effects={flat ? [] : [lighting]}
@@ -126,5 +150,7 @@ export default function HeroMap({ buildings, hoods, land, flat = false, initialZ
         if (o && onTap) onTap("top" in o ? o.top : o.idx);
       }}
     />
+    {!flat && <MapControls bearing={viewState.bearing ?? 0} pitch={shownTarget.pitch} targetBearing={shownTarget.bearing} onChange={animateTo} />}
+    </>
   );
 }
