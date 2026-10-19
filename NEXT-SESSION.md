@@ -43,25 +43,12 @@ cd pipeline
 ```
 Then `cd web && npm run build`, commit and push.
 
-## In progress when the session was cleared (2026-10-19)
-**Link Half-Life from the personal site.** The user approved this and said to keep building through the open items afterwards.
-- Project: `/Users/junaid/Developer/Claude Vibecoding/personal-site` (Astro 5, branch `main`, deploys junaidrbhatti.com). It has no NEXT-SESSION.md. An untracked `vercel.json` there is the user's; leave it alone.
-- Where: `src/pages/projects.astro`, where projects are TS objects (`{title, description, href?, linkText?}`).
-  - `current` holds in-progress items (Novig).
-  - `years` holds finished work under year headings.
-- Plan: add to the `2026` group, first entry:
-  - title `Half-Life`
-  - href `https://half-life-nyc.vercel.app`
-  - a one-line description in the site's plain, first-person voice, e.g. "An interactive atlas of every NYC restaurant, bar and café since 2012: which storefronts can't keep a tenant, how long places last, and whether the rent is worth the risk."
-- Then run `npm run build` in personal-site, check `/projects` with `npm run dev`, and commit and push. Ask before pushing, since that site is live. Also tick the item in that repo's `TODO.md` if relevant.
-- Nothing has been edited there yet.
-
 ## Open items (none started)
 - Send sections 02 and 04–07 to Claude Design for a polish pass (built in the design system, never drawn by the designer).
 - Dark mode (the handoff lists it as an open item).
 - Mobile map: no rotate/tilt controls (flat by design).
 - Optional data: Zagat/NY Mag archived menus (stages exist in `pipeline/menus_wayback.py`; never run). Foursquare releases after 2025-02 need an HF_TOKEN.
-- Link the site from the personal site (`~/Developer/Claude Vibecoding/personal-site`), or point a subdomain of junaidrbhatti.com at it.
+- Optional: point a subdomain of junaidrbhatti.com at the site. (It is already linked from junaidrbhatti.com/projects, pushed 2026-10-19.)
 - Offer the user a backup zip of `data/raw` (about 2.5 GB, not in git, some sources can't be re-downloaded).
 - Repo size: `web/public/data/places/` (48 MB) is rewritten on every export. Consider moving it to Vercel Blob or another static host if the repo gets heavy.
 
