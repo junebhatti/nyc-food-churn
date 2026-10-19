@@ -6,6 +6,9 @@ import { AmbientLight, DirectionalLight, LightingEffect } from "@deck.gl/core";
 import { PolygonLayer, SolidPolygonLayer, TextLayer } from "@deck.gl/layers";
 import { LAND, quadrantBlock, type Quadrant } from "@/lib/color";
 import type { RiskHood } from "@/lib/quadrants";
+import { boroughLabels, clampView, NYC_CENTER, outlineLayer } from "@/lib/mapView";
+import type { MapViewState } from "@deck.gl/core";
+import { useState } from "react";
 
 const lighting = new LightingEffect({
   ambient: new AmbientLight({ color: [255, 252, 245], intensity: 0.9 }),
@@ -40,8 +43,11 @@ export default function RiskMap({ rows, land, selected, filter, onSelect }: Prop
     return [{ position: [c[0], c[1], (sel.closure3y - minC) * 9000 + 300], text: sel.name.split("-")[0] }];
   }, [sel, minC]);
 
+  const [viewState, setViewState] = useState<MapViewState>({ ...NYC_CENTER, zoom: 9.3, pitch: 40, bearing: 0 });
+
   const layers = [
     new SolidPolygonLayer<GeoJSON.Position[][]>({ id: "land", data: landPolys, getPolygon: (p) => p as unknown as [number, number][][], getFillColor: LAND }),
+    outlineLayer("outline", landPolys),
     new PolygonLayer<Poly>({
       id: "hoods",
       data,
@@ -70,11 +76,13 @@ export default function RiskMap({ rows, land, selected, filter, onSelect }: Prop
       backgroundPadding: [4, 2],
       getPixelOffset: [0, -14],
     }),
+    boroughLabels("boroughs", 3300),
   ];
 
   return (
     <DeckGL
-      initialViewState={{ longitude: -73.93, latitude: 40.71, zoom: 9.2, pitch: 45, bearing: -20 }}
+      viewState={viewState}
+      onViewStateChange={({ viewState: v }) => setViewState(clampView(v as MapViewState, 8.8))}
       controller={{ scrollZoom: false }}
       layers={layers}
       effects={[lighting]}

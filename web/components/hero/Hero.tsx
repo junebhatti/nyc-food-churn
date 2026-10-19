@@ -43,7 +43,7 @@ export default function Hero({ summary, yearly }: Props) {
       hoods={hoods.data!}
       land={land.data!}
       flat={mobile === true}
-      initialZoom={mobile ? 8.75 : 10.2}
+      initialZoom={mobile ? 8.75 : 9.95}
       onHover={mobile ? undefined : setHover}
       onTap={mobile ? setTapped : undefined}
     />

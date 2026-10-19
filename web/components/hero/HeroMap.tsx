@@ -6,6 +6,7 @@ import { AmbientLight, DirectionalLight, LightingEffect, type MapViewState } fro
 import { ColumnLayer, SolidPolygonLayer } from "@deck.gl/layers";
 import { useAtlas } from "@/lib/store";
 import { hasCategory } from "@/lib/data";
+import { boroughLabels, clampView, landPolygons, NYC_CENTER, outlineLayer } from "@/lib/mapView";
 import { LAND } from "@/lib/color";
 import { buildingColor, hexBins, makeScale, rawValue, type Cell } from "@/lib/metrics";
 import type { Building, Neighborhood } from "@/lib/types";
@@ -37,13 +38,14 @@ interface Props {
 
 export default function HeroMap({ buildings, hoods, land, flat = false, initialZoom = 10.2, onHover, onTap }: Props) {
   const { year, view, category } = useAtlas();
+  // North-up like a printed map: Bronx at the top, Brooklyn and Queens to the right of Manhattan.
   const [viewState, setViewState] = useState<MapViewState>({
-    longitude: -73.935,
-    latitude: 40.705,
+    ...NYC_CENTER,
     zoom: initialZoom,
-    pitch: flat ? 0 : 48,
-    bearing: flat ? 0 : -20,
+    pitch: flat ? 0 : 40,
+    bearing: 0,
   });
+  const minZoom = initialZoom - 0.6; // can't zoom out past a little more than the whole city
 
   const scale = useMemo(() => makeScale(buildings, view, hoods), [buildings, view, hoods]);
   const value = useMemo(() => (b: Building) => scale(rawValue(b, view, hoods)), [scale, view, hoods]);
@@ -60,15 +62,7 @@ export default function HeroMap({ buildings, hoods, land, flat = false, initialZ
   }, [cells]);
 
   // Boroughs are MultiPolygons; the land plate wants one ring set per polygon.
-  const landPolys = useMemo(
-    () =>
-      land.features.flatMap((f) =>
-        f.geometry.type === "MultiPolygon"
-          ? (f.geometry as GeoJSON.MultiPolygon).coordinates
-          : [(f.geometry as GeoJSON.Polygon).coordinates],
-      ),
-    [land],
-  );
+  const landPolys = useMemo(() => landPolygons(land), [land]);
 
   const layers = [
     new SolidPolygonLayer<GeoJSON.Position[][]>({
@@ -78,6 +72,7 @@ export default function HeroMap({ buildings, hoods, land, flat = false, initialZ
       getFillColor: LAND,
       _full3d: false,
     }),
+    outlineLayer("outline", landPolys),
     showBuildings
       ? new ColumnLayer<Building>({
           id: "buildings",
@@ -109,19 +104,13 @@ export default function HeroMap({ buildings, hoods, land, flat = false, initialZ
           pickable: true,
           transitions: { getFillColor: 300 },
         }),
+    boroughLabels("boroughs", flat ? 0 : 2800),
   ];
 
   return (
     <DeckGL
       viewState={viewState}
-      onViewStateChange={({ viewState: v }) => {
-        // Drop width/height: the controller reports the canvas size from before layout (300x150),
-        // and keeping it in viewState renders the whole map at that size, stretched.
-        const next = { ...(v as MapViewState & { width?: number; height?: number }) };
-        delete next.width;
-        delete next.height;
-        setViewState(next);
-      }}
+      onViewStateChange={({ viewState: v }) => setViewState(clampView(v as MapViewState, minZoom))}
       controller={flat ? { dragRotate: false, touchRotate: false } : { dragRotate: true }}
       layers={layers}
       effects={flat ? [] : [lighting]}
