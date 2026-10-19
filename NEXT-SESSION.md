@@ -17,7 +17,7 @@ Data gathering is done. Every source has a note in `data/notes/`; start with `au
 - Ready-made analysis inputs: `data/raw/analysis_inputs/` (cuisine families, chains, operators, storefront history, rent by NTA-year, RRF design).
 
 ## Paused on purpose (resume these first, in parallel)
-1. **Menu download** (archive.org MenuPages): 16,390 of ~25,200 restaurants fetched, records verified clean. The tuning agent found **4 workers runs at ~4.6 pages/s with 0% errors** (vs 1.2/s with 1 worker). Resume with:
+1. **Menu download** (archive.org MenuPages): 16,439 of ~25,200 restaurants fetched, records verified clean. The tuning agent found **4 workers runs at ~4.6 pages/s with 0% errors** (vs 1.2/s with 1 worker). Resume with:
    `cd pipeline && ../.venv/bin/python -u menus_wayback.py fetch 0 4 >> ../data/raw/menus/archive_run.log 2>&1`
    That's ~35 min for the rest. Then the Zagat/NY Mag CDX + fetch stages (see data/notes/menus.md). Then rebuild the tiers:
    `.venv/bin/python pipeline/fetch_menus.py build tiers && .venv/bin/python pipeline/menus_guides.py build && .venv/bin/python pipeline/fetch_menus.py tiers`
