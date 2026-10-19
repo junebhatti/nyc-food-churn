@@ -50,7 +50,7 @@ Then `cd web && npm run build`, commit and push.
 - Mobile map: no rotate/tilt controls (flat by design).
 - Optional data: Zagat/NY Mag archived menus (stages exist in `pipeline/menus_wayback.py`; never run). Foursquare releases after 2025-02 need an HF_TOKEN.
 - Optional: point a subdomain of junaidrbhatti.com at the site. (It is already linked from junaidrbhatti.com/projects, pushed 2026-10-19.)
-- Offer the user a backup zip of `data/raw` (about 2.5 GB, not in git, some sources can't be re-downloaded).
+- Backup: `data/raw` (3.0 GB, 2,996 files) was zipped on 2026-10-19 to iCloud Drive `Backups/half-life-data-raw-2026-10-19.zip` (2.3 GB). `unzip -t` passed and the file counts match. Make a new one if raw data is added.
 - Repo size: decided 2026-10-19 to keep `web/public/data/places/` in git. It has been committed once and the whole `.git` is 22 MB because the JSON compresses well. Moving it to Blob would add a token, an upload step and a second service. Revisit if `.git` grows past a few hundred MB.
 
 ## Constraints
