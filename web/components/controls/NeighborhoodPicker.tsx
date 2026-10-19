@@ -15,7 +15,7 @@ export default function NeighborhoodPicker({ hoods, mobile = false }: { hoods: N
         value={nta ?? ""}
         onChange={(e) => setNta(e.target.value || null)}
         aria-label="Neighborhood"
-        className={`mono h-9 border border-ink bg-paper-raised px-2 text-[11px] ${mobile ? "h-11 flex-1" : "w-[210px]"} ${nta ? "border-2" : ""}`}
+        className={`mono h-9 border border-ink bg-paper-raised px-2 text-[11px] ${mobile ? "h-11 min-w-0 flex-1" : "w-[210px]"} ${nta ? "border-2" : ""}`}
       >
         <option value="">All of NYC</option>
         {options.map((h) => <option key={h.id} value={h.id}>{h.name} · {h.boro}</option>)}
