@@ -51,7 +51,7 @@ Then `cd web && npm run build`, commit and push.
 - Optional data: Zagat/NY Mag archived menus (stages exist in `pipeline/menus_wayback.py`; never run). Foursquare releases after 2025-02 need an HF_TOKEN.
 - Optional: point a subdomain of junaidrbhatti.com at the site. (It is already linked from junaidrbhatti.com/projects, pushed 2026-10-19.)
 - Offer the user a backup zip of `data/raw` (about 2.5 GB, not in git, some sources can't be re-downloaded).
-- Repo size: `web/public/data/places/` (48 MB) is rewritten on every export. Consider moving it to Vercel Blob or another static host if the repo gets heavy.
+- Repo size: decided 2026-10-19 to keep `web/public/data/places/` in git. It has been committed once and the whole `.git` is 22 MB because the JSON compresses well. Moving it to Blob would add a token, an upload step and a second service. Revisit if `.git` grows past a few hundred MB.
 
 ## Constraints
 - Raw data includes research-only sources (UCSD Google Local, the NYT reviews copy). Publish derived stats only, with credit. No review text or ratings on the site; link out instead.
