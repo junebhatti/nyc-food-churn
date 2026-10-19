@@ -108,6 +108,9 @@ def evening_share(rmap: pd.DataFrame, hourly_year: pd.DataFrame) -> pd.DataFrame
         for sat in _sample_saturdays(y):
             raw = _socrata_week(y, sat) if y in TS else _wayback_week(sat)
             w = _unit_week(raw, sat)
+            if w.entries.sum() < 20e6:  # partial/garbled week (e.g. 2015-11-14, 2018-03-17)
+                print(f"    week {sat.date()} dropped: only {w.entries.sum() / 1e6:.1f}M entries")
+                continue
             w["year"] = y
             frames.append(w)
     u = pd.concat(frames, ignore_index=True)

@@ -1,94 +1,102 @@
-# DOHMH gap filling (2014-08 → 2015-09 and 2017-08 → 2018-07)
+# DOHMH gap filling: extra copies
 
-Status 2026-10-18. Ten extra copies, all recovered from **GitHub git history** (blobs at old commit SHAs, one Git LFS object, R data files, one SQLite DB). They live in `data/raw/dohmh/extra/` (116 MB) and are registered in `manifest.csv` with ids `extra/<name>`. `pipeline/dohmh_extra.py` re-creates them; `dohmh_profile.py` then picks them up unchanged.
+Status 2026-10-18 (round 2). There are **25 extra copies** (10 from round 1, 15 from round 2) in `data/raw/dohmh/extra/` (301 MB), registered in `manifest.csv` as `extra/<name>`. `pipeline/dohmh_extra.py` re-creates them, and `dohmh_profile.py` picks them up unchanged. `dohmh_sources.py` now keeps `extra/` rows when it rewrites the manifest. `rdata` is installed in `.venv`.
 
-Re-running `dohmh_sources.py` drops the `extra/` manifest rows. Re-run `dohmh_extra.py` after it. The `.rda`/`.RData` converters need `rdata`, which is not in `.venv`; see the script docstring.
+**Partial and derived copies are presence evidence only.** A CAMIS missing from one of them does **not** mean it had closed. `dohmh_profile.py` treats every copy as a full snapshot, so closure logic should skip copies whose manifest `notes` start with PARTIAL or DERIVED.
 
-## Copies added
+## Copies
 
-| id | pull date | rows | CAMIS | kind |
+**Backward, before 2014-05.** Every copy here is new in round 2. They are old WebExtract files (coded boro/cuisine), transcoded from cp1252.
+
+| id | pull | rows | CAMIS | kind |
 |---|---|---|---|---|
-| gh_datacomputing_20141009 | 2014-10-09 | 531,420 | 25,369 | full WebExtract (coded boro/cuisine), from `Violations.rda` |
-| gh_akkaluzny_20141102 | 2014-11-02 | 167,180 | 24,513 | **derived**: one row per inspection, no violations |
-| gh_vsm1013_20150212 | 2015-02-12 | 44,633 | 10,134 | **partial**: only inspections dated 2014-11-01..2015-01-31 |
-| gh_bethannezink_20150301 | ≈2015-03-01 | 506,781 | 25,718 | full, but the source had **no CAMIS** (see below) |
-| gh_compjour_20150802 | 2015-08-02 | 492,964 | 25,371 | full; the source stored it as 58 per-month files, concatenated here |
-| gh_smach_20170605 | 2017-06-05 | 415,587 | 26,443 | full (bonus: falls inside the 04-21 → 08-28 gap) |
-| gh_ldgarber_20170908 | 2017-09-08 | 398,928 | 26,493 | full (Git LFS) |
-| gh_p8105_20171019 | 2017-10-19 | 397,584 | 26,639 | full (Columbia P8105 course copy, same as `p8105.datasets::rest_inspec`) |
-| gh_miguel75an_20180301 | 2018-03-01 | 115,048 | 23,717 | **partial**: about 30% of rows, but 89% of CAMIS |
-| gh_ccw2145_20180406 | 2018-04-06 | 375,307 | 26,371 | full (R data.frame) |
+| gh_ryankanno_20120706 | 2012-07-06 | 523,206 | 24,340 | full (BigApps zip) |
+| gh_ryankanno_20121019 | 2012-10-19 | 535,401 | 24,692 | full |
+| lehman_ptqi_20121129 | 2012-11-29 | 50,077 | 2,382 | PARTIAL: Bronx only |
+| lehman_gqhi_20130329 | ≈2013-03-29 | 24,275 | 24,275 | DERIVED: latest inspection per CAMIS |
+| gh_hmason_20130906 | 2013-09-06 | 544,563 | 25,060 | full |
+| gh_uncamy_20131121 | 2013-11-21 | 546,812 | 25,244 | full |
+| gh_munk_20140213 | 2014-02-13 | 538,930 | 25,213 | full |
+| gh_mrsnickers_20140320 | 2014-03-20 | 533,577 | 25,064 | full |
 
-**Partial and derived copies.** A CAMIS missing from a partial or derived copy does **not** mean it had closed. `dohmh_profile.py` treats every copy as a snapshot. So use `n_snapshots` and `last_snapshot` from these copies only as evidence that a restaurant was *present*.
+The `lehman_*` copies come from CUNY Lehman's Socrata portal, `bronx.lehman.cuny.edu`. It is still live and needs no Wayback. Their RECORDDATE was Excel-mangled, so it was set to the day after the latest inspection.
 
-**bethannezink CAMIS recovery.** The Rails app's SQLite DB keeps restaurant ids in the source CSV's row order, which is CAMIS order. CAMIS were assigned in two passes, checked against the 2014-08 through 2015-09 copies:
-1. Phone or name+zip candidates, scored by shared inspection dates. Each CAMIS was assigned to at most one restaurant (greedy).
-2. Position: the CAMIS must fall between the neighbouring restaurants' matched CAMIS.
+**2014-08 → 2015-09** (round 1, plus lehman_mt6q):
+- 2014-10-09 gh_datacomputing (full; 2,677 rows misaligned in the source `.rda` were dropped).
+- 2014-11-02 gh_akkaluzny (DERIVED, one row per inspection).
+- 2015-02-12 gh_vsm1013 (PARTIAL, inspections 2014-11..2015-01).
+- ≈2015-03-01 gh_bethannezink (full; CAMIS recovered by matching, 881 unmatched restaurants given synthetic `X<rowid>` ids).
+- **2015-07-05 lehman_mt6q** (PARTIAL: Bronx only, 2015 inspections; 2,697 rows, 1,715 CAMIS).
+- 2015-08-02 gh_compjour (full).
 
-Results:
-- 24,837 of 25,718 restaurants were matched.
-- The matched sequence is monotonic in 24,824 of 24,836 steps.
-- **881 restaurants got synthetic CAMIS `X<rowid>`:** 381 with real inspections and 500 never inspected. No free CAMIS exists in their range in any nearby copy, so they appear nowhere else. They are exactly the "opened and closed inside the gap" restaurants. Do not try to join them to other CAMIS-keyed data. The pull date 2015-03-01 is approximate: the latest inspection is 2015-02-27 and the commit is 2015-03-04.
+**2016** (new in round 2):
+- **2016-09-27 gh_residentmario:** DERIVED. Every CAMIS in the pull (26,064), each with its initial and latest inspection; 49,261 rows.
+- **≈2016-10-07 gh_tzstatsads_20161007:** DERIVED. A CAMIS list only, 25,981 rows, with no inspection dates. The pull was on or before the 2016-10-07 commit.
 
-## Effect on the union
+**2017-08 → 2018-07:**
+- From round 1: 2017-09-08 ldgarber, 2017-10-19 p8105, 2018-03-01 miguel75an (PARTIAL), 2018-04-06 ccw2145.
+- New: **2018-02-07 gh_tzstatsads_20180208**, full, 385,254 rows, 26,621 CAMIS. Columbia ADS spring-2018 `.xlsx`; Excel serial dates were converted.
 
-- Distinct CAMIS rose from 76,395 to **77,632**: 881 synthetic `X…` CAMIS plus about 356 real CAMIS never seen before.
-- (camis, inspection_date) rows rose from 628,166 to about 635,700.
-- `last_snapshot` became more precise for about 7,700 CAMIS, which were previously dated only to the far side of a gap.
+**2026-04 → 2026-10** (new): Wayback captures of the new Socrata **v3 export endpoint** (`api/v3/views/43nn-pn8j/export.*`), which the old CDX enumeration never queried:
+- 2026-06-04 xlsx: 296,912 rows, 31,188 CAMIS.
+- 2026-08-06 csv: 294,619 rows, 31,188 CAMIS.
+- 2026-09-24 xlsx: 294,950 rows, 31,335 CAMIS.
 
-**Gap 1: 2014-08-28 → 2015-09-07 (375 d) is now covered by:**
-- 2014-10-09
-- 2014-11-02 (derived)
-- 2015-02-12 (partial)
-- 2015-03-01
-- 2015-08-02
+Also kept from round 1: 2017-06-05 smach.
 
-The largest remaining hole is **154 d, 2015-03-01 → 2015-08-02**. Counting only full copies, the gaps are 42 / 143 / 154 / 36 d.
+## Union
 
-**Gap 2: 2017-08-28 → 2018-07-27 (333 d) is now covered by:**
-- 2017-09-08
-- 2017-10-19
-- 2018-03-01 (partial)
-- 2018-04-06
+The union has **85,138 distinct CAMIS**: 84,257 real 8-digit CAMIS plus 881 synthetic `X…` ids. Before round 1 it was 76,395, and after round 1 it was 77,632.
 
-The largest remaining hole is **133 d, 2017-10-19 → 2018-03-01**, or 169 d to 2018-04-06 counting only full copies. After that, 2018-04-06 → 2018-07-27 is 112 d.
+Round 2 adds about 7,500 CAMIS, almost all from the **backward** copies. Counting each CAMIS at its earliest new snapshot:
+- 2012-07-06: 6,341
+- 2012-10-19: 350
+- 2013-09-06: 303
+- 2013-03-29: 289
+- 2013-11-21: 64
+- 2014-02-13: 49
 
-Known quirk: DuckDB in `dohmh_profile.py` (strict_mode=false) silently reads 531,000 of the 531,420 rows in gh_datacomputing. Python's csv module parses all of them.
+These are restaurants that closed before the 2014-05 copy existed. The year 2010 rose from 1.9k to 16.1k CAMIS inspected, and 2011 from 14.9k to 21.2k.
 
-## Tried, nothing usable
+Duplicate check:
+- No two CAMIS collapse together after stripping leading zeros or `.0` suffixes.
+- Every non-`X` CAMIS is exactly 8 digits.
+- Round 2 found and removed 55 garbage "CAMIS", which were date strings coming from misaligned `.rda` rows.
 
-**GitHub, other repos and leads.** Repo search unauthenticated, about 4,000 repos across windowed queries; commit search, roughly 650 commits. Blobless clones and history listings of about 110 relevant repos. Rejected:
-- mariavasilkin 2014-09-16: no inspection date column.
-- mendoncakr WebExtract3 2014-09-22: Excel-mangled and redundant.
-- KevinW2020: duplicate of vsm1013.
-- official71: one-hot transformed, no CAMIS.
-- linearyuhan 2017-05-18: hashed ids.
-- michaelcwang2 2018-06-20: a 1 MB subset.
-- dariashifrina and jiehuan: no CAMIS or dates.
-- ccw2145 2018-04-01: redundant with 04-06.
-- ldgarber @81d9e8c: truncated.
+## Gap list now (consecutive snapshot dates; full copies only in brackets)
 
-**Search services:**
-- **grep.app:** blocked by a Vercel bot checkpoint, which I did not bypass.
-- **Sourcegraph:** only popular repos are indexed. It surfaced smach/R4JournalismBook (used) and PacktPublishing (aggregated, unusable).
+- 2016-04-07 → 2016-09-27: **173 d**. Was 246 d; 09-27 and 10-07 are derived.
+- 2013-03-29 → 2013-09-06: 161 d (the backward range is new).
+- 2015-03-01 → 2015-08-02: [154 d]. 07-05 is Bronx-only.
+- 2017-10-19 → 2018-02-07: **111 d** (was 133/169 d). Then 2018-04-06 → 2018-07-27: 112 d.
+- 2026-04-02 → 2026-10-16: was 197 d; now **63 / 63 / 49 / 22 d**.
+- Overall, the largest gaps are now 205 d (2020-11 → 2021-05, when no inspections happened), 174 d (2021-09 → 2022-03) and 173 d (2018-11 → 2019-05 and 2016-04 → 09).
 
-**Kaggle.** The list API has about 310 datasets. Range-peeked the zips of the unchecked NYC ones: tikummacmillianngu (311 data, 2024), yunyiaveryliu (2019+ subset), chuklook (2022), shivanielakurthy (2021). Nothing has a pull date in the windows. Kaggle datasets start in 2016.
+## Bars (NY State Liquor Authority)
 
-**Data repositories:**
-- Zenodo: the API errored.
-- figshare: only a 2016 PLOS paper's figures.
-- Harvard Dataverse, Hugging Face, OSF: nothing.
-- archive.org item search: noise.
+`data/raw/gov/extra/sla_bars_nyc_20160219.csv.gz` holds 6,659 NYC ON-PREMISES LIQUOR rows from hrvs-fxs2 (the quarterly active-licence list), as extracted around 2016-02 by a Columbia ADS project. It keeps the original issue, effective and expiration dates. It predates the 2017-04 Wayback copy, but it is **not** a 2011–2014 list.
 
-**data.world snapshots on archive.org (15,318 items).** File-name scan reached only agents a…an before I stopped it. Hits so far are non-NYC: Austin, Anchorage, FDA. The scan can be resumed with the `dw.py` logic: grep each item's `/metadata/<id>/files`.
+No 2011–2014 SLA list found:
+- data.ny.gov Wayback captures for hrvs-fxs2, i594 and wzgj start in 2017. The large 2011–16 data.ny.gov exports on Wayback are all PDFs.
+- Kaggle's NYS SLA datasets are 2017 or later.
+- The GitHub code-search hits are 2016 or later.
 
-**Common Crawl index:** CC-MAIN-2014-41 … 2018-26, prefix queries on `api/views/43nn-pn8j/`, `resource/43nn-pn8j`, and `nycopendata.socrata.com`. Nearly every request returned 502/504. The one answer was an xx67-kt59 attachment. CC also truncates bodies at about 1 MB, so it is low-value anyway.
+## Tried, nothing (round 2)
 
-**Wayback CDX:** nyc.gov `html/doh/downloads/` (PDFs only) and Yelp `healthscores` feeds (IA was offline).
+- **GitHub code search (token):** 50 filename, header-string and content queries. It does not index files over 384 KB, so it mainly surfaced repos that *read* the CSV.
+- **History walks:** blobless-clone history walks of about 1,100 repos found via code search, repo search (2011–14, 2015, 2016 windows) and course orgs (TZstatsADS 2016, P8105, nycdatasci, stat4701, NYUDataBootcamp). Rejected:
+  - ipeirotis 2017-10-30 and stat4701 2014-04-17: too close to existing copies.
+  - hmason 2013-09-13: duplicate.
+  - agabardo / MongoDB primer JSON: ~2015-01, attribute-only.
+  - bkleyn: Excel-edited.
+  - dtkaplan: same as DataComputing.
+  - nycdatasci bootcamps: only small subsets.
+- **P8105:** `p8105.datasets` has only the 2017-10 data (2018 commits) and a 2025 refresh.
+- **Common Crawl index:** every query in two sessions returned 502/504 (a 30 s-timeout retry also failed). Recorded as **unavailable**.
+- **data.world snapshots on archive.org:** file-name scan reached about 4,100 of 15,318 items (agents a…fns), with one client. The only NYC hit is the city-of-ny item already used. Resume after `data-world-snapshot-20260713-agent-fns`.
 
-## Leads not yet exhausted
+## Next leads
 
-- Authenticated GitHub code search (`gh` CLI with a token) for `CAMIS,DBA,BORO` and `RECORD DATE` in 2015-03..07 and 2017-11..2018-03 commits.
-- Finish the data.world snapshot scan.
-- Columbia EDAV spring 2018 and NYC Data Science Academy 2015 student repos (bootcamp blog posts link GitHub).
-- Retry Common Crawl when the index is up.
+- Finish the data.world scan.
+- Watch the v3 export endpoint on Wayback: CDX shows captures only from 2026-06 onward.
+- More Columbia ADS / EDAV semesters (Spring 2017, Fall 2017).

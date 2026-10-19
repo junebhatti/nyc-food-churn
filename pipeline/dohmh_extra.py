@@ -90,7 +90,7 @@ SOURCES = [
     ("gh_datacomputing_20141009", "GitHub DataComputing/RestaurantsNYC @f7341d7 (data/Violations.rda)",
      [f"{GH}/DataComputing/RestaurantsNYC/f7341d73d450540fdb1f08612dfeca861665e6e9/data/Violations.rda"],
      "rda_violations", "webextract",
-     "FULL WebExtract pull (boro/cuisine coded); dates were POSIXct, converted to UTC dates"),
+     "FULL WebExtract pull (boro/cuisine coded); dates were POSIXct, converted to UTC dates; 2,677 rows misaligned in the .rda dropped"),
     ("gh_akkaluzny_20141102", "GitHub akkaluzny/nyc_health @09b15ac (data/inspectionData.csv + restaurantData.csv)",
      [f"{GH}/akkaluzny/nyc_health/09b15ac901932e0820951cbca2543c9e5aa90367/data/inspectionData.csv",
       f"{GH}/akkaluzny/nyc_health/09b15ac901932e0820951cbca2543c9e5aa90367/data/restaurantData.csv"],
@@ -129,6 +129,16 @@ SOURCES = [
 ]
 
 
+# Old NYS Liquor Authority list extracts (not DOHMH) -> data/raw/gov/extra/, raw bytes gzipped.
+GOV_OUT = ROOT / "data/raw/gov/extra"
+GOV_SOURCES = [
+    ("sla_bars_nyc_20160219",
+     f"{GH}/TZstatsADS/Spr2016-Proj2-Grp7/7ee9cc75687e3fe02c1e8bb1cdf3d23cfae1f152/output/nyc_bars.csv",
+     "hrvs-fxs2 'Quarterly List of Active Licenses' rows for NYC bar-type licenses, extracted ~2016-02 "
+     "by a Columbia ADS student project; subset of license types"),
+]
+
+
 def fetch(url: str, dest: Path) -> None:
     for attempt in range(4):
         try:
@@ -150,7 +160,7 @@ def fetch(url: str, dest: Path) -> None:
 
 def write_rows(dest: Path, header: list[str], rows) -> None:
     with gzip.open(dest, "wt", newline="", encoding="utf-8") as fh:
-        w = csv.writer(fh)
+        w = csv.writer(fh, quoting=csv.QUOTE_ALL)  # unambiguous for DuckDB's sniffer
         w.writerow(header)
         w.writerows(rows)
 
@@ -174,9 +184,14 @@ def conv_rda_violations(src: list[Path], dest: Path) -> None:
     df = read_r(src[0])["Violations"]
     for c in ("INSPDATE", "GRADEDATE", "RECORDDATE"):
         df[c] = df[c].map(epoch_date)
-    df["PHONE"] = df["PHONE"].astype(str).replace("2147483647", "")  # R int overflow sentinel
+    df["PHONE"] = df["PHONE"].astype(str).replace({"2147483647": "", "<NA>": "", "nan": ""})  # R int overflow sentinel
+    # The .rda was read into R from a CSV with stray quotes, so some rows are shifted; drop them.
+    ok = df["CAMIS"].astype(str).str.fullmatch(r"\d+")
+    print(f"  dropping {int((~ok).sum())} misaligned rows (non-numeric CAMIS) from the .rda", file=sys.stderr)
+    df = df[ok]
+    # QUOTE_ALL: DBA values starting with ' make DuckDB's sniffer (strict_mode=false) drop rows
     with gzip.open(dest, "wt", newline="", encoding="utf-8") as fh:
-        df.to_csv(fh, index=False)
+        df.to_csv(fh, index=False, quoting=csv.QUOTE_ALL)
 
 
 def conv_rdata_ccw2145(src: list[Path], dest: Path) -> None:
@@ -329,7 +344,8 @@ def conv_csv_rec(src: list[Path], dest: Path, rec: str) -> None:
         r = csv.reader(fh)
         header = next(r)
         i = next(k for k, h in enumerate(header) if re.sub(r"[^a-z]", "", h.lower()) == "recorddate")
-        write_rows(dest, header, (row[:i] + [rec] + row[i + 1:] for row in r))
+        # the Lehman exports contain junk header-template rows (CAMIS == "CAMIS"); keep numeric CAMIS only
+        write_rows(dest, header, (row[:i] + [rec] + row[i + 1:] for row in r if row and row[0].strip().isdigit()))
 
 
 def conv_flattened(src: list[Path], dest: Path) -> None:
@@ -393,8 +409,11 @@ def conv_sqlite_bethannezink(src: list[Path], dest: Path) -> None:
         cols = {re.sub(r"[^a-z]", "", c.lower()): c for c in
                 d.execute(f"SELECT * FROM read_csv('{p}', {opts}) LIMIT 0").fetchdf().columns}
         idate = cols.get("inspectiondate") or cols.get("inspdate")
-        parts.append(f"""SELECT "{cols['camis']}" camis, "{cols['dba']}" dba, "{cols['phone']}" phone,
-            "{cols['zipcode']}" zipcode, "{cols['building']}" building,
+        q = {k: f'"{cols[k]}"' if k in cols else "NULL" for k in ("camis", "dba", "phone", "zipcode", "building")}
+        if not idate or "camis" not in cols:
+            continue
+        parts.append(f"""SELECT {q['camis']} camis, {q['dba']} dba, {q['phone']} phone,
+            {q['zipcode']}::varchar zipcode, {q['building']}::varchar building,
             coalesce(try_strptime("{idate}", '%m/%d/%Y')::date, try_strptime(left("{idate}",10), '%Y-%m-%d')::date)::varchar d
             FROM read_csv('{p}', {opts})""")
     ref = d.execute(" UNION ALL ".join(parts)).fetchall()
@@ -527,6 +546,16 @@ def main(only: list[str]) -> None:
             tmp.rename(dest)
         print(f"  wrote {dest.name} ({dest.stat().st_size:,} bytes)")
     register()
+    GOV_OUT.mkdir(parents=True, exist_ok=True)
+    for name, url, note in GOV_SOURCES:
+        dest = GOV_OUT / f"{name}.csv.gz"
+        if (only and name not in only) or dest.exists():
+            continue
+        with tempfile.TemporaryDirectory() as td:
+            p = Path(td) / "src.csv"
+            fetch(url, p)
+            conv_csv([p], dest)
+        print(f"  wrote gov/extra/{dest.name} ({dest.stat().st_size:,} bytes): {note}")
 
 
 if __name__ == "__main__":

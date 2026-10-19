@@ -21,7 +21,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 import pandas as pd
 
-from menus_common import OUT, Gone, get
+from menus_common import OUT, Gone, get, read_done, stats_line
 
 WB = OUT / "_wayback"
 CDX_API = "https://web.archive.org/cdx/search/cdx"
@@ -68,7 +68,7 @@ def cdx(site: str, start: int = 0) -> None:
     base = {"url": SITES[site]["url"], "matchType": "prefix"}
     n = int(get(CDX_API, params={**base, "showNumPages": "true"}).text.strip())
     print(f"{site} CDX: {n} pages", flush=True)
-    for attempt in range(4):
+    for attempt in range(8):
         missing = [p for p in list(range(start, n)) + list(range(start))
                    if not (d / f"p{p:03d}.txt").exists()]
         if not missing:
@@ -77,7 +77,7 @@ def cdx(site: str, start: int = 0) -> None:
             if (d / f"p{p:03d}.txt").exists():
                 continue
             try:
-                r = get(CDX_API, timeout=600, tries=3, params={
+                r = get(CDX_API, timeout=600, tries=5, params={
                     **base, "filter": "statuscode:200", "fl": "urlkey,timestamp,original", "page": p})
             except RuntimeError as e:
                 print(f"  page {p} FAILED this pass: {e}", flush=True)
@@ -112,10 +112,7 @@ _lock = threading.Lock()
 
 def fetch(site: str, workers: int = 2) -> None:
     out, bad = WB / f"{site}_parsed.jsonl", WB / f"{site}_failed.jsonl"
-    done = set()
-    for f in (out, bad):
-        if f.exists():
-            done.update(json.loads(l)["slug"] for l in open(f) if l.strip())
+    done = read_done(out, bad)
     todo = select(site)
     todo = todo[~todo.slug.isin(done)]
     print(f"{site} fetch: {len(done):,} done, {len(todo):,} to go", flush=True)
@@ -134,7 +131,7 @@ def fetch(site: str, workers: int = 2) -> None:
     with ThreadPoolExecutor(workers) as ex:
         for i, _ in enumerate(ex.map(one, todo.itertuples(index=False)), 1):
             if i % 200 == 0:
-                print(f"  {i:,}/{len(todo):,} {i / (time.time() - t0):.2f}/s", flush=True)
+                print(f"  {i:,}/{len(todo):,} {i / (time.time() - t0):.2f}/s {stats_line()}", flush=True)
 
 
 def build() -> pd.DataFrame:

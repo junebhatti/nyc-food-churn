@@ -21,7 +21,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from menus_common import OUT, Gone, get
+from menus_common import OUT, Gone, get, read_done, stats_line
 from menus_parse import parse_page
 
 WB = OUT / "_wayback"
@@ -38,7 +38,7 @@ def cdx(start: int = 0) -> None:
     base = {"url": "menupages.com/restaurants/", "matchType": "prefix"}
     n = int(get(CDX_API, params={**base, "showNumPages": "true"}).text.strip())
     print(f"CDX: {n} pages", flush=True)
-    for attempt in range(4):  # passes; a page that keeps failing is retried next pass
+    for attempt in range(8):  # passes; a page that keeps failing is retried next pass
         order = list(range(start, n)) + list(range(start))
         missing = [p for p in order if not (CDX_DIR / f"p{p:03d}.txt").exists()]
         if not missing:
@@ -48,7 +48,7 @@ def cdx(start: int = 0) -> None:
             if (CDX_DIR / f"p{p:03d}.txt").exists():  # another worker got it
                 continue
             try:
-                r = get(CDX_API, timeout=600, tries=3,
+                r = get(CDX_API, timeout=600, tries=5,
                         params={**base, "filter": "statuscode:200",
                                 "fl": "urlkey,timestamp,original,length", "page": p})
             except RuntimeError as e:
@@ -113,12 +113,7 @@ def _fetch_one(row) -> None:
 
 
 def done_slugs() -> set[str]:
-    s = set()
-    for f in (PARSED, FAILED):
-        if f.exists():
-            with open(f) as fh:
-                s.update(json.loads(l)["slug"] for l in fh if l.strip())
-    return s
+    return read_done(PARSED, FAILED)
 
 
 def fetch(limit: int | None = None, workers: int = 3) -> None:
@@ -132,7 +127,8 @@ def fetch(limit: int | None = None, workers: int = 3) -> None:
     with ThreadPoolExecutor(workers) as ex:
         for i, _ in enumerate(ex.map(_fetch_one, todo.itertuples(index=False)), 1):
             if i % 200 == 0:
-                print(f"  {i:,}/{len(todo):,}  {i / (time.time() - t0):.2f}/s", flush=True)
+                print(f"  {i:,}/{len(todo):,}  {i / (time.time() - t0):.2f}/s {stats_line()}",
+                      flush=True)
 
 
 def load_parsed() -> list[dict]:

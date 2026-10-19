@@ -28,7 +28,9 @@ Socrata dataset `43nn-pn8j` only holds restaurants that are **active** on the pu
 | `pipeline/fetch_dohmh.py [id ...]` | Downloads missing files only. Runs sequentially, retries with backoff, waits 4 s between requests. |
 | `pipeline/dohmh_profile.py` | Fills the manifest stats, builds the union, prints coverage and gaps. |
 
-The `cran_mdsr_20160106` copy needs the pure-python `rdata` package. It is not in `.venv`. I fetched it with a scratch venv: `pip install rdata requests`.
+The `cran_mdsr_20160106` copy and several `extra/` copies need the pure-python `rdata` package, which is installed in `.venv`.
+
+**Extra copies.** 25 more copies from GitHub history, the CUNY Lehman Socrata mirror and Wayback captures of the Socrata v3 export live in `extra/` as `extra/<name>`. They reach back to 2012-07 and fill most of the old gaps. Some are PARTIAL or DERIVED. See `dohmh_gaps.md`, which is the current source for copies and gaps.
 
 **Wayback quirk:** many `https://…id_/` captures 302-loop between neighbouring timestamps. Requesting the `http://` spelling of the original URL plays the capture back. The fetcher tries both spellings, then plain replay, and rejects any redirect to a different timestamp.
 
@@ -63,45 +65,42 @@ Lat/lng, BBL and BIN are present only in copies from 2019-10 onward. 20,277 CAMI
 
 ## Union coverage
 
-There are **76,395 distinct CAMIS** in the union. The live dataset alone has 31,554, and nyc-cuisine-atlas, which uses Wayback only, had about 63k.
+There are **85,138 distinct CAMIS** in the union: 84,257 real CAMIS plus 881 synthetic `X…` ids from the bethannezink copy. Before the extra copies there were 76,395. The live dataset alone has 31,554, and nyc-cuisine-atlas, which uses Wayback only, had about 63k.
 
 | year | CAMIS inspected | inspection-days |
 |---|---|---|
-| 2010 | 1,900 | 2,625 |
-| 2011 | 14,925 | 40,405 |
-| 2012 | 18,408 | 46,171 |
-| 2013 | 22,252 | 55,202 |
-| 2014 | 25,343 | 57,567 |
-| 2015 | 24,535 | 53,380 |
-| 2016 | 24,624 | 45,592 |
-| 2017 | 23,676 | 40,364 |
-| 2018 | 25,798 | 52,072 |
-| 2019 | 25,921 | 51,686 |
+| 2010 | 16,129 | 34,221 |
+| 2011 | 21,191 | 62,588 |
+| 2012 | 24,193 | 60,883 |
+| 2013 | 25,028 | 61,348 |
+| 2014 | 26,027 | 59,829 |
+| 2015 | 25,083 | 54,174 |
+| 2016 | 24,768 | 45,840 |
+| 2017 | 23,918 | 41,345 |
+| 2018 | 26,089 | 52,450 |
+| 2019 | 25,921 | 51,688 |
 | 2020 | 8,849 | 10,143 |
 | 2021 | 6,667 | 7,738 |
 | 2022 | 20,935 | 27,765 |
 | 2023 | 20,269 | 25,169 |
 | 2024 | 21,043 | 27,293 |
 | 2025 | 19,417 | 26,798 |
-| 2026 | 17,657 | 22,455 |
+| 2026 | 17,702 | 22,520 |
 
 How to read the edges and the dip:
-- **2010–2011 are partial.** The earliest copy is from 2014-05, and copies keep only about 3 years of history.
+- **2010 is still partial.** The earliest copy is now from 2012-07, and copies keep only about 3 years of history.
 - **2020–2021 is real, not missing data.** Inspections stopped in mid-March 2020 and did not resume at scale until July 2021. Monthly counts from 2020-04 to 2021-06 are in single or double digits. Inspection activity cannot date closures in that window.
 - **2022 onward is about 20k a year** against about 25k a year in 2018–19. This looks like a lower post-COVID inspection frequency, not missing restaurants, because copies there are dense.
 
 ## Remaining gaps
 
-These are the longest stretches between consecutive pulls. A restaurant that opened and closed entirely inside one is invisible.
-- **375 d, 2014-08-28 → 2015-09-07: largest, unfilled.**
-- **333 d, 2017-08-28 → 2018-07-27: unfilled.**
-- 246 d, 2016-04-07 → 2016-12-09
-- 205 d, 2020-11-05 → 2021-05-29. This one is mostly harmless because no inspections took place.
-- 197 d, 2026-04-02 → 2026-10-16
+See `dohmh_gaps.md`. The largest gaps between consecutive pulls are now:
+- 205 d, 2020-11-05 → 2021-05-29. No inspections took place in this window.
 - 174 d, 2021-09-30 → 2022-03-23
 - 173 d, 2018-11-20 → 2019-05-12
+- 173 d, 2016-04-07 → 2016-09-27. The 09-27 copy is derived.
 
-Everything else is 162 days or less. Nothing exists before 2014-05, so restaurants that closed before about 2011 are absent.
+Nothing exists before 2012-07.
 
 ## What I tried
 

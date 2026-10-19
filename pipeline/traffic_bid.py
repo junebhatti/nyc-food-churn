@@ -116,34 +116,36 @@ def _gda_sources() -> dict[tuple[int, int], str]:
 
 
 def _gda_parse(txt: str, url: str) -> list[dict]:
+    """Handles the Springboard (2016-18) and MRI OnLocation (2019+) layouts."""
     m = re.search(r"(\d{2} \w{3} \d{4}) - (\d{2} \w{3} \d{4})", txt)
-    if not m:
+    if m:
+        start, end = (datetime.strptime(x, "%d %b %Y").date() for x in m.groups())
+    elif (m := re.search(r"(\d{2}/\d{2}/\d{4}) to (\d{2}/\d{2}/\d{4})", txt)):
+        start, end = (datetime.strptime(x, "%m/%d/%Y").date() for x in m.groups())
+    else:
         return []
-    start, end = (datetime.strptime(x, "%d %b %Y").date() for x in m.groups())
-    out = []
-    tot = re.search(r"in week commencing [^\n]*? was (" + NUM + ")", txt)
+    bid, out, seen = "Garment District Alliance", [], set()
+    tot = re.search(rf"week commencing [^\n]*? was ({NUM})", txt)
     if tot:
-        out.append(_row("Garment District Alliance", "District total", GDA_CENTROID,
-                        "bid_centroid", start, end, "weekly", _num(tot[1]), "pedestrians", url))
-    daily = re.search(r"Mon Tue Wed Thu Fri Sat Sun\s*\n\s*totals\s*\n((?:" + NUM + r")(?: (?:"
-                      + NUM + r")){7})", txt)
+        out.append(_row(bid, "District total", GDA_CENTROID, "bid_centroid", start, end,
+                        "weekly", _num(tot[1]), "pedestrians", url))
+    daily = re.search(rf"^((?:{NUM}) (?:(?:{NUM}) ){{6}}(?:{NUM}))$", txt, re.M)
     if daily:
         vals = [_num(v) for v in daily[1].split()]
-        if not tot or vals[7] == _num(tot[1]):  # sanity: daily row is this week's
+        if tot and vals[7] == _num(tot[1]):  # sanity: this is the current-week row
             for i, v in enumerate(vals[:7]):
                 d = start + timedelta(days=i)
-                out.append(_row("Garment District Alliance", "District total", GDA_CENTROID,
-                                "bid_centroid", d, d, "daily", v, "pedestrians", url))
-    sec = txt.split("Ped Counts by location", 1)
-    if len(sec) == 2:
-        for line in sec[1].split("Footfall Report")[0].splitlines():
-            lm = re.match(r"^(.+?) (" + NUM + r") -?[\d.]+% ", line)
-            if lm and not re.match(r"^(This|Previous|week|of total)", lm[1]):
-                name = lm[1].strip()
-                ll = next((c for pat, c in GDA_ZONES if re.search(pat, name)), None)
-                out.append(_row("Garment District Alliance", name, ll or GDA_CENTROID,
-                                "intersection_approx" if ll else "bid_centroid",
-                                start, end, "weekly", _num(lm[2]), "pedestrians", url))
+                out.append(_row(bid, "District total", GDA_CENTROID, "bid_centroid", d, d,
+                                "daily", v, "pedestrians", url))
+    # Zone rows: "<name> <this week> ..." where the name ends in a corner, street no. or "Zone".
+    for name, v in re.findall(rf"^(.+?(?: [NSEW]{{2}}| at \d{{4}}| Zone)) ({NUM}) .*%", txt, re.M):
+        if name in seen:  # 2021+ reports repeat the table vs 2019 on later pages
+            continue
+        seen.add(name)
+        ll = next((c for pat, c in GDA_ZONES if re.search(pat, name)), None)
+        out.append(_row(bid, name, ll or GDA_CENTROID,
+                        "intersection_approx" if ll else "bid_centroid",
+                        start, end, "weekly", _num(v), "pedestrians", url))
     return out
 
 

@@ -60,8 +60,9 @@ def _routes(s: str, division: str = "") -> set:
 
 # hand-checked: routes changed since (F->M on 63 St line) or names too abbreviated; None = not a
 # subway station (airport/bus/tourist-booth MetroCard units)
-OVERRIDE = {"R303": "221", "R259": "222", "R095": "1", "R083": "14", "R081": "10", "R536": None, "R537": None, "R538": None,
-            "R410": None, "R459": None, "R526": None}
+OVERRIDE = {"R303": "221", "R259": "222", "R095": "1", "R083": "14", "R081": "10",
+            "R468": "TRAM1", "R469": "TRAM2",
+            "R536": None, "R537": None, "R538": None, "R410": None, "R459": None, "R526": None}
 
 GENERIC = {"ST", "AV", "RD", "BLVD", "PL", "PKWY", "SQ", "STATION", "HTS", "PARK", "AND", "N", "S",
            "E", "W"}
@@ -82,7 +83,7 @@ def remote_to_complex(cx: pd.DataFrame) -> pd.DataFrame:
     units = pd.concat([soql(D, ds, select=f"unit, station, {ln} as line_name, division, count(*) as n",
                             group=f"unit, station, {ln}, division", order="unit")
                        for ds, ln in TURNSTILE.values()])
-    units = units[~units.division.isin(["PTH", "RIT"])]  # PATH, tram
+    units = units[units.division != "PTH"]  # PATH
     units["n"] = units.n.astype(int)
     st = soql(D, "39hk-dx4f", select="complex_id, stop_name, daytime_routes, division")
     grp = st.groupby("complex_id").agg(

@@ -1,32 +1,36 @@
-"""NYC TLC trip records -> pickups/dropoffs per taxi zone per year, with evening/night shares.
+"""NYC TLC trips -> pickups/dropoffs per taxi zone per year, with evening/night shares.
 
-duckdb reads the public monthly parquet files remotely (HTTP range requests, only the time and
-location columns) and aggregates; no raw trips are stored. All months are read (not sampled).
-Services: yellow 2011+, green 2013-08+, fhv 2015+ (non-high-volume bases; before 2019-02 also
-Uber/Lyft), fhvhv 2019-02+ (Uber, Lyft, Via, Juno).
-TLC has back-filled LocationIDs into the 2011-2016 yellow files, so no lat/lon->zone step is
-needed for 2011+ (only 2009-2010 files still carry coordinates; they are outside the panel).
-FHV files before 2019 mostly lack dropoff zones; for those, pickups stand in for dropoffs.
+Sources (no raw trips are stored):
+  1. Yellow 2011+: the public monthly parquet files on CloudFront, read remotely with duckdb
+     (only time + zone columns). SAMPLED: Jan, Apr, Jul, Oct (annual = 4 months x 3). TLC has
+     back-filled zone IDs into the 2011-16 yellow files, so no lat/lon->zone step is needed
+     (only 2009-10 still carry coordinates; outside the panel). Reading many files got this
+     client blocked by CloudFront (HTTP 403, >1 h), so reads are sequential with pauses.
+  2. Yellow, green and HVFHV (Uber/Lyft/Via) 2019+: TLC's monthly zone counts on NYC Open Data
+     (c5iv-bn4s), every month. Totals come from here; yellow's evening/night shares from (1).
+  3. FHV 2015-2018 (Uber/Lyft before the high-volume category): yearly NYC Open Data trip
+     tables aggregated server-side, all weeks. Pickup zone only, used as the dropoff proxy.
+Not covered: green 2013-2018 (about 1-2% of trips citywide, more in upper Manhattan / outer
+boroughs), non-high-volume FHV 2019+ (black cars, liveries; a few % of trips).
 
 Outputs (data/raw/traffic/):
-  tlc_zone_year.parquet: zone, year, service, pickups, dropoffs, do_wkdy_eve (Mon-Fri 17-22h),
-      do_night (any day 20:00-03:59), months, do_proxy ('dropoff' or 'pickup')
-  tlc_zone_tract_weights.parquet: zone, geoid, w (share of the zone's land area in the tract)
+  tlc_zone_year.parquet: zone, year, service, source, dropoffs, pickups (annual estimates),
+      do_wkdy_eve (Mon-Fri 17-22h) and do_night (any day 20:00-03:59), NaN where no hourly data,
+      months (months observed), do_proxy ('dropoff' or 'pickup')
+  tlc_zone_tract_weights.parquet: zone_id, zone_name, geoid, w (share of zone area in tract)
 """
 from __future__ import annotations
 
-import io
 import time
-import zipfile
 
 import duckdb
 import pandas as pd
 
-from traffic_common import METRIC_CRS, TMP, get, save, tracts
+import traffic_tlc_socrata
+from traffic_common import METRIC_CRS, TMP, save, tracts
 
 BASE = "https://d37ci6vzurychx.cloudfront.net/trip-data/{s}_tripdata_{y}-{m:02d}.parquet"
-ZONES = "https://d37ci6vzurychx.cloudfront.net/misc/taxi_zones.zip"
-START = {"yellow": (2011, 1), "green": (2013, 8), "fhv": (2015, 1), "fhvhv": (2019, 2)}
+MONTHS = (1, 4, 7, 10)
 
 
 def _cols(con, url: str) -> tuple[str, str, str, str]:
@@ -60,63 +64,89 @@ def _month(con, s: str, y: int, m: int) -> pd.DataFrame:
     return df
 
 
+def _month_retry(con, s: str, y: int, m: int, tries: int = 6) -> pd.DataFrame:
+    for i in range(tries):
+        try:
+            cached = (TMP / "tlc" / f"{s}_{y}{m:02d}.parquet").exists()
+            df = _month(con, s, y, m)
+            if not cached:
+                time.sleep(20)  # be polite to CloudFront
+            return df
+        except duckdb.HTTPException as e:
+            if i == tries - 1:
+                raise
+            print(f"  {s} {y}-{m:02d}: {str(e)[:90]} -> retry in {600 * (i + 1)} s", flush=True)
+            time.sleep(600 * (i + 1))
+
+
 def zone_tract_weights() -> pd.DataFrame:
     import geopandas as gpd
-    z = zipfile.ZipFile(io.BytesIO(get(ZONES).content))
-    d = TMP / "taxi_zones"
-    z.extractall(d)
-    shp = next(d.rglob("*.shp"))
-    zones = gpd.read_file(shp).to_crs(METRIC_CRS)[["LocationID", "zone", "borough", "geometry"]]
+    zones = traffic_tlc_socrata.zones().to_crs(METRIC_CRS)
     t = tracts().to_crs(METRIC_CRS)[["geoid", "geometry"]]
     ov = gpd.overlay(zones, t, how="intersection", keep_geom_type=True)
     ov["a"] = ov.geometry.area
-    ov["w"] = ov.a / ov.groupby("LocationID").a.transform("sum")
-    out = ov[["LocationID", "zone", "geoid", "w"]].rename(columns={"LocationID": "zone_id",
+    ov["w"] = ov.a / ov.groupby("locationid").a.transform("sum")
+    out = ov[["locationid", "zone", "geoid", "w"]].rename(columns={"locationid": "zone_id",
                                                                    "zone": "zone_name"})
     out = out[out.w > 1e-4]
-    save(out, "tlc_zone_tract_weights", source=ZONES,
-         note="area share of each taxi zone in each 2020 tract (zone geometry clipped to tracts)")
+    save(out, "tlc_zone_tract_weights", source="data.cityofnewyork.us 8meu-9t5y",
+         note="area share of each taxi zone in each 2020 tract")
     return out
+
+
+def _shares(df: pd.DataFrame, weekday) -> pd.DataFrame:
+    """Per zone-year: share of trips Mon-Fri 17-22h and 20:00-03:59 (df has dow, hour, n)."""
+    eve = df.n.where(weekday & df.hour.between(17, 22), 0)
+    night = df.n.where((df.hour >= 20) | (df.hour <= 3), 0)
+    g = df.assign(eve=eve, night=night).groupby(["zone", "year"])[["n", "eve", "night"]].sum()
+    return pd.DataFrame({"eve_share": g.eve / g.n, "night_share": g.night / g.n}).reset_index()
 
 
 def run() -> pd.DataFrame:
     con = duckdb.connect()
-    con.execute("install httpfs; load httpfs; set enable_progress_bar=false")
+    # few concurrent range requests: CloudFront blocks bursty clients for a while (HTTP 403)
+    con.execute("install httpfs; load httpfs; set enable_progress_bar=false; set threads=2")
     cutoff = pd.Timestamp.today() - pd.DateOffset(months=2)  # TLC publishes with ~2-month lag
-    frames = []
-    for s, (y0, m0) in START.items():
-        for y in range(y0, cutoff.year + 1):
-            for m in range(1, 13):
-                if (y, m) < (y0, m0) or (y, m) > (cutoff.year, cutoff.month):
-                    continue
-                try:
-                    frames.append(_month(con, s, y, m))
-                except duckdb.HTTPException as e:  # not yet published: log and skip that month
-                    print(f"  {s} {y}-{m:02d}: not available ({str(e)[:80]})", flush=True)
-                time.sleep(0.2)
-            print(f"  tlc {s} {y}: done", flush=True)
-    df = pd.concat(frames, ignore_index=True)
-    df = df[df.zone.between(1, 263)]  # 264/265 = unknown / outside NYC
-    wk_eve = df.dow.between(1, 5) & df.hour.between(17, 22)
-    night = (df.hour >= 20) | (df.hour <= 3)
-    df["eve"], df["night"] = df.n.where(wk_eve, 0), df.n.where(night, 0)
-    g = df.groupby(["zone", "year", "service", "side"]).agg(
-        n=("n", "sum"), eve=("eve", "sum"), night=("night", "sum")).unstack("side", fill_value=0)
-    g.columns = [f"{a}_{b}" for a, b in g.columns]
-    g = g.reset_index()
-    months = df.groupby(["year", "service"]).month.nunique().rename("months").reset_index()
-    g = g.merge(months, on=["year", "service"])
-    # FHV before 2019: dropoff zones mostly missing -> pickups as proxy
-    do_share = g.groupby(["year", "service"]).n_do.transform("sum") / \
-        g.groupby(["year", "service"]).n_pu.transform("sum")
-    proxy = do_share < 0.5
-    out = pd.DataFrame({
-        "zone": g.zone, "year": g.year, "service": g.service, "months": g.months,
-        "pickups": g.n_pu, "dropoffs": g.n_do.where(~proxy, g.n_pu),
-        "do_wkdy_eve": g.eve_do.where(~proxy, g.eve_pu), "do_night": g.night_do.where(~proxy, g.night_pu),
-        "do_proxy": proxy.map({True: "pickup", False: "dropoff"})})
-    save(out, "tlc_zone_year", source=BASE.format(s="{service}", y="{y}", m=0),
-         note="all months read remotely with duckdb; zones 264/265 dropped; fhv<2019 uses pickups")
+    frames = [_month_retry(con, "yellow", y, m) for y in range(2011, cutoff.year + 1)
+              for m in MONTHS if (y, m) <= (cutoff.year, cutoff.month)]
+    yl = pd.concat(frames, ignore_index=True)
+    yl = yl[yl.zone.between(1, 263)]  # 264/265 = unknown / outside NYC
+    ydo = yl[yl.side == "do"]
+    ysh = _shares(ydo, ydo.dow.between(1, 5))  # duckdb isodow: Mon=1..Sun=7
+    months = yl.groupby("year").month.nunique()
+    ya = yl.groupby(["zone", "year", "side"]).n.sum().unstack("side", fill_value=0).reset_index()
+    ya["months"] = ya.year.map(months)
+    ya = ya[ya.year <= 2018]
+    yellow = pd.DataFrame({"zone": ya.zone, "year": ya.year, "service": "yellow",
+                           "source": "parquet_quarterly", "months": ya.months,
+                           "dropoffs": ya["do"] * 12 / ya.months, "pickups": ya.pu * 12 / ya.months})
+
+    zm = traffic_tlc_socrata.zone_monthly()
+    zm = zm[zm.zone.between(1, 263)]
+    za = zm.groupby(["zone", "year", "service", "side"]).n.sum().unstack("side", fill_value=0)
+    za = za.reset_index()
+    za["months"] = za.year.map(zm.groupby("year").month.nunique())
+    recent = pd.DataFrame({"zone": za.zone, "year": za.year, "service": za.service,
+                           "source": "c5iv-bn4s_monthly", "months": za.months,
+                           "dropoffs": za["do"] * 12 / za.months, "pickups": za.pu * 12 / za.months})
+
+    fp = traffic_tlc_socrata.fhv_pickups()
+    fp = fp[fp.zone.between(1, 263)]
+    fsh = _shares(fp, fp.dow.between(1, 5))  # Socrata dow: Sun=0, Mon=1..Sat=6
+    fa = fp.groupby(["zone", "year"]).n.sum().reset_index()
+    fhv = pd.DataFrame({"zone": fa.zone, "year": fa.year, "service": "fhv",
+                        "source": "socrata_fhv_pickups", "months": 12, "dropoffs": fa.n,
+                        "pickups": fa.n, "do_proxy": "pickup"})
+
+    out = pd.concat([yellow, recent, fhv], ignore_index=True)
+    out["do_proxy"] = out.do_proxy.fillna("dropoff")
+    sh = pd.concat([ysh.assign(service="yellow"), fsh.assign(service="fhv")])
+    out = out.merge(sh, on=["zone", "year", "service"], how="left")
+    out["do_wkdy_eve"] = out.dropoffs * out.eve_share
+    out["do_night"] = out.dropoffs * out.night_share
+    out = out.drop(columns=["eve_share", "night_share"])
+    save(out, "tlc_zone_year", source="TLC parquet (yellow, quarterly) + NYC Open Data c5iv-bn4s, "
+         "FHV 2015-18", note="annual estimates; zones 264/265 dropped; see module docstring")
     zone_tract_weights()
     return out
 
