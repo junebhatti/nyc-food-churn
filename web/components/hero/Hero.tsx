@@ -68,7 +68,7 @@ export default function Hero({ summary, yearly }: Props) {
 
   if (mobile) {
     return (
-      <section className="px-4 pb-[190px]">
+      <section className="px-4">
         <header className="flex h-[52px] items-center justify-between border-b border-rule">
           <span className="text-[20px] font-medium">Half-Life</span>
           <button type="button" aria-label="Menu" className="flex h-11 w-11 items-center justify-center"><List size={22} /></button>
@@ -79,7 +79,8 @@ export default function Hero({ summary, yearly }: Props) {
         <div className="mt-2 flex">{LEGEND_CHIPS.map((c) => <div key={c} className="h-2 flex-1" style={{ background: c }} />)}</div>
         <div className="label mt-1 flex justify-between"><span>{legend.lo}</span><span>{legend.hi}</span></div>
         <p className="label mt-3">Flat map on small screens. Tap a hex for its buildings.</p>
-        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-ink bg-paper px-4 pb-3.5 pt-2.5">
+        {/* Sticky within the map section only, so it doesn't cover the sections below. */}
+        <div className="sticky bottom-0 z-30 -mx-4 mt-4 border-t border-ink bg-paper px-4 pb-3.5 pt-2.5">
           <YearScrubber yearly={yearly} compact openNow={openInYear} />
           <div className="mt-2"><CategoryButtons mobile /></div>
         </div>
@@ -99,10 +100,10 @@ export default function Hero({ summary, yearly }: Props) {
         </div>
         <nav className="mono flex gap-5 text-[11px] uppercase tracking-[0.06em] text-muted">
           <a href="#cursed" className="hover:text-ink">01 Cursed addresses</a>
-          <span>02 Half-life</span>
+          <a href="#half-life" className="hover:text-ink">02 Half-life</a>
           <a href="#rent-risk" className="hover:text-ink">03 Rent vs risk</a>
-          <span>04 Beta</span>
-          <span>07 Pitch yours</span>
+          <a href="#beta" className="hover:text-ink">04 Beta</a>
+          <a href="#pitch" className="hover:text-ink">07 Pitch yours</a>
         </nav>
       </header>
       <div className="relative min-h-0 flex-1">

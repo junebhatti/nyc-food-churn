@@ -20,7 +20,9 @@ BORO_DIGIT = {"1": "MANHATTAN", "2": "BRONX", "3": "BROOKLYN", "4": "QUEENS", "5
 
 
 def businesses() -> pd.DataFrame:
+    """All businesses except SNAP bodegas, whose dates mark SNAP authorization, not opening/closing."""
     b = pd.read_parquet(OUT / "businesses.parquet")
+    b = b[b["source"] != "snap"].copy()
     b["family"] = b["family"].where(b["source"] == "dohmh", "bar")
     b["event"] = b["closed"] & ~b["relocated"]
     b["years"] = b["lifespan_days"] / 365.25

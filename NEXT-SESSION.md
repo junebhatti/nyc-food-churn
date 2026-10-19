@@ -32,7 +32,8 @@ Stopped for diminishing returns: bars (data/notes/bars.md) and DOHMH gaps round 
 ## Site (2026-10-19)
 - Live: https://half-life-nyc.vercel.app (Vercel project `half-life-nyc`, team junaidbhatti). Connected to GitHub with Root Directory = `web`: every push to `main` auto-deploys to production, and other branches get preview URLs.
 - Data: `pipeline/export_site.py` writes `web/public/data/`. Rerun it after any `build_*` change, then commit and push to redeploy.
-- Built sections: hero map + controls, 01 Cursed Addresses, 03 Rent vs Risk, mobile. Not designed yet: 02 Half-life, 04 Beta, 07 Pitch yours, and dark mode.
+- Built sections: hero map + controls, 01 Cursed Addresses, 02 Half-life, 03 Rent vs Risk, 04 Beta, 05 Cursed spot test, 06 2020 shock, 07 Pitch yours, mobile. 02/04-07 follow the design system but weren't drawn by Claude Design; dark mode is still open.
+- Section data: `pipeline/export_analysis.py` (after `analysis_*.py`). The pitch tool fades the storefront-history penalty after year 3 (proportional hazards would carry it for all ten years).
 - The Rent vs Risk headline was changed to match the data: pricier areas are a little safer, but rent doesn't predict closure once other factors are controlled for.
 
 ## Next steps

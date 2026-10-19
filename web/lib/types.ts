@@ -69,3 +69,68 @@ export interface CursedAddress {
   areaMedianLife: number | null;
   timeline: CursedTenant[];
 }
+
+// Analysis sections (pipeline/export_analysis.py)
+
+export interface CurveRow {
+  level: string;
+  n: number;
+  median: number | null; // years; null when more than half survive 10 years
+  s1: number;
+  s3: number;
+  s5: number;
+  curve: (number | null)[]; // survival on `grid`
+}
+
+export interface HalfLifeData {
+  grid: number[];
+  groups: Record<string, { label: string; rows: CurveRow[] }>;
+}
+
+export interface CursedTestData {
+  curves: CurveRow[];
+  byAge: { prior: string; age_band: string; hazard: number; hazard_ratio_vs_fresh: number; closures: number; business_years: number }[];
+}
+
+export interface BetaRow {
+  group: string;
+  level: string;
+  label: string;
+  avg_at_risk: number;
+  baseline_exit_pct: number;
+  spread_bp: number;
+  covid_excess_pts: number;
+  beta: number;
+}
+
+export interface BetaData {
+  city: { year: number; city_exit_pct: number }[];
+  rows: BetaRow[];
+}
+
+export interface CovidData {
+  periods: string[];
+  open: number[];
+  close: number[];
+}
+
+export interface PitchNeighborhood {
+  id: string;
+  name: string;
+  boro: string;
+  valueZ: number;
+  trafficZ: number;
+  beta: number | null;
+  rent: number | null;
+  closure3y: number | null;
+}
+
+export interface PitchData {
+  grid: number[];
+  baseline: number[];
+  coef: Record<string, number>;
+  means: Record<string, number>;
+  cuisines: { id: string; label: string }[];
+  neighborhoods: PitchNeighborhood[];
+  fit: { n: number; events: number; concordance: number; opened: string };
+}
