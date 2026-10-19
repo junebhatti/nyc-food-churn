@@ -34,7 +34,9 @@ FAMILY_LABEL = {
     "cafe_coffee_tea": "Café", "pizza": "Pizza", "bakery_desserts": "Bakery & desserts",
     "japanese_korean": "Japanese & Korean", "mexican_texmex": "Mexican", "deli_sandwich_salad": "Deli & sandwiches",
     "southeast_asian_other_asian": "Asian", "italian": "Italian", "mideast_mediterranean": "Middle Eastern",
-    "european": "European", "juice_beverages": "Juice", "chicken": "Chicken", "indian_south_asian": "South Asian",
+    "european": "European", "juice_beverages": "Juice", "chicken": "Chicken", "south_asian": "South Asian",
+    "burgers_hotdogs": "Burgers & hot dogs", "jewish_kosher": "Kosher", "bbq_steak_southern": "BBQ & Southern",
+    "seafood": "Seafood", "vegetarian_vegan": "Vegetarian", "african": "African", "other_unknown": "Other",
     "bar": "Bar", "bodega": "Bodega",
 }
 
@@ -129,8 +131,11 @@ def yearly(b: pd.DataFrame) -> dict:
     out = {}
     for c in CATS + ["all"]:
         d = b if c == "all" else b[b["site_category"] == c]
+        end = d["end_date"].fillna(LIVE)
         out[c] = {"open": [int((d["open_date"].dt.year == y).sum()) for y in YEARS],
-                  "close": [int((d["event"] & (d["close_date"].dt.year == y)).sum()) for y in YEARS]}
+                  "close": [int((d["event"] & (d["close_date"].dt.year == y)).sum()) for y in YEARS],
+                  "alive": [int(((d["open_date"] <= pd.Timestamp(f"{y}-12-31")) & (end >= pd.Timestamp(f"{y}-01-01"))).sum())
+                            for y in YEARS]}
     return {"years": YEARS, **out}
 
 

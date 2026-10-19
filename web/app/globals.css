@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+/* Design tokens from design/design_handoff_half_life/README.md (light "paper" theme). */
+:root {
+  --paper: #f3eee4;
+  --paper-raised: #fbf8f2;
+  --ink: #1c1b18;
+  --ink-2: #3f3b35;
+  --muted: #5a554c;
+  --rule: #cfc6b6;
+  --rule-soft: #e4dccd;
+  --awning: #b8321d;
+  --deli: #1e5b3a;
+  --bodega: #e2b13c;
+  --bodega-text: #8f6a12;
+  --land: #e7e0d2;
+  --dead: #dad2c3;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper-raised: var(--paper-raised);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+  --color-rule: var(--rule);
+  --color-rule-soft: var(--rule-soft);
+  --color-awning: var(--awning);
+  --color-deli: var(--deli);
+  --color-bodega: var(--bodega);
+  --color-bodega-text: var(--bodega-text);
+  --font-serif: var(--font-newsreader);
+  --font-mono: var(--font-plex-mono);
+  --radius: 0;
+}
+
+html {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-newsreader), Georgia, serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.mono {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+}
+
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+.kicker {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--awning);
+}
+
+.label {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.prose-hl {
+  font-size: 17px;
+  line-height: 1.45;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+
+.vacancy-hatch {
+  background: repeating-linear-gradient(135deg, var(--rule-soft) 0 1px, transparent 1px 6px);
+}
+
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+input[type="range"] {
+  accent-color: var(--ink);
+}
