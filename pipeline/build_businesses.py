@@ -52,10 +52,13 @@ def compact(name: str) -> str:
 
 
 def same_name(a: str, b: str) -> bool:
-    """Spelling variants of one name: "T BAAR"/"TBAAR", "PokeZone 1"/"POKEZONE ONE"."""
+    """Spelling variants of one name: "T BAAR"/"TBAAR", "PokeZone 1"/"POKEZONE ONE", "LOZA"/"FALAFEL LOZA"."""
     if not a or not b:
         return False
     if a == b or SequenceMatcher(None, a, b).ratio() >= FUZZY_RATIO:
+        return True
+    short, long_ = sorted((a, b), key=len)
+    if len(short) >= 4 and short in long_:  # "LOZA" / "FALAFEL LOZA"
         return True
     pre = len(os.path.commonprefix([a, b]))
     return pre >= 6 and pre >= 0.7 * min(len(a), len(b))
@@ -133,24 +136,25 @@ def bar_premises() -> pd.DataFrame:
     return out
 
 
-def match_bars(bars: pd.DataFrame, b: pd.DataFrame) -> pd.Series:
-    """premise_keys that match a DOHMH business within MATCH_M metres by name."""
+def match_bars(bars: pd.DataFrame, b: pd.DataFrame) -> pd.DataFrame:
+    """(premise_key, business_id) pairs: bar premises matching a DOHMH business within MATCH_M m by name."""
     c = duckdb.connect()
     c.register("bars", bars.assign(n1=bars["dba"].fillna("").map(mnorm),
                                    n2=bars["legal_name"].fillna("").map(mnorm)))
-    c.register("biz", b[b["lat"].notna()].assign(n=b["dba"].fillna("").map(mnorm))[["n", "lat", "lon"]])
-    hit = c.execute(f"""
-      select distinct s.premise_key from bars s join biz d
+    c.register("biz", b[b["lat"].notna()].assign(n=b["dba"].fillna("").map(mnorm))[["business_id", "n", "lat", "lon"]])
+    return c.execute(f"""
+      select distinct s.premise_key, d.business_id from bars s join biz d
         on abs(d.lat - s.lat) < 0.0008 and abs(d.lon - s.lon) < 0.0011
       where 111320 * sqrt(power(d.lat - s.lat, 2) + power((d.lon - s.lon) * cos(radians(s.lat)), 2)) <= {MATCH_M}
         and greatest(jaro_winkler_similarity(d.n, s.n1), jaro_winkler_similarity(d.n, s.n2)) >= {NAME_SIM}
     """).df()
-    return hit["premise_key"]
 
 
-def bar_businesses(b: pd.DataFrame, live: pd.Timestamp) -> pd.DataFrame:
+def bar_businesses(b: pd.DataFrame, live: pd.Timestamp) -> tuple[pd.DataFrame, pd.Series]:
+    """New bar-only businesses, and the DOHMH business_ids that hold a bar/club licence."""
     bars = bar_premises()
-    matched = match_bars(bars, b)
+    pairs = match_bars(bars, b)
+    matched = pairs["premise_key"].unique()
     new = bars[~bars["premise_key"].isin(matched) & bars["open_date"].notna()].copy()
     new["closed"] = ~new["open_now"] & new["last_end"].notna()
     new["close_date"] = new["last_end"].where(new["closed"])
@@ -161,9 +165,10 @@ def bar_businesses(b: pd.DataFrame, live: pd.Timestamp) -> pd.DataFrame:
     new["source"] = "sla"
     new["left_censored"] = new["open_date"] < pd.Timestamp("2012-07-06")
     print(f"bars: {len(bars):,} premises, {len(matched):,} match a DOHMH business, {len(new):,} added")
-    return new.drop(columns=["dba"]).rename(columns={"name": "dba", "address": "street"})[
+    out = new.drop(columns=["dba"]).rename(columns={"name": "dba", "address": "street"})[
         ["business_id", "dba", "street", "zip", "lat", "lon", "category", "open_date", "closed",
          "close_date", "end_date", "lifespan_days", "left_censored", "source"]]
+    return out, pairs["business_id"]
 
 
 def main() -> None:
@@ -171,7 +176,10 @@ def main() -> None:
     live = p["end_date"].max()
     b = flag_relocations(merge_permits(p))
     b["category"] = "food_permit"
-    out = pd.concat([b, bar_businesses(b, live)], ignore_index=True)
+    bars, bar_ids = bar_businesses(b, live)
+    b["has_bar_licence"] = b["business_id"].isin(bar_ids)
+    out = pd.concat([b, bars], ignore_index=True)
+    out["has_bar_licence"] = out["has_bar_licence"].fillna(out["source"] == "sla").astype(bool)
     out["relocated"] = out["relocated"].fillna(False).astype(bool)
     out["relocated_from"] = out["relocated_from"].fillna(False).astype(bool)
     out.to_parquet(OUT / "businesses.parquet", index=False)

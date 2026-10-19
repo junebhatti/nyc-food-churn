@@ -70,6 +70,16 @@ def traffic(b: pd.DataFrame) -> pd.DataFrame:
     return b
 
 
+def site_category(b: pd.DataFrame) -> pd.Series:
+    """The site's five filters: bodega (SNAP), bar (bar/club licence), cafe, bakery, restaurant."""
+    cat = pd.Series("restaurant", index=b.index)
+    cat[b["family"].isin(["cafe_coffee_tea", "juice_beverages"])] = "cafe"
+    cat[b["family"] == "bakery_desserts"] = "bakery"
+    cat[b["has_bar_licence"].fillna(False).astype(bool)] = "bar"
+    cat[b["source"] == "snap"] = "bodega"
+    return cat
+
+
 def main() -> None:
     b = pd.read_parquet(OUT / "businesses.parquet")
     drop = [c for c in b.columns if c.startswith(("acclaim", "traffic_", "boroct")) or c in
@@ -78,7 +88,7 @@ def main() -> None:
              "operator_n_camis", "pluto_retailarea", "retail_area_per_storefront", "or_n_apps",
              "rrf_recipient", "rrf_amount", "ppp_first_draw", "ppp_second_draw", "alive_at_window",
              "price_tier", "price_tier_source", "open_year", "ll157_rent_psf_yr", "dof_mv_psf_median",
-             "dof_mv_index_2018"}]
+             "dof_mv_index_2018", "site_category"}]
     b = b.drop(columns=drop)
     for f, cols in PERMIT_INPUTS.items():
         b = b.merge(read_camis(AI / f, cols), on="camis", how="left")
@@ -87,6 +97,7 @@ def main() -> None:
                 on="camis", how="left")
     b = b.merge(acclaim(b), on="business_id", how="left")
     b = traffic(rent(b))
+    b["site_category"] = site_category(b)
     b.to_parquet(OUT / "businesses.parquet", index=False)
     d = b[b["source"] == "dohmh"]
     print(f"businesses {len(b):,}: cuisine family {d['family'].notna().mean():.0%}, price tier "

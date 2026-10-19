@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="stylesheet" href="_ds/nocturne-fd95e413-7333-45c8-ab23-085e067782d4/styles.css">
+<script src="_ds/nocturne-fd95e413-7333-45c8-ab23-085e067782d4/_ds_bundle.js"></script>
+<script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&family=Archivo+Narrow:wght@500;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=Spline+Sans+Mono:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+body{margin:0}
+a{color:var(--color-accent-300)}
+a:hover{color:var(--color-accent-200)}
+</style>
+</helmet>
+<section style="padding:64px;display:flex;flex-direction:column;gap:40px;font-family:var(--font-body);color:var(--color-text);background:var(--color-bg);min-width:4100px">
+<div style="display:flex;flex-direction:column;gap:8px;max-width:900px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-300)">Turn 3 · Rent vs risk, revised</div>
+<div style="font-size:28px;font-weight:500;line-height:1.2"><a href="#1e">1e</a>'s scatter with a working side panel and a linked neighborhood relief map.</div>
+</div>
+<div id="3a" style="width:1440px;display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;gap:12px;align-items:baseline"><span style="font-family:'JetBrains Mono',monospace;font-size:13px;padding:4px 8px;background:var(--color-accent-800);color:var(--color-accent-100)">3a</span><span style="font-size:18px;font-weight:500">03 Is the Rent Worth the Risk?</span><span style="font-size:14px;color:var(--color-neutral-300)">Hover a dot or a neighborhood; click a quadrant to filter</span></div>
+<div style="width:1440px;background:#F3EEE4;color:#1C1B18;font-family:'IBM Plex Mono',monospace;padding:56px 40px 48px;box-sizing:border-box;display:flex;flex-direction:column;gap:36px">
+<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:48px;align-items:end">
+<div style="display:flex;flex-direction:column;gap:14px">
+<div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#B8321D">03 — Is the rent worth the risk?</div>
+<h2 style="margin:0;font-family:'Newsreader',serif;font-weight:400;font-size:44px;line-height:1.04;letter-spacing:-.015em">Expensive streets aren't the safe ones.</h2>
+</div>
+<p style="margin:0;font-family:'Newsreader',serif;font-size:17px;line-height:1.45;color:#3F3B35;max-width:520px;text-wrap:pretty">One dot per neighborhood. Across: average asking rent. Up: the odds a new place closes within three years. On the map, each neighborhood is one block, raised by its closure odds.</p>
+</div>
+<div style="display:grid;grid-template-columns:280px minmax(0,500px) minmax(0,1fr);gap:36px;align-items:start">
+
+<div style="display:flex;flex-direction:column;border-top:1px solid #1C1B18">
+<div style="display:flex;flex-direction:column;gap:3px;padding:14px 0 12px;border-bottom:1px solid #CFC6B6">
+<span style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:{{ s3.qc }}">{{ s3.quad }}</span>
+<span style="font-family:'Newsreader',serif;font-size:30px;line-height:1.05">{{ s3.name }}</span>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px 8px;padding:12px 0;border-bottom:1px solid #CFC6B6">
+<div style="display:flex;flex-direction:column"><span style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#5A554C">Rent / sq ft</span><span style="font-size:22px">${{ s3.rent }}</span></div>
+<div style="display:flex;flex-direction:column"><span style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#5A554C">3-yr closure</span><span style="font-size:22px;color:#B8321D">{{ s3.close }}%</span></div>
+<div style="display:flex;flex-direction:column"><span style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#5A554C">Places</span><span style="font-size:22px">{{ s3.n }}</span></div>
+<div style="display:flex;flex-direction:column"><span style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#5A554C">Median life</span><span style="font-size:22px">{{ s3.life }}y</span></div>
+</div>
+<div style="display:flex;flex-direction:column;gap:10px;padding:12px 0;border-bottom:1px solid #CFC6B6">
+<span style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#5A554C">Against the city median</span>
+<div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;justify-content:space-between;font-size:11px"><span>Rent</span><span>{{ s3.rentVs }}</span></div><div style="position:relative;height:8px;background:#E4DCCD"><div style="position:absolute;left:0;top:0;bottom:0;width:{{ s3.rentW }}%;background:#1C1B18"></div><div style="position:absolute;left:38.46%;top:-3px;bottom:-3px;width:1px;background:#B8321D"></div></div></div>
+<div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;justify-content:space-between;font-size:11px"><span>Closure odds</span><span>{{ s3.closeVs }}</span></div><div style="position:relative;height:8px;background:#E4DCCD"><div style="position:absolute;left:0;top:0;bottom:0;width:{{ s3.closeW }}%;background:#B8321D"></div><div style="position:absolute;left:44.44%;top:-3px;bottom:-3px;width:1px;background:#1C1B18"></div></div></div>
+</div>
+<div style="display:flex;flex-direction:column;gap:2px;padding:12px 0;border-bottom:1px solid #CFC6B6">
+<span style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#5A554C">Risk-adjusted rent</span>
+<div style="display:flex;align-items:baseline;justify-content:space-between"><span style="font-size:22px">${{ s3.adj }}</span><span style="font-size:11px;color:#5A554C">rank {{ s3.rank }} of 32</span></div>
+<span style="font-size:11px;line-height:1.45;color:#5A554C">Rent divided by the odds of making year three. Lower is better value.</span>
+</div>
+<div style="display:flex;flex-direction:column;gap:4px;padding:12px 0;border-bottom:1px solid #CFC6B6">
+<span style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#5A554C">Cheaper and safer</span>
+<sc-for list="{{ s3.better }}" as="b" hint-placeholder-count="3"><button onMouseEnter="{{ b.pick }}" onClick="{{ b.pick }}" style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border:0;border-bottom:1px dotted #CFC6B6;background:transparent;color:#1C1B18;font-family:'IBM Plex Mono',monospace;font-size:12px;cursor:pointer;text-align:left"><span style="font-family:'Newsreader',serif;font-size:15px">{{ b.name }}</span><span style="color:#5A554C">{{ b.meta }}</span></button></sc-for>
+<sc-if value="{{ s3.none }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;line-height:1.45;color:#1E5B3A">Nothing beats it on both rent and risk.</span></sc-if>
+</div>
+<div style="display:flex;flex-direction:column;gap:4px;padding:12px 0">
+<div style="display:flex;justify-content:space-between"><span style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#5A554C">Filter by quadrant</span><sc-if value="{{ qOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ qClear }}" style="border:0;background:transparent;padding:0;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#1C1B18;text-decoration:underline;cursor:pointer">Show all</button></sc-if></div>
+<sc-for list="{{ quads }}" as="q" hint-placeholder-count="4"><button onClick="{{ q.pick }}" style="display:grid;grid-template-columns:12px 1fr auto;gap:8px;align-items:center;padding:6px 8px;border:1px solid {{ q.bd }};background:{{ q.bg }};color:#1C1B18;font-family:'IBM Plex Mono',monospace;font-size:12px;cursor:pointer;text-align:left"><span style="width:10px;height:10px;border-radius:50%;background:{{ q.sw }}"></span><span>{{ q.label }}</span><span style="color:#5A554C">{{ q.count }}</span></button></sc-for>
+</div>
+</div>
+
+<div style="display:grid;grid-template-columns:40px minmax(0,1fr);grid-template-rows:auto 36px">
+<div style="position:relative"><sc-for list="{{ yTicks }}" as="k" hint-placeholder-count="5"><span style="position:absolute;right:8px;bottom:{{ k.pos }}%;transform:translateY(50%);font-size:11px;color:#5A554C">{{ k.label }}</span></sc-for></div>
+<div style="position:relative;height:480px;border-left:1px solid #1C1B18;border-bottom:1px solid #1C1B18">
+<div style="position:absolute;left:{{ medX }}%;top:0;bottom:0;border-left:1px dashed #1C1B18"></div>
+<div style="position:absolute;bottom:{{ medY }}%;left:0;right:0;border-top:1px dashed #1C1B18"></div>
+<div style="position:absolute;left:12px;top:10px;display:flex;flex-direction:column;gap:1px"><span style="font-family:'Newsreader',serif;font-style:italic;font-size:21px;color:#8F6A12">Cheap &amp; deadly</span></div>
+<div style="position:absolute;right:12px;top:10px;display:flex;flex-direction:column;align-items:flex-end"><span style="font-family:'Newsreader',serif;font-style:italic;font-size:21px;color:#B8321D">Expensive &amp; deadly</span></div>
+<div style="position:absolute;left:12px;bottom:10px"><span style="font-family:'Newsreader',serif;font-style:italic;font-size:21px;color:#1E5B3A">Cheap &amp; safe</span></div>
+<div style="position:absolute;right:12px;bottom:10px"><span style="font-family:'Newsreader',serif;font-style:italic;font-size:21px">Expensive &amp; safe</span></div>
+<sc-for list="{{ d3 }}" as="d" hint-placeholder-count="32"><div onMouseEnter="{{ d.enter }}" style="position:absolute;left:{{ d.x }}%;bottom:{{ d.y }}%;width:{{ d.s }}px;height:{{ d.s }}px;transform:translate(-50%,50%);border-radius:50%;background:{{ d.fill }};box-shadow:{{ d.ring }};opacity:{{ d.op }};cursor:pointer"></div></sc-for>
+<sc-for list="{{ d3 }}" as="d" hint-placeholder-count="0"><sc-if value="{{ d.lab }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;left:{{ d.x }}%;bottom:{{ d.y }}%;transform:translate(-50%,{{ d.ty }}px);font-size:{{ d.fs }}px;white-space:nowrap;pointer-events:none;background:#F3EEE4;padding:0 3px;opacity:{{ d.op }}">{{ d.name }}</span></sc-if></sc-for>
+</div>
+<div></div>
+<div style="position:relative"><sc-for list="{{ xTicks }}" as="k" hint-placeholder-count="5"><span style="position:absolute;left:{{ k.pos }}%;top:6px;transform:translateX(-50%);font-size:11px;color:#5A554C">{{ k.label }}</span></sc-for><span style="position:absolute;right:0;top:22px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#5A554C">Rent per sq ft →</span><span style="position:absolute;left:0;top:22px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#5A554C">↑ 3-yr closure · dot = places</span></div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:10px">
+<div style="width:100%;aspect-ratio:1.676">{{ hoodMap }}</div>
+<div style="display:flex;justify-content:space-between;gap:16px;padding-top:8px;border-top:1px solid #CFC6B6;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#5A554C"><span>Block height = 3-yr closure odds</span><span>Colour = quadrant</span></div>
+</div>
+
+</div>
+</div>
+</div>
+</section>
+<section style="padding:64px;display:flex;flex-direction:column;gap:40px;font-family:var(--font-body);color:var(--color-text);background:var(--color-bg);min-width:4100px">
+<div style="display:flex;flex-direction:column;gap:8px;max-width:900px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-300)">Turn 2 · Rent vs risk, three ways</div>
+<div style="font-size:28px;font-weight:500;line-height:1.2">Replaces <a href="#1e">1e</a>. No side panel, square markers, and a story told through the chart.</div>
+</div>
+<div style="display:flex;gap:64px;align-items:flex-start;flex-wrap:wrap">
+
+<div id="2a" style="width:1280px;display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;gap:12px;align-items:baseline"><span style="font-family:'JetBrains Mono',monospace;font-size:13px;padding:4px 8px;background:var(--color-accent-800);color:var(--color-accent-100)">2a</span><span style="font-size:18px;font-weight:500">Quiet scatter, three-step story</span><span style="font-size:14px;color:var(--color-neutral-300)">Click the steps</span></div>
+<div style="width:1280px;background:#F3EEE4;color:#1C1B18;font-family:'IBM Plex Mono',monospace;padding:56px 40px 48px;box-sizing:border-box;display:flex;flex-direction:column;gap:28px">
+<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:40px">
+<div style="display:flex;flex-direction:column;gap:12px;max-width:620px">
+<div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#B8321D">03 — Is the rent worth the risk?</div>
+<h2 style="margin:0;font-family:'Newsreader',serif;font-weight:400;font-size:44px;line-height:1.04;letter-spacing:-.015em">Expensive streets aren't the safe ones.</h2>
+</div>
+<div style="display:flex;border-bottom:1px solid #CFC6B6">
+<sc-for list="{{ steps }}" as="s" hint-placeholder-count="3"><button onClick="{{ s.pick }}" style="font-family:'IBM Plex Mono',monospace;font-size:12px;padding:10px 16px;border:0;background:transparent;color:{{ s.fg }};box-shadow:{{ s.bar }};cursor:pointer">{{ s.label }}</button></sc-for>
+</div>
+</div>
+<div style="display:grid;grid-template-columns:44px minmax(0,1fr);grid-template-rows:auto 40px">
+<div style="position:relative"><sc-for list="{{ yTicks }}" as="k" hint-placeholder-count="5"><span style="position:absolute;right:8px;bottom:{{ k.pos }}%;transform:translateY(50%);font-size:11px;color:#5A554C">{{ k.label }}</span></sc-for></div>
+<div style="position:relative;height:540px;border-left:1px solid #1C1B18;border-bottom:1px solid #1C1B18">
+<div style="position:absolute;left:0;width:30.43%;top:0;bottom:44.44%;background:#EFE5CB"></div>
+<div style="position:absolute;left:30.43%;right:0;top:0;bottom:44.44%;background:#F0E0D6"></div>
+<div style="position:absolute;left:0;width:30.43%;bottom:0;height:44.44%;background:#E4E8DA"></div>
+<div style="position:absolute;left:30.43%;right:0;bottom:0;height:44.44%;background:#EAE5DC"></div>
+<span style="position:absolute;left:12px;top:12px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#8F6A12">Cheap &amp; deadly</span>
+<span style="position:absolute;right:12px;top:12px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#B8321D">Expensive &amp; deadly</span>
+<span style="position:absolute;left:12px;bottom:12px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#1E5B3A">Cheap &amp; safe</span>
+<span style="position:absolute;right:12px;bottom:12px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#1C1B18">Expensive &amp; safe</span>
+<sc-for list="{{ pa }}" as="d" hint-placeholder-count="32"><div style="position:absolute;left:{{ d.x }}%;bottom:{{ d.y }}%;width:{{ d.s }}px;height:{{ d.s }}px;transform:translate(-50%,50%);background:{{ d.fill }};box-shadow:{{ d.ring }};opacity:{{ d.op }}"></div></sc-for>
+<sc-for list="{{ pa }}" as="d" hint-placeholder-count="0"><sc-if value="{{ d.lab }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;left:{{ d.x }}%;bottom:{{ d.y }}%;transform:translate(-50%,{{ d.ty }}px);font-size:11px;white-space:nowrap;pointer-events:none">{{ d.name }}</span></sc-if></sc-for>
+<div style="position:absolute;left:{{ co.x }}%;bottom:{{ co.y }}%;width:0;height:0">
+<div style="position:absolute;top:0;left:{{ co.lineL }}px;width:36px;height:1px;background:#1C1B18"></div>
+<div style="position:absolute;top:0;left:{{ co.boxL }}px;transform:translateY(-50%);width:300px;background:#FBF8F2;border:1px solid #1C1B18;padding:14px 16px;display:flex;flex-direction:column;gap:6px">
+<span style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#5A554C">{{ co.kicker }}</span>
+<span style="font-family:'Newsreader',serif;font-size:18px;line-height:1.35;text-wrap:pretty">{{ co.text }}</span>
+</div>
+</div>
+</div>
+<div></div>
+<div style="position:relative"><sc-for list="{{ xTicks }}" as="k" hint-placeholder-count="5"><span style="position:absolute;left:{{ k.pos }}%;top:6px;transform:translateX(-50%);font-size:11px;color:#5A554C">{{ k.label }}</span></sc-for><span style="position:absolute;right:0;top:22px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#5A554C">Rent per sq ft, yearly →</span><span style="position:absolute;left:0;top:22px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#5A554C">↑ 3-year closure odds · square = number of places · fields split at city medians</span></div>
+</div>
+</div>
+</div>
+
+<div id="2b" style="width:1280px;display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;gap:12px;align-items:baseline"><span style="font-family:'JetBrains Mono',monospace;font-size:13px;padding:4px 8px;background:var(--color-accent-800);color:var(--color-accent-100)">2b</span><span style="font-size:18px;font-weight:500">Map-linked</span><span style="font-size:14px;color:var(--color-neutral-300)">Hover a square on either side</span></div>
+<div style="width:1280px;background:#F3EEE4;color:#1C1B18;font-family:'IBM Plex Mono',monospace;padding:56px 40px 48px;box-sizing:border-box;display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;flex-direction:column;gap:12px;max-width:720px">
+<div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#B8321D">03 — Is the rent worth the risk?</div>
+<h2 style="margin:0;font-family:'Newsreader',serif;font-weight:400;font-size:44px;line-height:1.04;letter-spacing:-.015em">The safe bets are in Queens.</h2>
+</div>
+<div style="display:flex;align-items:baseline;gap:24px;padding:12px 0;border-top:1px solid #1C1B18;border-bottom:1px solid #CFC6B6;flex-wrap:wrap">
+<span style="font-family:'Newsreader',serif;font-size:30px;line-height:1;min-width:280px">{{ r2.name }}</span>
+<span style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:{{ r2.qc }}">{{ r2.quad }}</span>
+<span style="font-size:15px">${{ r2.rent }} / sq ft</span>
+<span style="font-size:15px">{{ r2.close }}% close within 3 yrs</span>
+<span style="font-size:15px;color:#5A554C">{{ r2.n }} places</span>
+</div>
+<div style="display:grid;grid-template-columns:440px minmax(0,1fr);gap:40px;align-items:start">
+<div style="display:flex;flex-direction:column;gap:8px"><div style="width:440px;height:468px">{{ map2b }}</div><span style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#5A554C">Shaded by quadrant · hovered area at full strength</span></div>
+<div style="display:grid;grid-template-columns:40px minmax(0,1fr);grid-template-rows:auto 36px">
+<div style="position:relative"><sc-for list="{{ yTicks }}" as="k" hint-placeholder-count="5"><span style="position:absolute;right:8px;bottom:{{ k.pos }}%;transform:translateY(50%);font-size:11px;color:#5A554C">{{ k.label }}</span></sc-for></div>
+<div style="position:relative;height:460px;border-left:1px solid #1C1B18;border-bottom:1px solid #1C1B18">
+<div style="position:absolute;left:0;width:30.43%;top:0;bottom:44.44%;background:#EFE5CB"></div>
+<div style="position:absolute;left:30.43%;right:0;top:0;bottom:44.44%;background:#F0E0D6"></div>
+<div style="position:absolute;left:0;width:30.43%;bottom:0;height:44.44%;background:#E4E8DA"></div>
+<div style="position:absolute;left:30.43%;right:0;bottom:0;height:44.44%;background:#EAE5DC"></div>
+<span style="position:absolute;left:10px;top:10px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#8F6A12">Cheap &amp; deadly</span>
+<span style="position:absolute;right:10px;top:10px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#B8321D">Expensive &amp; deadly</span>
+<span style="position:absolute;left:10px;bottom:10px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#1E5B3A">Cheap &amp; safe</span>
+<span style="position:absolute;right:10px;bottom:10px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#1C1B18">Expensive &amp; safe</span>
+<sc-for list="{{ pb }}" as="d" hint-placeholder-count="32"><div onMouseEnter="{{ d.enter }}" style="position:absolute;left:{{ d.x }}%;bottom:{{ d.y }}%;width:{{ d.s }}px;height:{{ d.s }}px;transform:translate(-50%,50%);background:{{ d.fill }};box-shadow:{{ d.ring }};cursor:pointer"></div></sc-for>
+<sc-for list="{{ pb }}" as="d" hint-placeholder-count="0"><sc-if value="{{ d.lab }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;left:{{ d.x }}%;bottom:{{ d.y }}%;transform:translate(-50%,{{ d.ty }}px);font-size:11px;white-space:nowrap;pointer-events:none;background:#F3EEE4;padding:0 3px">{{ d.name }}</span></sc-if></sc-for>
+</div>
+<div></div>
+<div style="position:relative"><sc-for list="{{ xTicks }}" as="k" hint-placeholder-count="5"><span style="position:absolute;left:{{ k.pos }}%;top:6px;transform:translateX(-50%);font-size:11px;color:#5A554C">{{ k.label }}</span></sc-for><span style="position:absolute;right:0;top:20px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#5A554C">Rent per sq ft →</span></div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="2c" style="width:1280px;display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;gap:12px;align-items:baseline"><span style="font-family:'JetBrains Mono',monospace;font-size:13px;padding:4px 8px;background:var(--color-accent-800);color:var(--color-accent-100)">2c</span><span style="font-size:18px;font-weight:500">Relief scatter</span><span style="font-size:14px;color:var(--color-neutral-300)">The hero's plaster columns on a rent × risk floor. Hover a column</span></div>
+<div style="width:1280px;background:#F3EEE4;color:#1C1B18;font-family:'IBM Plex Mono',monospace;padding:56px 40px 40px;box-sizing:border-box;display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;flex-direction:column;gap:12px;max-width:720px">
+<div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#B8321D">03 — Is the rent worth the risk?</div>
+<h2 style="margin:0;font-family:'Newsreader',serif;font-weight:400;font-size:44px;line-height:1.04;letter-spacing:-.015em">Rent buys foot traffic, not survival.</h2>
+</div>
+<div style="display:flex;align-items:baseline;gap:24px;padding:12px 0;border-top:1px solid #1C1B18;border-bottom:1px solid #CFC6B6;flex-wrap:wrap">
+<span style="font-family:'Newsreader',serif;font-size:30px;line-height:1;min-width:280px">{{ r3.name }}</span>
+<span style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:{{ r3.qc }}">{{ r3.quad }}</span>
+<span style="font-size:15px">${{ r3.rent }} / sq ft</span>
+<span style="font-size:15px">{{ r3.close }}% close within 3 yrs</span>
+<span style="font-size:15px;color:#5A554C">{{ r3.n }} places</span>
+</div>
+<div style="width:1200px;height:560px">{{ relief }}</div>
+<span style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#5A554C">Floor: rent across, closure odds going back · column height = number of places</span>
+</div>
+</div>
+
+</div>
+</section>
+<section style="padding:64px;display:flex;flex-direction:column;gap:72px;font-family:var(--font-body);color:var(--color-text);background:var(--color-bg);min-width:4100px">
+<div style="display:flex;flex-direction:column;gap:8px;max-width:900px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-300)">Turn 1 · Half-Life: an atlas of NYC restaurant churn</div>
+<div style="font-size:32px;font-weight:500;line-height:1.2">Three hero directions, then the timeline card, the rent-vs-risk quadrant and mobile, drawn in <a href="#1a">1a</a>.</div>
+<div style="font-size:14px;color:var(--color-neutral-300);line-height:1.5">All four artboards share one live state. Drag any year scrubber or press play and every map updates. The view toggle and category filter work too. Numbers are illustrative placeholders.</div>
+</div>
+
+<div style="display:flex;gap:64px;align-items:flex-start;flex-wrap:wrap">
+
+<div id="1a" style="width:1280px;display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;gap:12px;align-items:baseline"><span style="font-family:'JetBrains Mono',monospace;font-size:13px;padding:4px 8px;background:var(--color-accent-800);color:var(--color-accent-100)">1a</span><span style="font-size:18px;font-weight:500">Plaster &amp; Awning</span><span style="font-size:14px;color:var(--color-neutral-300)">Editorial serif, plaster relief, storefront diverging palette</span></div>
+<div style="width:1280px;height:820px;background:#F3EEE4;color:#1C1B18;position:relative;overflow:hidden;font-family:'IBM Plex Mono',monospace">
+<div style="position:absolute;left:40px;right:40px;top:0;height:56px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #CFC6B6">
+<div style="display:flex;align-items:baseline;gap:16px"><span style="font-family:'Newsreader',serif;font-size:22px;font-weight:500;letter-spacing:-.01em">Half-Life</span><span style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#5A554C">An atlas of NYC restaurant churn, 2012–2026</span></div>
+<div style="display:flex;gap:20px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#5A554C"><span>01 Cursed addresses</span><span>02 Half-life</span><span>03 Rent vs risk</span><span>04 Beta</span><span>07 Pitch yours</span></div>
+</div>
+<div style="position:absolute;left:260px;top:110px;width:1020px;height:610px">{{ mapA }}</div>
+<div style="position:absolute;left:40px;top:96px;width:440px;display:flex;flex-direction:column;gap:16px">
+<div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#B8321D">00 — The city eats its restaurants</div>
+<h1 style="margin:0;font-family:'Newsreader',serif;font-weight:400;font-size:62px;line-height:1.02;letter-spacing:-.02em;text-wrap:balance">85,000 places opened. <span style="font-style:italic;color:#B8321D">31,000 are still here.</span></h1>
+<p style="margin:0;font-family:'Newsreader',serif;font-size:18px;line-height:1.45;color:#3F3B35;max-width:380px;text-wrap:pretty">Every column is a building that has housed a restaurant, bar, café, bakery or bodega since 2012. Height is how many have come and gone.</p>
+<div style="display:flex;gap:28px;padding-top:8px;border-top:1px solid #CFC6B6">
+<div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#5A554C">Open in {{ year }}</span><span style="font-size:26px;font-variant-numeric:tabular-nums">{{ openStr }}</span></div>
+<div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#5A554C">Median lifespan</span><span style="font-size:26px">4.1 yrs</span></div>
+</div>
+</div>
+<sc-if value="{{ showHover }}" hint-placeholder-val="{{ true }}">
+<div style="position:absolute;left:{{ hcA.dx }}px;top:{{ hcA.dy }}px;width:9px;height:9px;margin:-4px 0 0 -4px;background:#1C1B18"></div>
+<div style="position:absolute;left:{{ hcA.lx }}px;top:{{ hcA.dy }}px;width:28px;height:1px;background:#1C1B18"></div>
+<div style="position:absolute;left:{{ hcA.left }}px;top:{{ hcA.top }}px;width:252px;background:#FBF8F2;border:1px solid #1C1B18;display:flex;flex-direction:column">
+<div style="padding:12px 14px 10px;border-bottom:1px solid #CFC6B6;display:flex;flex-direction:column;gap:2px"><span style="font-family:'Newsreader',serif;font-size:19px">94 Rivington St</span><span style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#5A554C">Lower East Side · 9 tenants since 2012</span></div>
+<div style="padding:8px 14px;display:flex;flex-direction:column;gap:5px;font-size:11px">
+<div style="display:flex;justify-content:space-between"><span>Matcha Lab</span><span style="color:#1E5B3A">open · 2.3y</span></div>
+<div style="display:flex;justify-content:space-between"><span>Hot Honey Chicken</span><span style="color:#5A554C">1.1y</span></div>
+<div style="display:flex;justify-content:space-between"><span>Nonna Rita</span><span style="color:#5A554C">1.4y</span></div>
+<div style="display:flex;justify-content:space-between;color:#5A554C"><span>+ 6 earlier</span><span>median 1.2y</span></div>
+</div>
+<div style="padding:8px 14px 12px;border-top:1px solid #CFC6B6;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+<div style="display:flex;flex-direction:column"><span style="font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:#5A554C">3-yr closure</span><span style="font-size:18px;color:#B8321D">55%</span></div>
+<div style="display:flex;flex-direction:column"><span style="font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:#5A554C">Rent / sq ft</span><span style="font-size:18px">$160</span></div>
+</div>
+</div>
+</sc-if>
+<div style="position:absolute;right:40px;top:96px;display:flex;flex-direction:column;gap:6px;align-items:flex-end;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#5A554C">
+<span>{{ legend.title }}</span>
+<div style="display:flex;width:160px;height:8px"><div style="flex:1;background:#4F7D5E"></div><div style="flex:1;background:#A9B8A0"></div><div style="flex:1;background:#F4EEE2;box-shadow:inset 0 0 0 1px #CFC6B6"></div><div style="flex:1;background:#DC9A82"></div><div style="flex:1;background:#C0402A"></div></div>
+<div style="display:flex;width:160px;justify-content:space-between"><span>{{ legend.lo }}</span><span>{{ legend.hi }}</span></div>
+<div style="display:flex;gap:6px;align-items:center"><span style="width:8px;height:8px;background:#DAD2C3"></span><span>Dark this year</span></div>
+</div>
+<div style="position:absolute;left:40px;right:40px;bottom:0;height:100px;border-top:1px solid #1C1B18;display:flex;align-items:center;gap:32px">
+<div style="display:flex;flex-direction:column;gap:6px">
+<span style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#5A554C">View</span>
+<div style="display:flex;border:1px solid #1C1B18">
+<sc-for list="{{ viewsA }}" as="v" hint-placeholder-count="4"><button onClick="{{ v.pick }}" style="font-family:'IBM Plex Mono',monospace;font-size:12px;padding:7px 12px;border:0;border-right:1px solid #1C1B18;background:{{ v.bg }};color:{{ v.fg }};cursor:pointer">{{ v.label }}</button></sc-for>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px">
+<span style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#5A554C">Category</span>
+<div style="display:flex;gap:4px">
+<sc-for list="{{ catsA }}" as="c" hint-placeholder-count="6"><button onClick="{{ c.pick }}" style="font-family:'IBM Plex Mono',monospace;font-size:12px;padding:6px 9px;border:1px solid {{ c.bd }};background:{{ c.bg }};color:{{ c.fg }};cursor:pointer">{{ c.label }}</button></sc-for>
+</div>
+</div>
+<div style="flex:1;min-width:0;display:flex;align-items:center;gap:14px">
+<button onClick="{{ togglePlay }}" style="width:40px;height:40px;flex:none;border:1px solid #1C1B18;background:transparent;color:#1C1B18;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px"><i class="{{ playIcon }}"></i></button>
+<span style="font-size:30px;font-variant-numeric:tabular-nums;width:76px">{{ year }}</span>
+<div style="flex:1;min-width:0;display:flex;flex-direction:column">
+<div style="display:flex;align-items:flex-end;gap:3px;height:22px;padding:0 6px"><sc-for list="{{ bars }}" as="b" hint-placeholder-count="15"><div style="flex:1;height:{{ b.oh }}px;background:#1E5B3A;opacity:{{ b.op }}"></div></sc-for></div>
+<div style="display:flex;align-items:flex-start;gap:3px;height:22px;padding:0 6px;border-top:1px solid #1C1B18"><sc-for list="{{ bars }}" as="b" hint-placeholder-count="15"><div style="flex:1;height:{{ b.ch }}px;background:#B8321D;opacity:{{ b.op }}"></div></sc-for></div>
+<input type="range" min="2012" max="2026" step="1" value="{{ year }}" onChange="{{ onYear }}" style="width:100%;margin:2px 0 0;accent-color:#1C1B18">
+<div style="display:flex;justify-content:space-between;font-size:10px;color:#5A554C;padding:0 4px"><span>2012</span><span>▲ openings · ▼ closings · 2020 shock</span><span>2026</span></div>
+</div>
+</div>
+</div>
+</div>
+<div style="display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:24px;font-size:13px;line-height:1.5;color:var(--color-neutral-200)">
+<div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-300)">Type</span><span style="font-family:'Newsreader',serif;font-size:30px;color:var(--color-text);line-height:1.1">Newsreader <span style="font-style:italic">display</span></span><span style="font-family:'IBM Plex Mono',monospace;font-size:14px;color:var(--color-text)">IBM Plex Mono 0123456789 $160 · 55%</span><span>Serif for headlines and prose, mono for every number, label and control.</span></div>
+<div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-300)">Palette</span>
+<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px;font-family:'JetBrains Mono',monospace;font-size:10px">
+<div style="display:flex;flex-direction:column;gap:4px"><div style="height:36px;background:#F3EEE4"></div>Paper</div>
+<div style="display:flex;flex-direction:column;gap:4px"><div style="height:36px;background:#1C1B18;box-shadow:inset 0 0 0 1px #444"></div>Ink</div>
+<div style="display:flex;flex-direction:column;gap:4px"><div style="height:36px;background:#B8321D"></div>Awning</div>
+<div style="display:flex;flex-direction:column;gap:4px"><div style="height:36px;background:#1E5B3A"></div>Deli</div>
+<div style="display:flex;flex-direction:column;gap:4px"><div style="height:36px;background:#E2B13C"></div>Bodega</div>
+<div style="display:flex;flex-direction:column;gap:4px"><div style="height:36px;background:#CFC6B6"></div>Rule</div>
+</div><span>Bodega yellow is a fill and highlight only, never text on paper.</span></div>
+<div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-300)">Map</span><span>Matte plaster columns, light from the west. Diverging deli-green → plaster → awning-red. Closed buildings go grey, not invisible, so the city keeps its shape.</span></div>
+</div>
+</div>
+
+<div id="1b" style="width:1280px;display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;gap:12px;align-items:baseline"><span style="font-family:'JetBrains Mono',monospace;font-size:13px;padding:4px 8px;background:var(--color-accent-800);color:var(--color-accent-100)">1b</span><span style="font-size:18px;font-weight:500">Grade Card</span><span style="font-size:14px;color:var(--color-neutral-300)">Storefront signage type, low-relief hex bins, graded steps</span></div>
+<div style="width:1280px;height:820px;background:#EFEEEA;color:#15171C;position:relative;overflow:hidden;font-family:'Spline Sans Mono',monospace">
+<div style="position:absolute;left:0;right:0;top:0;height:40px;background:#15171C;color:#EFEEEA;display:flex;align-items:center;justify-content:space-between;padding:0 40px;font-size:11px;letter-spacing:.08em;text-transform:uppercase">
+<span style="font-family:'Archivo Narrow',sans-serif;font-size:17px;font-weight:700;letter-spacing:.04em">HALF-LIFE / NYC</span>
+<div style="display:flex;gap:24px"><span>01 Addresses</span><span>02 Survival</span><span>03 Rent</span><span>04 Beta</span><span>05 Cursed spot</span><span>07 Pitch</span></div>
+</div>
+<div style="position:absolute;left:260px;top:110px;width:1020px;height:610px">{{ mapB }}</div>
+<div style="position:absolute;left:40px;top:76px;width:460px;display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;gap:10px;align-items:center"><span style="width:34px;height:34px;border:2px solid #24509E;color:#24509E;font-family:'Archivo Narrow',sans-serif;font-weight:700;font-size:24px;display:flex;align-items:center;justify-content:center">A</span><span style="font-size:11px;letter-spacing:.08em;text-transform:uppercase">Section 00 · The storefront ledger</span></div>
+<h1 style="margin:0;font-family:'Archivo Narrow',sans-serif;font-weight:700;font-size:76px;line-height:.92;letter-spacing:-.01em;text-transform:uppercase">85,000 places opened. <span style="background:#F0C043;padding:0 6px;box-decoration-break:clone;-webkit-box-decoration-break:clone">31,000 are still here.</span></h1>
+<p style="margin:0;font-family:'Source Serif 4',serif;font-size:17px;line-height:1.45;max-width:400px">Every storefront is a loan to the city. Some pay back for decades. Most default inside five years.</p>
+<div style="display:flex;gap:0;border:2px solid #15171C;width:max-content">
+<div style="padding:8px 14px;display:flex;flex-direction:column;border-right:2px solid #15171C"><span style="font-size:10px;letter-spacing:.08em;text-transform:uppercase">Open in {{ year }}</span><span style="font-family:'Archivo Narrow',sans-serif;font-weight:700;font-size:30px">{{ openStr }}</span></div>
+<div style="padding:8px 14px;display:flex;flex-direction:column"><span style="font-size:10px;letter-spacing:.08em;text-transform:uppercase">Default rate, 3 yrs</span><span style="font-family:'Archivo Narrow',sans-serif;font-weight:700;font-size:30px;color:#C2361F">42%</span></div>
+</div>
+</div>
+<sc-if value="{{ showHover }}" hint-placeholder-val="{{ true }}">
+<div style="position:absolute;left:{{ hcB.dx }}px;top:{{ hcB.dy }}px;width:12px;height:12px;margin:-6px 0 0 -6px;border:2px solid #15171C;border-radius:50%"></div>
+<div style="position:absolute;left:{{ hcB.lx }}px;top:{{ hcB.dy }}px;width:28px;height:2px;background:#15171C"></div>
+<div style="position:absolute;left:{{ hcB.left }}px;top:{{ hcB.top }}px;width:240px;background:#EFEEEA;border:2px solid #15171C;display:flex;flex-direction:column">
+<div style="background:#15171C;color:#EFEEEA;padding:8px 12px;display:flex;justify-content:space-between;align-items:center"><span style="font-family:'Archivo Narrow',sans-serif;font-weight:700;font-size:18px;text-transform:uppercase">94 Rivington St</span><span style="font-size:10px">LES</span></div>
+<div style="padding:8px 12px;display:flex;flex-direction:column;gap:4px;font-size:11px">
+<div style="display:flex;justify-content:space-between"><span>Matcha Lab</span><span>OPEN</span></div>
+<div style="display:flex;justify-content:space-between"><span>Hot Honey Chicken</span><span>1.1y</span></div>
+<div style="display:flex;justify-content:space-between"><span>Nonna Rita</span><span>1.4y</span></div>
+<div style="display:flex;justify-content:space-between;color:#5B5F68"><span>+6 earlier</span><span>9 total</span></div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;border-top:2px solid #15171C"><div style="padding:6px 12px;border-right:2px solid #15171C;display:flex;flex-direction:column"><span style="font-size:9px;text-transform:uppercase">3-yr default</span><span style="font-family:'Archivo Narrow',sans-serif;font-weight:700;font-size:22px;color:#C2361F">55%</span></div><div style="padding:6px 12px;display:flex;flex-direction:column"><span style="font-size:9px;text-transform:uppercase">Beta</span><span style="font-family:'Archivo Narrow',sans-serif;font-weight:700;font-size:22px">1.6</span></div></div>
+</div>
+</sc-if>
+<div style="position:absolute;right:40px;top:76px;display:flex;flex-direction:column;gap:6px;align-items:flex-end;font-size:10px;letter-spacing:.06em;text-transform:uppercase">
+<span>{{ legend.title }}</span>
+<div style="display:flex;gap:3px"><span style="width:26px;height:14px;background:#24509E"></span><span style="width:26px;height:14px;background:#8AA2CF"></span><span style="width:26px;height:14px;background:#E9E5DA;box-shadow:inset 0 0 0 1px #9A9DA4"></span><span style="width:26px;height:14px;background:#EDB547"></span><span style="width:26px;height:14px;background:#C2361F"></span></div>
+<div style="display:flex;width:142px;justify-content:space-between"><span>{{ legend.lo }}</span><span>{{ legend.hi }}</span></div>
+</div>
+<div style="position:absolute;left:0;right:0;bottom:0;height:100px;background:#15171C;color:#EFEEEA;display:flex;align-items:center;gap:28px;padding:0 40px">
+<div style="display:flex;gap:2px"><sc-for list="{{ viewsB }}" as="v" hint-placeholder-count="4"><button onClick="{{ v.pick }}" style="font-family:'Archivo Narrow',sans-serif;font-weight:700;font-size:15px;text-transform:uppercase;padding:8px 12px;border:0;background:{{ v.bg }};color:{{ v.fg }};cursor:pointer">{{ v.label }}</button></sc-for></div>
+<div style="display:flex;gap:4px;flex-wrap:wrap;max-width:300px"><sc-for list="{{ catsB }}" as="c" hint-placeholder-count="6"><button onClick="{{ c.pick }}" style="font-family:'Spline Sans Mono',monospace;font-size:11px;padding:4px 8px;border:1px solid #EFEEEA;background:{{ c.bg }};color:{{ c.fg }};cursor:pointer">{{ c.label }}</button></sc-for></div>
+<div style="flex:1;min-width:0;display:flex;align-items:center;gap:14px">
+<button onClick="{{ togglePlay }}" style="width:44px;height:44px;flex:none;border:0;background:#F0C043;color:#15171C;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px"><i class="{{ playIcon }}"></i></button>
+<span style="font-family:'Archivo Narrow',sans-serif;font-weight:700;font-size:40px;width:84px">{{ year }}</span>
+<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px">
+<div style="display:flex;align-items:flex-end;gap:2px;height:36px;padding:0 6px"><sc-for list="{{ bars }}" as="b" hint-placeholder-count="15"><div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;opacity:{{ b.op }}"><div style="height:{{ b.cs }}px;background:#C2361F"></div></div></sc-for></div>
+<input type="range" min="2012" max="2026" step="1" value="{{ year }}" onChange="{{ onYear }}" style="width:100%;margin:0;accent-color:#F0C043">
+<div style="display:flex;justify-content:space-between;font-size:10px;padding:0 4px;color:#C9CBD0"><span>2012</span><span>CLOSINGS PER YEAR</span><span>2026</span></div>
+</div>
+</div>
+</div>
+</div>
+<div style="display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:24px;font-size:13px;line-height:1.5;color:var(--color-neutral-200)">
+<div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-300)">Type</span><span style="font-family:'Archivo Narrow',sans-serif;font-weight:700;font-size:30px;color:var(--color-text);text-transform:uppercase;line-height:1.1">Archivo Narrow</span><span style="font-family:'Source Serif 4',serif;font-size:16px;color:var(--color-text)">Source Serif 4 for prose</span><span style="font-family:'Spline Sans Mono',monospace;font-size:13px;color:var(--color-text)">Spline Sans Mono 0123456789</span><span>Condensed caps read like awning lettering. Departs from the serif-display reference on purpose.</span></div>
+<div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-300)">Palette</span>
+<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px;font-family:'JetBrains Mono',monospace;font-size:10px">
+<div style="display:flex;flex-direction:column;gap:4px"><div style="height:36px;background:#EFEEEA"></div>Newsprint</div>
+<div style="display:flex;flex-direction:column;gap:4px"><div style="height:36px;background:#15171C;box-shadow:inset 0 0 0 1px #444"></div>Ink</div>
+<div style="display:flex;flex-direction:column;gap:4px"><div style="height:36px;background:#24509E"></div>Grade A</div>
+<div style="display:flex;flex-direction:column;gap:4px"><div style="height:36px;background:#F0C043"></div>Bodega</div>
+<div style="display:flex;flex-direction:column;gap:4px"><div style="height:36px;background:#C2361F"></div>Awning</div>
+</div><span>Taken from the health-department grade card in every window.</span></div>
+<div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-300)">Map</span><span>The city-wide hex-bin state: low relief, five stepped classes instead of a continuous ramp. Reads like a printed legend. Columns appear only at neighborhood zoom.</span></div>
+</div>
+</div>
+
+<div id="1c" style="width:1280px;display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;gap:12px;align-items:baseline"><span style="font-family:'JetBrains Mono',monospace;font-size:13px;padding:4px 8px;background:var(--color-accent-800);color:var(--color-accent-100)">1c</span><span style="font-size:18px;font-weight:500">After Close</span><span style="font-size:14px;color:var(--color-neutral-300)">Nocturne dark mode: lit windows on a night model</span></div>
+<div style="width:1280px;height:820px;background:var(--color-bg);color:var(--color-text);position:relative;overflow:hidden;font-family:var(--font-body)">
+<div style="position:absolute;inset:0;background:radial-gradient(80% 70% at 70% 55%, var(--color-neutral-800), transparent 70%)"></div>
+<div style="position:absolute;left:40px;right:40px;top:0;height:56px;display:flex;align-items:center;justify-content:space-between">
+<div style="display:flex;align-items:center;gap:10px"><span style="width:8px;height:8px;border-radius:50%;background:#E8C46A;box-shadow:0 0 10px #E8C46A"></span><span style="font-size:15px;font-weight:500">Half-Life</span></div>
+<div style="display:flex;gap:20px;font-size:13px;color:var(--color-neutral-300)"><span>Addresses</span><span>Survival</span><span>Rent vs risk</span><span>Beta</span><span>Pitch</span></div>
+</div>
+<div style="position:absolute;left:40px;right:40px;top:56px;height:1px;background:linear-gradient(90deg,transparent,var(--color-neutral-600) 48px,var(--color-neutral-600) calc(100% - 48px),transparent)"></div>
+<div style="position:absolute;left:260px;top:110px;width:1020px;height:610px">{{ mapC }}</div>
+<div style="position:absolute;left:40px;top:100px;width:430px;display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-accent-300)"><span style="width:16px;height:1px;background:var(--color-accent)"></span>00 · Lights on, lights off</div>
+<h1 style="margin:0;font-family:var(--font-heading);font-weight:500;font-size:54px;line-height:1.04;letter-spacing:-.025em;text-wrap:balance">85,000 places opened. <span style="color:#E8C46A">31,000 are still here.</span></h1>
+<p style="margin:0;font-size:16px;line-height:1.5;color:var(--color-neutral-200);max-width:380px">A lit roof is a kitchen still open. Scrub the years and watch the city switch off in March 2020.</p>
+<div style="display:flex;gap:28px;font-family:'JetBrains Mono',monospace">
+<div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-300)">Open in {{ year }}</span><span style="font-size:24px">{{ openStr }}</span></div>
+<div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-300)">Median life</span><span style="font-size:24px">4.1 yrs</span></div>
+</div>
+</div>
+<sc-if value="{{ showHover }}" hint-placeholder-val="{{ true }}">
+<div style="position:absolute;left:{{ hcC.dx }}px;top:{{ hcC.dy }}px;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:#E8C46A;box-shadow:0 0 14px #E8C46A"></div>
+<div style="position:absolute;left:{{ hcC.lx }}px;top:{{ hcC.dy }}px;width:28px;height:1px;background:var(--color-accent)"></div>
+<div style="position:absolute;left:{{ hcC.left }}px;top:{{ hcC.top }}px;width:252px;background:var(--color-neutral-800);border:1px solid var(--color-neutral-600);border-radius:var(--radius-md);box-shadow:var(--shadow-lg);display:flex;flex-direction:column;overflow:hidden">
+<div style="padding:12px 14px;display:flex;flex-direction:column;gap:2px"><span style="font-size:15px;font-weight:500">94 Rivington St</span><span style="font-size:12px;color:var(--color-neutral-300)">Lower East Side · 9 tenants since 2012</span></div>
+<div style="padding:0 14px 10px;display:flex;flex-direction:column;gap:5px;font-family:'JetBrains Mono',monospace;font-size:11px">
+<div style="display:flex;justify-content:space-between"><span>Matcha Lab</span><span style="color:#E8C46A">open</span></div>
+<div style="display:flex;justify-content:space-between;color:var(--color-neutral-200)"><span>Hot Honey Chicken</span><span>1.1y</span></div>
+<div style="display:flex;justify-content:space-between;color:var(--color-neutral-200)"><span>Nonna Rita</span><span>1.4y</span></div>
+</div>
+<div style="padding:10px 14px;background:var(--color-neutral-900);display:grid;grid-template-columns:1fr 1fr;gap:8px;font-family:'JetBrains Mono',monospace"><div style="display:flex;flex-direction:column"><span style="font-size:9px;text-transform:uppercase;color:var(--color-neutral-300)">3-yr closure</span><span style="font-size:17px;color:var(--color-accent-300)">55%</span></div><div style="display:flex;flex-direction:column"><span style="font-size:9px;text-transform:uppercase;color:var(--color-neutral-300)">Rent / sq ft</span><span style="font-size:17px">$160</span></div></div>
+</div>
+</sc-if>
+<div style="position:absolute;right:40px;top:100px;display:flex;flex-direction:column;gap:6px;align-items:flex-end;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-neutral-300)">
+<span>{{ legend.title }}</span>
+<div style="width:150px;height:6px;border-radius:3px;background:linear-gradient(90deg,#E8C46A,#9184D9)"></div>
+<div style="display:flex;width:150px;justify-content:space-between"><span>{{ legend.lo }}</span><span>{{ legend.hi }}</span></div>
+</div>
+<div style="position:absolute;left:40px;right:40px;bottom:20px;height:72px;background:var(--color-neutral-800);border:1px solid var(--color-neutral-700);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);display:flex;align-items:center;gap:20px;padding:0 16px">
+<div style="display:flex;gap:2px;padding:3px;background:var(--color-neutral-900);border-radius:var(--radius-md)"><sc-for list="{{ viewsC }}" as="v" hint-placeholder-count="4"><button onClick="{{ v.pick }}" style="font-family:var(--font-body);font-size:13px;padding:6px 12px;border:0;border-radius:var(--radius-sm);background:{{ v.bg }};color:{{ v.fg }};cursor:pointer">{{ v.label }}</button></sc-for></div>
+<div style="display:flex;gap:4px"><sc-for list="{{ catsC }}" as="c" hint-placeholder-count="6"><button onClick="{{ c.pick }}" style="font-family:var(--font-body);font-size:12px;padding:5px 9px;border-radius:999px;border:1px solid {{ c.bd }};background:transparent;color:{{ c.fg }};cursor:pointer">{{ c.label }}</button></sc-for></div>
+<button onClick="{{ togglePlay }}" style="width:36px;height:36px;flex:none;border:1px solid var(--color-accent);border-radius:var(--radius-md);background:transparent;color:var(--color-accent-200);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px"><i class="{{ playIcon }}"></i></button>
+<span style="font-family:'JetBrains Mono',monospace;font-size:22px;width:56px">{{ year }}</span>
+<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
+<div style="display:flex;align-items:flex-end;gap:2px;height:20px;padding:0 6px"><sc-for list="{{ bars }}" as="b" hint-placeholder-count="15"><div style="flex:1;height:{{ b.os }}px;background:#E8C46A;border-radius:1px;opacity:{{ b.op }}"></div></sc-for></div>
+<input type="range" min="2012" max="2026" step="1" value="{{ year }}" onChange="{{ onYear }}" style="width:100%;margin:0;accent-color:#9184D9">
+</div>
+</div>
+</div>
+<div style="display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:24px;font-size:13px;line-height:1.5;color:var(--color-neutral-200)">
+<div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-300)">Type</span><span style="font-size:28px;font-weight:500;color:var(--color-text);line-height:1.1">Inter 500</span><span style="font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--color-text)">JetBrains Mono 0123456789</span><span>The attached Nocturne system as-is. Doubles as the dark mode for <a href="#1a">1a</a> or <a href="#1b">1b</a>.</span></div>
+<div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-300)">Palette</span>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;font-family:'JetBrains Mono',monospace;font-size:10px">
+<div style="display:flex;flex-direction:column;gap:4px"><div style="height:36px;background:var(--color-bg);box-shadow:inset 0 0 0 1px var(--color-neutral-600)"></div>Ground</div>
+<div style="display:flex;flex-direction:column;gap:4px"><div style="height:36px;background:var(--color-neutral-800)"></div>Surface</div>
+<div style="display:flex;flex-direction:column;gap:4px"><div style="height:36px;background:#E8C46A"></div>Window</div>
+<div style="display:flex;flex-direction:column;gap:4px"><div style="height:36px;background:var(--color-accent)"></div>Accent</div>
+</div><span>Warm window light added as the one storefront note.</span></div>
+<div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-300)">Map</span><span>Unlit columns sit in the dark; open ones light their roofs, shifting to blurple as churn rises. Most dramatic year scrubber of the three.</span></div>
+</div>
+</div>
+
+</div>
+
+<div style="display:flex;gap:64px;align-items:flex-start;flex-wrap:wrap">
+
+<div id="1d" style="width:1280px;display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;gap:12px;align-items:baseline"><span style="font-family:'JetBrains Mono',monospace;font-size:13px;padding:4px 8px;background:var(--color-accent-800);color:var(--color-accent-100)">1d</span><span style="font-size:18px;font-weight:500">01 Cursed Addresses: leaderboard + timeline card</span><span style="font-size:14px;color:var(--color-neutral-300)">Click a row</span></div>
+<div style="width:1280px;background:#F3EEE4;color:#1C1B18;font-family:'IBM Plex Mono',monospace;padding:56px 40px;box-sizing:border-box;display:grid;grid-template-columns:400px minmax(0,1fr);gap:48px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#B8321D">01 — Cursed addresses</div>
+<h2 style="margin:0;font-family:'Newsreader',serif;font-weight:400;font-size:40px;line-height:1.05;letter-spacing:-.015em">The storefronts that can't keep a tenant.</h2>
+<div style="display:grid;grid-template-columns:28px 1fr 56px 56px;gap:8px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#5A554C;padding:12px 0 6px;border-bottom:1px solid #1C1B18"><span>#</span><span>Address</span><span style="text-align:right">Tenants</span><span style="text-align:right">Median</span></div>
+<div style="display:flex;flex-direction:column">
+<sc-for list="{{ leaders }}" as="l" hint-placeholder-count="8">
+<button onClick="{{ l.pick }}" style="display:grid;grid-template-columns:28px 1fr 56px 56px;gap:8px;align-items:center;text-align:left;padding:10px 8px 10px 0;border:0;border-bottom:1px solid #CFC6B6;background:{{ l.bg }};color:#1C1B18;font-family:'IBM Plex Mono',monospace;cursor:pointer;box-shadow:{{ l.bar }}">
+<span style="font-size:12px;color:#5A554C;padding-left:8px">{{ l.rank }}</span>
+<span style="display:flex;flex-direction:column;gap:1px"><span style="font-family:'Newsreader',serif;font-size:17px">{{ l.addr }}</span><span style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#5A554C">{{ l.hood }}</span></span>
+<span style="font-size:18px;text-align:right">{{ l.n }}</span>
+<span style="font-size:13px;text-align:right;color:#B8321D">{{ l.med }}y</span>
+</button>
+</sc-for>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:24px;border:1px solid #1C1B18;background:#FBF8F2;padding:28px 28px 24px;align-self:start">
+<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:24px">
+<div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#5A554C">Rank {{ sel.rank }} · {{ sel.hood }}</span><span style="font-family:'Newsreader',serif;font-size:44px;line-height:1;letter-spacing:-.015em">{{ sel.addr }}</span></div>
+<div style="display:grid;grid-template-columns:repeat(4,auto);gap:28px">
+<div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#5A554C">Tenants</span><span style="font-size:26px">{{ sel.n }}</span></div>
+<div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#5A554C">Median life</span><span style="font-size:26px;color:#B8321D">{{ sel.med }}y</span></div>
+<div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#5A554C">Time vacant</span><span style="font-size:26px">{{ sel.vac }}</span></div>
+<div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#5A554C">Area median</span><span style="font-size:26px;color:#5A554C">{{ sel.area }}y</span></div>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:0">
+<div style="position:relative;height:40px">
+<sc-for list="{{ sel.bars }}" as="t" hint-placeholder-count="8"><sc-if value="{{ t.up }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;left:{{ t.left }}%;bottom:4px;display:flex;flex-direction:column;border-left:1px solid #1C1B18;padding-left:5px;white-space:nowrap"><span style="font-family:'Newsreader',serif;font-size:14px;line-height:1.1">{{ t.name }}</span><span style="font-size:10px;color:#5A554C">{{ t.cuisine }}</span></div></sc-if></sc-for>
+</div>
+<div style="position:relative;height:34px;background:repeating-linear-gradient(135deg,#E4DCCD 0 1px,transparent 1px 6px);border-top:1px solid #1C1B18;border-bottom:1px solid #1C1B18">
+<sc-for list="{{ sel.bars }}" as="t" hint-placeholder-count="8"><div style="position:absolute;top:0;bottom:0;left:{{ t.left }}%;width:{{ t.width }}%;background:{{ t.color }};box-shadow:inset -1px 0 0 #FBF8F2;display:flex;align-items:center;justify-content:center;font-size:11px;color:{{ t.ink }}">{{ t.lifeShort }}</div></sc-for>
+</div>
+<div style="position:relative;height:40px">
+<sc-for list="{{ sel.bars }}" as="t" hint-placeholder-count="8"><sc-if value="{{ t.down }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;left:{{ t.left }}%;top:4px;display:flex;flex-direction:column;border-left:1px solid #1C1B18;padding-left:5px;white-space:nowrap"><span style="font-family:'Newsreader',serif;font-size:14px;line-height:1.1">{{ t.name }}</span><span style="font-size:10px;color:#5A554C">{{ t.cuisine }}</span></div></sc-if></sc-for>
+</div>
+<div style="position:relative;height:16px;border-top:1px solid #CFC6B6">
+<sc-for list="{{ ticks }}" as="k" hint-placeholder-count="8"><span style="position:absolute;left:{{ k.left }}%;top:4px;transform:translateX(-50%);font-size:10px;color:#5A554C">{{ k.label }}</span></sc-for>
+</div>
+</div>
+<div style="display:flex;gap:20px;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#5A554C">
+<span style="display:flex;gap:6px;align-items:center"><span style="width:14px;height:10px;background:#B8321D"></span>Under 1.5 yrs</span>
+<span style="display:flex;gap:6px;align-items:center"><span style="width:14px;height:10px;background:#E2B13C"></span>1.5–3 yrs</span>
+<span style="display:flex;gap:6px;align-items:center"><span style="width:14px;height:10px;background:#1E5B3A"></span>Over 3 yrs</span>
+<span style="display:flex;gap:6px;align-items:center"><span style="width:14px;height:10px;background:repeating-linear-gradient(135deg,#CFC6B6 0 1px,transparent 1px 4px);box-shadow:inset 0 0 0 1px #CFC6B6"></span>Vacant</span>
+</div>
+<div style="display:flex;flex-direction:column;font-size:12px">
+<div style="display:grid;grid-template-columns:28px minmax(0,1.6fr) minmax(0,1fr) 60px 110px 70px;gap:12px;padding:6px 0;border-bottom:1px solid #1C1B18;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#5A554C"><span>#</span><span>Business</span><span>Cuisine</span><span>Price</span><span>Years</span><span style="text-align:right">Lifespan</span></div>
+<sc-for list="{{ sel.bars }}" as="t" hint-placeholder-count="8">
+<div style="display:grid;grid-template-columns:28px minmax(0,1.6fr) minmax(0,1fr) 60px 110px 70px;gap:12px;padding:7px 0;border-bottom:1px solid #E4DCCD;align-items:baseline"><span style="color:#5A554C">{{ t.num }}</span><span style="font-family:'Newsreader',serif;font-size:15px">{{ t.name }}</span><span>{{ t.cuisine }}</span><span>{{ t.tier }}</span><span>{{ t.yrs }}</span><span style="text-align:right">{{ t.life }}</span></div>
+</sc-for>
+</div>
+</div>
+</div>
+</div>
+
+<div id="1e" style="width:1280px;display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;gap:12px;align-items:baseline"><span style="font-family:'JetBrains Mono',monospace;font-size:13px;padding:4px 8px;background:var(--color-accent-800);color:var(--color-accent-100)">1e</span><span style="font-size:18px;font-weight:500">03 Is the Rent Worth the Risk?</span><span style="font-size:14px;color:var(--color-neutral-300)">Hover a dot</span></div>
+<div style="width:1280px;background:#F3EEE4;color:#1C1B18;font-family:'IBM Plex Mono',monospace;padding:56px 40px;box-sizing:border-box;display:grid;grid-template-columns:320px minmax(0,1fr);gap:48px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#B8321D">03 — Is the rent worth the risk?</div>
+<h2 style="margin:0;font-family:'Newsreader',serif;font-weight:400;font-size:40px;line-height:1.05;letter-spacing:-.015em">Expensive streets aren't the safe ones.</h2>
+<p style="margin:0;font-family:'Newsreader',serif;font-size:17px;line-height:1.45;color:#3F3B35">One dot per neighborhood. Across: average asking rent. Up: the odds a new place closes within three years. Dot size is the number of food businesses.</p>
+<div style="display:flex;flex-direction:column;border-top:1px solid #1C1B18;margin-top:8px">
+<div style="display:flex;flex-direction:column;gap:2px;padding:14px 0;border-bottom:1px solid #CFC6B6"><span style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#5A554C">{{ hov.quad }}</span><span style="font-family:'Newsreader',serif;font-size:28px">{{ hov.name }}</span></div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;padding:12px 0;gap:8px">
+<div style="display:flex;flex-direction:column"><span style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#5A554C">Rent/sqft</span><span style="font-size:20px">${{ hov.rent }}</span></div>
+<div style="display:flex;flex-direction:column"><span style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#5A554C">3-yr close</span><span style="font-size:20px;color:#B8321D">{{ hov.close }}%</span></div>
+<div style="display:flex;flex-direction:column"><span style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#5A554C">Places</span><span style="font-size:20px">{{ hov.n }}</span></div>
+</div>
+</div>
+</div>
+<div style="display:grid;grid-template-columns:44px minmax(0,1fr);grid-template-rows:auto 36px;gap:0">
+<div style="position:relative"><span style="position:absolute;left:0;top:50%;transform:rotate(-90deg) translateX(50%);transform-origin:left top;white-space:nowrap;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#5A554C">3-year closure odds →</span>
+<sc-for list="{{ yTicks }}" as="k" hint-placeholder-count="5"><span style="position:absolute;right:8px;bottom:{{ k.pos }}%;transform:translateY(50%);font-size:11px;color:#5A554C">{{ k.label }}</span></sc-for></div>
+<div style="position:relative;height:600px;border-left:1px solid #1C1B18;border-bottom:1px solid #1C1B18">
+<div style="position:absolute;left:{{ medX }}%;top:0;bottom:0;border-left:1px dashed #1C1B18"></div>
+<div style="position:absolute;bottom:{{ medY }}%;left:0;right:0;border-top:1px dashed #1C1B18"></div>
+<span style="position:absolute;left:{{ medX }}%;top:-18px;transform:translateX(-50%);font-size:10px;color:#5A554C">city median $100</span>
+<span style="position:absolute;right:0;bottom:{{ medY }}%;transform:translateY(-4px);font-size:10px;color:#5A554C">city median 40%</span>
+<div style="position:absolute;left:16px;top:14px;display:flex;flex-direction:column;gap:2px"><span style="font-family:'Newsreader',serif;font-style:italic;font-size:26px;color:#8F6A12">Cheap &amp; deadly</span><span style="font-size:11px;color:#5A554C">Low rent, high churn. Beginner's mistakes.</span></div>
+<div style="position:absolute;right:16px;top:14px;display:flex;flex-direction:column;gap:2px;align-items:flex-end"><span style="font-family:'Newsreader',serif;font-style:italic;font-size:26px;color:#B8321D">Expensive &amp; deadly</span><span style="font-size:11px;color:#5A554C">Paying a premium to fail faster.</span></div>
+<div style="position:absolute;left:16px;bottom:14px;display:flex;flex-direction:column;gap:2px"><span style="font-family:'Newsreader',serif;font-style:italic;font-size:26px;color:#1E5B3A">Cheap &amp; safe</span><span style="font-size:11px;color:#5A554C">The best risk-adjusted rent in the city.</span></div>
+<div style="position:absolute;right:16px;bottom:14px;display:flex;flex-direction:column;gap:2px;align-items:flex-end"><span style="font-family:'Newsreader',serif;font-style:italic;font-size:26px">Expensive &amp; safe</span><span style="font-size:11px;color:#5A554C">You pay for the survival.</span></div>
+<sc-for list="{{ dots }}" as="d" hint-placeholder-count="30">
+<div onMouseEnter="{{ d.enter }}" style="position:absolute;left:{{ d.x }}%;bottom:{{ d.y }}%;width:{{ d.s }}px;height:{{ d.s }}px;transform:translate(-50%,50%);border-radius:50%;background:{{ d.fill }};box-shadow:0 0 0 {{ d.ring }}px #1C1B18;cursor:pointer"></div>
+</sc-for>
+<sc-for list="{{ dots }}" as="d" hint-placeholder-count="0"><sc-if value="{{ d.lab }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;left:{{ d.x }}%;bottom:{{ d.y }}%;transform:translate(10px,50%);font-size:11px;white-space:nowrap;pointer-events:none;margin-left:{{ d.lm }}px">{{ d.name }}</span></sc-if></sc-for>
+</div>
+<div></div>
+<div style="position:relative"><sc-for list="{{ xTicks }}" as="k" hint-placeholder-count="6"><span style="position:absolute;left:{{ k.pos }}%;top:6px;transform:translateX(-50%);font-size:11px;color:#5A554C">{{ k.label }}</span></sc-for><span style="position:absolute;right:0;top:20px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#5A554C">Rent per sq ft, yearly →</span></div>
+</div>
+</div>
+</div>
+
+<div style="display:flex;gap:32px">
+<div id="1f" style="display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;gap:12px;align-items:baseline"><span style="font-family:'JetBrains Mono',monospace;font-size:13px;padding:4px 8px;background:var(--color-accent-800);color:var(--color-accent-100)">1f</span><span style="font-size:18px;font-weight:500">Mobile hero + scrubber</span></div>
+<div style="width:390px;height:844px;background:#F3EEE4;color:#1C1B18;font-family:'IBM Plex Mono',monospace;overflow-y:auto;overflow-x:hidden;position:relative;box-shadow:0 0 0 1px var(--color-neutral-600)">
+<div style="padding:0 16px;display:flex;flex-direction:column;gap:14px">
+<div style="height:52px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #CFC6B6"><span style="font-family:'Newsreader',serif;font-size:21px;font-weight:500">Half-Life</span><button style="width:44px;height:44px;border:0;background:transparent;color:#1C1B18;font-size:20px;display:flex;align-items:center;justify-content:flex-end;padding:0"><i class="ph ph-list"></i></button></div>
+<div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#B8321D">00 — The city eats its restaurants</div>
+<h1 style="margin:0;font-family:'Newsreader',serif;font-weight:400;font-size:38px;line-height:1.02;letter-spacing:-.02em">85,000 places opened. <span style="font-style:italic;color:#B8321D">31,000 are still here.</span></h1>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);border:1px solid #1C1B18"><sc-for list="{{ viewsA }}" as="v" hint-placeholder-count="4"><button onClick="{{ v.pick }}" style="height:44px;font-family:'IBM Plex Mono',monospace;font-size:12px;border:0;border-right:1px solid #1C1B18;background:{{ v.bg }};color:{{ v.fg }};padding:0">{{ v.label }}</button></sc-for></div>
+<div style="display:flex;flex-direction:column;gap:6px">
+<div style="width:358px;height:372px">{{ mapM }}</div>
+<div style="display:flex;justify-content:space-between;align-items:center;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#5A554C"><span>{{ legend.lo }}</span><div style="display:flex;flex:1;height:6px;margin:0 8px"><div style="flex:1;background:#4F7D5E"></div><div style="flex:1;background:#A9B8A0"></div><div style="flex:1;background:#E8E1D3"></div><div style="flex:1;background:#DC9A82"></div><div style="flex:1;background:#C0402A"></div></div><span>{{ legend.hi }}</span></div>
+<span style="font-size:11px;color:#5A554C">Flat map on small screens. Tap a hex for its buildings.</span>
+</div>
+<div style="height:8px"></div>
+</div>
+<div style="position:sticky;bottom:0;background:#F3EEE4;border-top:1px solid #1C1B18;padding:10px 16px 14px;display:flex;flex-direction:column;gap:8px">
+<div style="display:flex;align-items:center;gap:12px">
+<button onClick="{{ togglePlay }}" style="width:44px;height:44px;flex:none;border:1px solid #1C1B18;background:#1C1B18;color:#F3EEE4;display:flex;align-items:center;justify-content:center;font-size:18px"><i class="{{ playIcon }}"></i></button>
+<div style="display:flex;flex-direction:column"><span style="font-size:28px;line-height:1;font-variant-numeric:tabular-nums">{{ year }}</span><span style="font-size:10px;color:#5A554C">{{ openStr }} open</span></div>
+<div style="flex:1;min-width:0;display:flex;flex-direction:column">
+<div style="display:flex;align-items:flex-end;gap:2px;height:18px"><sc-for list="{{ bars }}" as="b" hint-placeholder-count="15"><div style="flex:1;height:{{ b.os }}px;background:#1E5B3A;opacity:{{ b.op }}"></div></sc-for></div>
+<div style="display:flex;align-items:flex-start;gap:2px;height:18px;border-top:1px solid #1C1B18"><sc-for list="{{ bars }}" as="b" hint-placeholder-count="15"><div style="flex:1;height:{{ b.cs2 }}px;background:#B8321D;opacity:{{ b.op }}"></div></sc-for></div>
+</div>
+</div>
+<input type="range" min="2012" max="2026" step="1" value="{{ year }}" onChange="{{ onYear }}" style="width:100%;height:28px;margin:0;accent-color:#1C1B18">
+<div style="display:flex;gap:6px;overflow-x:auto;margin:0 -16px;padding:0 16px"><sc-for list="{{ catsA }}" as="c" hint-placeholder-count="6"><button onClick="{{ c.pick }}" style="flex:none;height:36px;padding:0 12px;font-family:'IBM Plex Mono',monospace;font-size:12px;border:1px solid {{ c.bd }};background:{{ c.bg }};color:{{ c.fg }}">{{ c.label }}</button></sc-for></div>
+</div>
+</div>
+</div>
+
+<div id="1g" style="display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;gap:12px;align-items:baseline"><span style="font-family:'JetBrains Mono',monospace;font-size:13px;padding:4px 8px;background:var(--color-accent-800);color:var(--color-accent-100)">1g</span><span style="font-size:18px;font-weight:500">Mobile: tap replaces hover</span></div>
+<div style="width:390px;height:844px;background:#F3EEE4;color:#1C1B18;font-family:'IBM Plex Mono',monospace;overflow:hidden;position:relative;box-shadow:0 0 0 1px var(--color-neutral-600)">
+<div style="padding:0 16px"><div style="height:52px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #CFC6B6"><span style="font-family:'Newsreader',serif;font-size:21px;font-weight:500">Half-Life</span><span style="font-size:11px;color:#5A554C">{{ year }} · Churn</span></div></div>
+<div style="padding:16px;opacity:.55"><div style="width:358px;height:372px">{{ mapM }}</div></div>
+<div style="position:absolute;left:0;right:0;bottom:0;background:#FBF8F2;border-top:1px solid #1C1B18;display:flex;flex-direction:column">
+<div style="display:flex;justify-content:center;padding:8px 0 0"><span style="width:36px;height:3px;background:#CFC6B6"></span></div>
+<div style="padding:10px 16px 12px;display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid #CFC6B6">
+<div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#5A554C">Lower East Side · Rank 1</span><span style="font-family:'Newsreader',serif;font-size:28px;line-height:1.05">94 Rivington St</span></div>
+<button style="width:44px;height:44px;border:1px solid #1C1B18;background:transparent;color:#1C1B18;font-size:16px;display:flex;align-items:center;justify-content:center;flex:none"><i class="ph ph-x"></i></button>
+</div>
+<div style="padding:12px 16px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;border-bottom:1px solid #CFC6B6">
+<div style="display:flex;flex-direction:column"><span style="font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:#5A554C">Tenants</span><span style="font-size:22px">9</span></div>
+<div style="display:flex;flex-direction:column"><span style="font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:#5A554C">3-yr close</span><span style="font-size:22px;color:#B8321D">55%</span></div>
+<div style="display:flex;flex-direction:column"><span style="font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:#5A554C">Rent/sqft</span><span style="font-size:22px">$160</span></div>
+</div>
+<div style="padding:12px 16px 4px;display:flex;flex-direction:column;gap:6px">
+<span style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#5A554C">Every tenant, 2012 → now</span>
+<div style="position:relative;height:22px;background:repeating-linear-gradient(135deg,#E4DCCD 0 1px,transparent 1px 5px);border-top:1px solid #1C1B18;border-bottom:1px solid #1C1B18"><sc-for list="{{ firstBars }}" as="t" hint-placeholder-count="9"><div style="position:absolute;top:0;bottom:0;left:{{ t.left }}%;width:{{ t.width }}%;background:{{ t.color }};box-shadow:inset -1px 0 0 #FBF8F2"></div></sc-for></div>
+<div style="display:flex;justify-content:space-between;font-size:10px;color:#5A554C"><span>2012</span><span>2019</span><span>2026</span></div>
+</div>
+<div style="padding:4px 16px 16px;display:flex;flex-direction:column">
+<sc-for list="{{ lastThree }}" as="t" hint-placeholder-count="3"><div style="display:flex;justify-content:space-between;align-items:center;min-height:44px;border-bottom:1px solid #E4DCCD"><span style="display:flex;flex-direction:column"><span style="font-family:'Newsreader',serif;font-size:16px">{{ t.name }}</span><span style="font-size:10px;color:#5A554C">{{ t.cuisine }} · {{ t.yrs }}</span></span><span style="font-size:13px">{{ t.life }}</span></div></sc-for>
+<button style="height:44px;margin-top:10px;border:1px solid #1C1B18;background:transparent;color:#1C1B18;font-family:'IBM Plex Mono',monospace;font-size:12px;display:flex;align-items:center;justify-content:center;gap:8px">Full timeline <i class="ph ph-arrow-right"></i></button>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showHover&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;mapRelief&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:1,&quot;min&quot;:0.3,&quot;max&quot;:1.8,&quot;step&quot;:0.1,&quot;tsType&quot;:&quot;number&quot;}}">
+const h = React.createElement;
+const R0 = (s) => () => { s |= 0; s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+const POLY = {
+  manhattan: [[39,63],[43,66],[51,50],[58,36],[64,20],[67,11],[63,9],[56,24],[49,40]],
+  bronx: [[63,9],[67,11],[74,14],[86,12],[92,4],[80,0],[64,1]],
+  queens: [[58,36],[64,20],[67,15],[76,17],[88,15],[99,22],[100,48],[88,60],[74,58],[64,48],[57,44]],
+  brooklyn: [[45,68],[51,52],[57,45],[64,49],[74,58],[88,61],[84,80],[66,92],[50,90],[44,80]],
+  staten: [[12,82],[24,74],[33,80],[30,94],[18,99],[9,92]]
+};
+const inP = (x, y, p) => { let c = false; for (let i = 0, j = p.length - 1; i < p.length; j = i++) { const [xi, yi] = p[i], [xj, yj] = p[j]; if ((yi > y) != (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; };
+const onLand = (x, y) => Object.values(POLY).some(p => inP(x, y, p));
+const HOT = [{x:55,y:34,a:1,r:6},{x:46,y:58,a:.85,r:4.5},{x:56,y:53,a:.7,r:5},{x:88,y:28,a:.55,r:5},{x:74,y:33,a:.45,r:6},{x:58,y:70,a:.35,r:7},{x:61,y:19,a:.35,r:5},{x:72,y:8,a:.25,r:6}];
+const CHR = [{x:46,y:58,a:.75,r:5},{x:56,y:53,a:.6,r:5},{x:52,y:42,a:.35,r:6},{x:66,y:66,a:.4,r:6},{x:60,y:20,a:.3,r:5}];
+const fld = (x, y, H) => H.reduce((s, q) => s + q.a * Math.exp(-((x - q.x) ** 2 + (y - q.y) ** 2) / (2 * q.r * q.r)), 0);
+const cl = v => Math.max(0, Math.min(1, v));
+const hx = c => [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16));
+const toH = a => '#' + a.map(v => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, '0')).join('');
+const mix = (a, b, t) => { const A = hx(a), B = hx(b); return toH(A.map((v, i) => v + (B[i] - v) * t)); };
+const shade = (a, k) => toH(hx(a).map(v => v * k));
+const ramp = (st, t) => { t = cl(t) * (st.length - 1); const i = Math.min(st.length - 2, Math.floor(t)); return mix(st[i], st[i + 1], t - i); };
+const CATS = ['Restaurant', 'Bar', 'Café', 'Bakery', 'Bodega'];
+const alive = (c, y) => y >= c.born && y < c.died && !(y >= c.cv0 && y < c.cv1);
+const metric = (c, v) => v === 'Churn' ? c.churn : v === 'Lifespan' ? cl(c.churn * .85 + c.n2 * .3) : v === 'Risk' ? cl(.55 * c.churn + .45 * c.d) : cl(c.d * 1.15);
+const LEG = { Churn: ['Tenant turnover', 'Few tenants', 'Many'], Lifespan: ['Median lifespan', 'Long-lived', 'Short'], Risk: ['3-yr closure odds', 'Safe', 'Deadly'], Rent: ['Rent per sq ft', 'Cheap', 'Expensive'] };
+const TH = {
+  a: { stops: ['#4F7D5E', '#F4EEE2', '#C0402A'], dead: '#DAD2C3', land: '#E7E0D2', edge: '#CEC4B2', label: '#5A554C', hl: '#1C1B18', hk: 1, K: 1, font: 'IBM Plex Mono' },
+  b: { steps: ['#24509E', '#8AA2CF', '#E9E5DA', '#EDB547', '#C2361F'], dead: '#D3D0C8', land: '#E0DED7', edge: '#BDBAB1', label: '#15171C', hl: '#15171C', hk: .28, K: 1, font: 'Spline Sans Mono' },
+  c: { stops: ['#E8C46A', '#D9A98C', '#9184D9'], dead: '#2C3045', land: '#1E2132', edge: '#11131C', label: '#8E91A6', hl: '#E9E9ED', hk: 1.1, K: .62, font: 'JetBrains Mono' }
+};
+const OPEN = [6.1,6.3,6.6,6.8,6.9,6.7,6.5,6.2,3.1,4.6,5.8,6.0,5.9,5.7,4.1];
+const CLOSE = [4.2,4.6,4.9,5.2,5.5,5.6,5.8,5.9,9.4,6.8,5.4,5.2,5.3,5.4,2.6];
+const VB = [-200, -120, 1060, 690];
+const POOL = [['Salt & Smoke','BBQ','$$'],['Pho Bar','Vietnamese','$'],['Lucky Dumpling','Chinese','$'],['Bar Ondine','Wine bar','$$$'],['Taco Mundo','Mexican','$'],['Bowl Co.','Delivery-only','$'],['Nonna Rita','Italian','$$'],['Hot Honey Chicken','Fried chicken','$'],['Matcha Lab','Café','$'],['Golden Bagel','Bakery','$'],['Saint Slice','Pizza','$'],['Little Pierogi','Polish','$'],['Casa Verde','Peruvian','$$'],['Blue Ramen','Japanese','$$'],['Old Fig','New American','$$$'],['Mama Injera','Ethiopian','$$'],['Good Grill','Korean BBQ','$$'],['Café Tilde','Café','$'],['Brine','Seafood','$$$'],['Ochre','Tasting menu','$$$$'],['Corner Deli','Bodega','$'],['Sweet Hour','Dessert','$'],['Bar Lumen','Cocktail bar','$$'],['Tandoor 9','Indian','$$'],['Arepa Lady Jr.','Venezuelan','$']];
+const A_TEN = [['Salt & Smoke',2012.2,2013.5],['Pho Bar',2013.9,2015.1],['Lucky Dumpling',2015.3,2016.0],['Bar Ondine',2016.6,2018.2],['Taco Mundo',2018.4,2019.3],['Bowl Co.',2019.5,2020.3],['Nonna Rita',2021.4,2022.8],['Hot Honey Chicken',2023.0,2024.1],['Matcha Lab',2024.5,2026.8]];
+const LEADERS = [['94 Rivington St','Lower East Side',9,'2.1'],['212 Bedford Ave','Williamsburg',8,'2.6'],['31 W 46th St','Midtown',8,'3.4'],['176 Avenue A','East Village',7,'2.4'],['1045 Flatbush Ave','Flatbush',7,'3.8'],['22-14 31st St','Astoria',6,'4.2'],['508 Myrtle Ave','Clinton Hill',6,'3.0'],['87 Smith St','Boerum Hill',6,'3.9']];
+const HOODS = [['SoHo',245,41,1800],['Midtown',210,47,4200],['Flatiron',190,38,2100],['West Village',205,36,2300],['Tribeca',230,33,900],['Upper East Side',140,31,2600],['Upper West Side',135,30,2200],['Chelsea',175,39,1900],['East Village',150,49,2700],['Lower East Side',160,55,1900],['Williamsburg',120,52,2400],['Greenpoint',95,42,1100],['Bushwick',70,54,1500],['Park Slope',105,32,1300],['Carroll Gardens',100,29,800],['DUMBO',150,44,500],['Astoria',75,38,1900],['Long Island City',112,50,1000],['Jackson Heights',60,33,1700],['Flushing',85,28,2600],['Sunnyside',55,35,700],['Bed-Stuy',65,51,1600],['Crown Heights',62,47,1300],['Sunset Park',50,31,1400],['Bay Ridge',57,35,1100],['Harlem',80,46,2000],['Washington Heights',53,38,1500],['Fordham',45,44,1200],['Mott Haven',48,53,700],['Ridgewood',58,41,800],['St. George',40,46,400],['Bensonhurst',45,32,1200]];
+const LABELLED = ['SoHo','Midtown','Tribeca','Lower East Side','Williamsburg','Bushwick','Flushing','Upper West Side','Mott Haven','Sunset Park','Long Island City','Jackson Heights'];
+
+const HXY = {'SoHo':[45,56],'Midtown':[53,40],'Flatiron':[50,47],'West Village':[43.5,53],'Tribeca':[42.5,60],'Upper East Side':[58,33],'Upper West Side':[54.5,30],'Chelsea':[48.5,44],'East Village':[48.5,52.5],'Lower East Side':[46.5,57.5],'Williamsburg':[55,53],'Greenpoint':[57.5,48],'Bushwick':[63,56],'Park Slope':[54,72],'Carroll Gardens':[49,68],'DUMBO':[48,62],'Astoria':[64,30],'Long Island City':[60,40],'Jackson Heights':[74,36],'Flushing':[88,30],'Sunnyside':[67,40],'Bed-Stuy':[60,62],'Crown Heights':[61,70],'Sunset Park':[50,76],'Bay Ridge':[47,84],'Harlem':[60,22],'Washington Heights':[63,14],'Fordham':[74,6],'Mott Haven':[69,11],'Ridgewood':[68,52],'St. George':[27,78],'Bensonhurst':[55,86]};
+const QC = { cd: '#E2B13C', ed: '#B8321D', cs: '#1E5B3A', es: '#1C1B18' };
+const QT = { cd: '#8F6A12', ed: '#B8321D', cs: '#1E5B3A', es: '#1C1B18' };
+const QTINT = { cd: '#EBD39A', ed: '#DFA493', cs: '#A9BFA9', es: '#B9B2A6' };
+const QN = { cd: 'Cheap & deadly', ed: 'Expensive & deadly', cs: 'Cheap & safe', es: 'Expensive & safe' };
+const qk = (r, c) => (r >= 100 ? 'e' : 'c') + (c >= 40 ? 'd' : 's');
+const STORY = [
+  { label: '01 The premium', names: ['SoHo', 'Tribeca', 'Midtown', 'West Village'], anchor: 'SoHo', kicker: 'SoHo · $245 / sq ft', text: 'The most expensive blocks in the city still lose 41% of new openings within three years.' },
+  { label: '02 The trap', names: ['Lower East Side', 'Williamsburg', 'East Village', 'Long Island City'], anchor: 'Lower East Side', kicker: 'Lower East Side · 55% gone', text: 'The neighborhoods everyone writes about are where new places die fastest.' },
+  { label: '03 The bargain', names: ['Flushing', 'Sunset Park', 'Jackson Heights', 'Bensonhurst'], anchor: 'Flushing', kicker: 'Flushing · $85 / sq ft', text: 'A third of SoHo\u2019s rent, and 72% of openings make it past year three.' }
+];
+const px = (r) => ((r - 30) / 230 * 100), py = (c) => ((c - 20) / 45 * 100);
+
+class Component extends DCLogic {
+  state = { year: 2026, view: 'Churn', cat: 'All', playing: false, addr: 0, hov: 'Lower East Side', step: 1, hov2: 'Flushing', hov3: 'Lower East Side', h3: 'Lower East Side', q3: null };
+
+  readout(name) {
+    const [n, rent, close, cnt] = HOODS.find(q => q[0] === name), q = qk(rent, close);
+    return { name: n, rent, close, n: cnt.toLocaleString('en-US'), quad: QN[q], qc: QT[q] };
+  }
+
+  map2b() {
+    const hv = this.state.hov2;
+    if (this._m2b && this._m2b.key === hv) return this._m2b.el;
+    const { cells } = this.geo('m');
+    if (!this._hn) this._hn = cells.map(c => { let b = null, bd = 16; HOODS.forEach(q => { const [x, y] = HXY[q[0]], d = (c.x - x) ** 2 + (c.y - y) ** 2; if (d < bd) { bd = d; b = q; } }); return b; });
+    const kids = [];
+    Object.values(POLY).forEach((p, i) => kids.push(h('polygon', { key: 'l' + i, points: p.map(q => q.join(',')).join(' '), fill: '#E7E0D2' })));
+    cells.forEach((c, i) => {
+      const q = this._hn[i], k = q && qk(q[1], q[2]);
+      kids.push(h('polygon', { key: i, points: c.g.map(p => p[0].toFixed(2) + ',' + p[1].toFixed(2)).join(' '), fill: q ? (q[0] === hv ? QC[k] : QTINT[k]) : '#E7E0D2', stroke: '#F3EEE4', strokeWidth: .15 }));
+    });
+    HOODS.forEach(q => {
+      const [x, y] = HXY[q[0]], on = q[0] === hv, s = on ? 2.6 : 1.6;
+      kids.push(h('rect', { key: 'm' + q[0], x: x - s / 2, y: y - s / 2, width: s, height: s, fill: on ? '#FBF8F2' : '#1C1B18', stroke: '#1C1B18', strokeWidth: on ? .5 : 0, style: { cursor: 'pointer' }, onMouseEnter: () => this.setState({ hov2: q[0] }) }));
+    });
+    const [hx0, hy0] = HXY[hv];
+    kids.push(h('text', { key: 'lab', x: hx0 > 78 ? hx0 - 2.4 : hx0 + 2.4, textAnchor: hx0 > 78 ? 'end' : 'start', y: hy0 + 1, style: { font: "500 3px 'IBM Plex Mono', monospace" }, fill: '#1C1B18' }, hv));
+    const el = h('svg', { viewBox: '6 -1 96 102', style: { width: '100%', height: '100%', display: 'block' } }, kids);
+    this._m2b = { key: hv, el };
+    return el;
+  }
+
+  relief() {
+    const hv = this.state.hov3;
+    if (this._rl && this._rl.key === hv) return this._rl.el;
+    const S = 9, D = 60, P = (u, y, z) => ((u - .3 * y) * S).toFixed(1) + ',' + (y * S * .56 - z).toFixed(1);
+    const rect = (u0, y0, u1, y1, z) => [P(u0, y0, z), P(u1, y0, z), P(u1, y1, z), P(u0, y1, z)].join(' ');
+    const mu = px(100), my = (1 - py(40) / 100) * D, kids = [];
+    kids.push(h('polygon', { key: 'edge', points: rect(0, 0, 100, D, -8), fill: '#CEC4B2' }));
+    [['cd', 0, 0, mu, my], ['ed', mu, 0, 100, my], ['cs', 0, my, mu, D], ['es', mu, my, 100, D]].forEach(([k, a, b, c, d]) => kids.push(h('polygon', { key: 'f' + k, points: rect(a, b, c, d, 0), fill: { cd: '#EDE1C2', ed: '#EEDACE', cs: '#DFE4D3', es: '#E6E0D4' }[k] })));
+    kids.push(h('polyline', { key: 'mx', points: P(mu, 0, 0) + ' ' + P(mu, D, 0), stroke: '#1C1B18', strokeDasharray: '4 4', fill: 'none' }));
+    kids.push(h('polyline', { key: 'my', points: P(0, my, 0) + ' ' + P(100, my, 0), stroke: '#1C1B18', strokeDasharray: '4 4', fill: 'none' }));
+    const T = (key, at, t, fill, anchor, sz) => { const [x, y] = at.split(','); kids.push(h('text', { key, x, y, fill, textAnchor: anchor || 'start', style: { font: `500 ${sz || 11}px 'IBM Plex Mono', monospace`, letterSpacing: '.08em' } }, t)); };
+    [50, 100, 150, 200, 250].forEach(v => T('x' + v, P(px(v), D + 4.5, 0), '$' + v, '#5A554C', 'middle'));
+    [30, 40, 50, 60].forEach(v => T('y' + v, P(-1.5, (1 - py(v) / 100) * D, 0), v + '%', '#5A554C', 'end'));
+    const cols = HOODS.map(q => ({ q, u: px(q[1]), y: (1 - py(q[2]) / 100) * D })).sort((a, b) => a.y - b.y || a.u - b.u);
+    const w = 1.3;
+    cols.forEach(({ q, u, y }) => {
+      const k = qk(q[1], q[2]), on = q[0] === hv, hh = Math.sqrt(q[3]) * 2.3;
+      const top = on ? QC[k] : mix('#F4EEE2', QC[k], k === 'es' ? .25 : .45);
+      const g = h('g', { key: q[0], style: { cursor: 'pointer' }, onMouseEnter: () => this.setState({ hov3: q[0] }) },
+        h('polygon', { points: [P(u + w, y - w, hh), P(u + w, y + w, hh), P(u + w, y + w, 0), P(u + w, y - w, 0)].join(' '), fill: shade(top, .72) }),
+        h('polygon', { points: [P(u - w, y + w, hh), P(u + w, y + w, hh), P(u + w, y + w, 0), P(u - w, y + w, 0)].join(' '), fill: shade(top, .85) }),
+        h('polygon', { points: rect(u - w, y - w, u + w, y + w, hh), fill: top, stroke: on ? '#1C1B18' : 'none', strokeWidth: 1.5 }));
+      kids.push(g);
+    });
+    T('q1', P(-0.5, -4, 0), 'CHEAP & DEADLY', '#8F6A12'); T('q2', P(100, -4, 0), 'EXPENSIVE & DEADLY', '#B8321D', 'end');
+    T('q3', P(1.5, D - 1.5, 0), 'CHEAP & SAFE', '#1E5B3A'); T('q4', P(98.5, D - 1.5, 0), 'EXPENSIVE & SAFE', '#1C1B18', 'end');
+    cols.forEach(({ q, u, y }) => { if (q[0] === hv || ['SoHo', 'Flushing', 'Midtown'].includes(q[0])) T('t' + q[0], P(u, y, Math.sqrt(q[3]) * 2.3 + 8), q[0], '#1C1B18', 'middle', q[0] === hv ? 12 : 10); });
+    const el = h('svg', { viewBox: '-210 -115 1130 455', style: { width: '100%', height: '100%', display: 'block' } }, kids);
+    this._rl = { key: hv, el };
+    return el;
+  }
+
+  hoodMap() {
+    const { h3, q3 } = this.state, key = h3 + '|' + q3;
+    if (this._hm && this._hm.key === key) return this._hm.el;
+    if (!this._hg) {
+      const step = 1.25, cells = [];
+      for (let c = 0; c * 1.5 * step <= 101; c++) for (let r = 0; r * 1.732 * step <= 101; r++) {
+        const x = c * 1.5 * step, y = r * 1.732 * step + (c % 2 ? .866 * step : 0);
+        if (!onLand(x, y)) continue;
+        let b1 = null, d1 = 1e9, d2 = 1e9;
+        HOODS.forEach(q => { const [hx0, hy0] = HXY[q[0]], d = (x - hx0) ** 2 + (y - hy0) ** 2; if (d < d1) { d2 = d1; d1 = d; b1 = q; } else if (d < d2) d2 = d; });
+        const own = d1 < 42 && Math.sqrt(d2) - Math.sqrt(d1) > .75 ? b1 : null;
+        if (!own) continue;
+        const rr = step * .93, g = [0,1,2,3,4,5].map(k => [x + rr * Math.cos(k * Math.PI / 3), y + rr * Math.sin(k * Math.PI / 3)]), faces = [];
+        for (let i = 0; i < 6; i++) { const a = g[i], b = g[(i + 1) % 6]; let nx = b[1] - a[1], ny = -(b[0] - a[0]); const L = Math.hypot(nx, ny); nx /= L; ny /= L; if (((a[0] + b[0]) / 2 - x) * nx + ((a[1] + b[1]) / 2 - y) * ny < 0) { nx = -nx; ny = -ny; } if (ny + .3 * nx > .05) faces.push({ a, b, k: .84 - .14 * nx }); }
+        cells.push({ x, y, q: own, g, faces });
+      }
+      cells.sort((p, q) => p.y - q.y || p.x - q.x);
+      this._hg = cells;
+    }
+    const S = 9, P = (x, y, z) => ((x - .3 * y) * S).toFixed(1) + ',' + (y * S * .56 - z).toFixed(1), kids = [];
+    Object.values(POLY).forEach((p, i) => kids.push(h('polygon', { key: 'e' + i, points: p.map(([x, y]) => P(x, y, -7)).join(' '), fill: '#CEC4B2' })));
+    Object.values(POLY).forEach((p, i) => kids.push(h('polygon', { key: 'l' + i, points: p.map(([x, y]) => P(x, y, 0)).join(' '), fill: '#E7E0D2' })));
+    const cen = {};
+    this._hg.forEach((c, i) => {
+      const [name, rent, close] = c.q, k = qk(rent, close), on = name === h3, out = q3 && q3 !== k;
+      const hh = out ? 6 : (close - 20) * 2.6;
+      const top = on ? QC[k] : out ? '#E2DACB' : mix('#F4EEE2', QC[k], k === 'es' ? .3 : .5);
+      const parts = c.faces.map((f, j) => h('polygon', { key: j, points: [P(f.a[0], f.a[1], hh), P(f.b[0], f.b[1], hh), P(f.b[0], f.b[1], 0), P(f.a[0], f.a[1], 0)].join(' '), fill: shade(top, f.k), stroke: shade(top, f.k), strokeWidth: .6 }));
+      parts.push(h('polygon', { key: 't', points: c.g.map(([x, y]) => P(x, y, hh)).join(' '), fill: top, stroke: top, strokeWidth: .8 }));
+      kids.push(h('g', { key: i, style: { cursor: 'pointer' }, onMouseEnter: () => this.setState({ h3: name }) }, parts));
+      const e = cen[name] || (cen[name] = { x: 0, y: 0, n: 0, hh }); e.x += c.x; e.y += c.y; e.n++;
+    });
+    [['MANHATTAN', 30, 26], ['THE BRONX', 80, -6], ['QUEENS', 98, 62], ['BROOKLYN', 70, 98], ['STATEN ISLAND', 4, 106]].forEach(([t, x, y], i) => { const [a, b] = P(x, y, 0).split(','); kids.push(h('text', { key: 'b' + i, x: a, y: b, fill: '#5A554C', style: { font: "500 22px 'IBM Plex Mono', monospace", letterSpacing: '.12em' } }, t)); });
+    const e = cen[h3];
+    if (e) {
+      const [a, b] = P(e.x / e.n, e.y / e.n, e.hh).split(','), ay = +b - 52;
+      kids.push(h('line', { key: 'ld', x1: a, y1: b, x2: a, y2: ay + 6, stroke: '#1C1B18', strokeWidth: 1.2 }));
+      kids.push(h('rect', { key: 'lr', x: +a - 4, y: +b - 4, width: 8, height: 8, fill: '#1C1B18' }));
+      kids.push(h('text', { key: 'lt', x: a, y: ay, textAnchor: 'middle', fill: '#1C1B18', stroke: '#F3EEE4', strokeWidth: 9, paintOrder: 'stroke', style: { font: "500 40px 'Newsreader', serif" } }, h3));
+    }
+    const el = h('svg', { viewBox: '-280 -110 1140 680', style: { width: '100%', height: '100%', display: 'block' } }, kids);
+    this._hm = { key, el };
+    return el;
+  }
+
+  rentRiskVals() {
+    const { h3, q3 } = this.state;
+    const adj = HOODS.map(q => ({ name: q[0], v: q[1] / (1 - q[2] / 100) })).sort((a, b) => a.v - b.v);
+    const hh = HOODS.find(q => q[0] === h3), [name, rent, close, n] = hh, k = qk(rent, close);
+    const better = HOODS.filter(q => q[1] < rent && q[2] < close).map(q => ({ q, v: q[1] / (1 - q[2] / 100) })).sort((a, b) => a.v - b.v).slice(0, 3)
+      .map(({ q }) => ({ name: q[0], meta: '$' + q[1] + ' · ' + q[2] + '%', pick: () => this.setState({ h3: q[0] }) }));
+    const pct = (a, b) => { const d = Math.round((a / b - 1) * 100); return d === 0 ? 'at median' : (d > 0 ? '+' : '') + d + '%'; };
+    const s3 = { name, rent, close, n: n.toLocaleString('en-US'), quad: QN[k], qc: QT[k], life: (6.6 - (close - 20) * .1).toFixed(1),
+      rentW: Math.min(100, rent / 260 * 100).toFixed(1), closeW: ((close - 20) / 45 * 100).toFixed(1), rentVs: pct(rent, 100), closeVs: (close - 40 > 0 ? '+' : '') + (close - 40) + ' pts',
+      adj: Math.round(rent / (1 - close / 100)), rank: adj.findIndex(a => a.name === name) + 1, better, none: better.length === 0 };
+    const LAB3 = ['SoHo', 'Midtown', 'Lower East Side', 'Flushing', 'Bushwick', 'Upper West Side', 'Sunset Park'];
+    const d3 = HOODS.map(([nm, r, c, cnt]) => {
+      const kk = qk(r, c), on = nm === h3, out = q3 && q3 !== kk, s = Math.round(Math.sqrt(cnt) / 3.2 + 4);
+      return { name: nm, x: px(r).toFixed(2), y: py(c).toFixed(2), s, fill: QC[kk], ring: on ? '0 0 0 2px #F3EEE4, 0 0 0 3.5px #1C1B18' : 'none', op: out ? .15 : 1,
+        lab: on || (!out && LAB3.includes(nm) && !(LAB3.includes(h3) === false && false)), fs: on ? 13 : 10, ty: -Math.round(s / 2 + (on ? 22 : 17)), enter: () => this.setState({ h3: nm }) };
+    });
+    const quads = ['cs', 'es', 'cd', 'ed'].map(kk => ({ label: QN[kk], count: HOODS.filter(q => qk(q[1], q[2]) === kk).length, sw: QC[kk], bg: q3 === kk ? '#FBF8F2' : 'transparent', bd: q3 === kk ? '#1C1B18' : '#CFC6B6', pick: () => this.setState({ q3: this.state.q3 === kk ? null : kk }) }));
+    return { s3, d3, quads, qOn: !!q3, qClear: () => this.setState({ q3: null }), hoodMap: this.hoodMap() };
+  }
+
+  storyVals() {
+    const st = STORY[this.state.step];
+    const pa = HOODS.map(([name, rent, close, n]) => {
+      const on = st.names.includes(name), k = qk(rent, close), s = Math.round(Math.sqrt(n) / 3 + 5);
+      const below = name === 'Long Island City';
+      return { name, x: px(rent).toFixed(2), y: py(close).toFixed(2), s, ty: below ? Math.round(s / 2 + 18) : -Math.round(s / 2 + 4), fill: on ? QC[k] : 'transparent', ring: on ? (k === 'cd' ? 'inset 0 0 0 1px #1C1B18' : 'none') : 'inset 0 0 0 1px #8C857A', op: on ? 1 : .7, lab: on && name !== st.anchor };
+    });
+    const a = HOODS.find(q => q[0] === st.anchor), ax = px(a[1]), flip = ax > 60;
+    const pb = HOODS.map(([name, rent, close, n]) => {
+      const on = name === this.state.hov2, k = qk(rent, close), s = Math.round(Math.sqrt(n) / 3.4 + 5);
+      return { name, x: px(rent).toFixed(2), y: py(close).toFixed(2), s, ty: -Math.round(s / 2 + 4), fill: on ? QC[k] : mix('#F3EEE4', QC[k], .35), ring: on ? '0 0 0 2px #F3EEE4, 0 0 0 3px #1C1B18' : 'none', lab: on, enter: () => this.setState({ hov2: name }) };
+    });
+    return {
+      steps: STORY.map((s, i) => ({ label: s.label, pick: () => this.setState({ step: i }), fg: i === this.state.step ? '#1C1B18' : '#5A554C', bar: i === this.state.step ? 'inset 0 -2px 0 #B8321D' : 'none' })),
+      pa, pb, co: { x: ax.toFixed(2), y: py(a[2]).toFixed(2), lineL: flip ? -48 : 12, boxL: flip ? -350 : 48, kicker: st.kicker, text: st.text },
+      r2: this.readout(this.state.hov2), r3: this.readout(this.state.hov3), map2b: this.map2b(), relief: this.relief()
+    };
+  }
+  _g = {}; _m = {};
+  componentWillUnmount() { clearInterval(this._t); }
+
+  geo(v) {
+    if (this._g[v]) return this._g[v];
+    const hex = v === 'b' || v === 'm', step = v === 'm' ? 1.45 : v === 'b' ? 1.25 : 1.9;
+    const R = R0(v === 'a' ? 11 : v === 'b' ? 23 : v === 'c' ? 11 : 7), pts = [];
+    if (hex) { for (let c = 0; c * 1.5 * step <= 101; c++) for (let r = 0; r * 1.732 * step <= 101; r++) pts.push([c * 1.5 * step, r * 1.732 * step + (c % 2 ? .866 * step : 0)]); }
+    else for (let y = step / 2; y < 100; y += step) for (let x = step / 2; x < 101; x += step) pts.push([x, y]);
+    const cells = [];
+    for (const [x, y] of pts) {
+      if (!onLand(x, y)) continue;
+      const d = fld(x, y, HOT);
+      if (!hex && R() > .5 + d) continue;
+      const hh = (3 + d * 85) * (.45 + R() * .8);
+      const churn = cl(.18 + fld(x, y, CHR) * .85 + (R() - .5) * .4);
+      const born = R() < .6 ? 2012 : 2012 + Math.floor(R() * 12);
+      const died = R() < churn * .7 ? born + 1 + Math.floor(R() * 7) : 9999;
+      const cv = R() < churn * .6;
+      let g;
+      if (hex) { const r = step * .9; g = [0,1,2,3,4,5].map(k => [x + r * Math.cos(k * Math.PI / 3), y + r * Math.sin(k * Math.PI / 3)]); }
+      else { const w = step * .39; g = [[x - w, y - w], [x + w, y - w], [x + w, y + w], [x - w, y + w]]; }
+      const faces = [];
+      for (let i = 0; i < g.length; i++) {
+        const a = g[i], b = g[(i + 1) % g.length];
+        let nx = b[1] - a[1], ny = -(b[0] - a[0]); const L = Math.hypot(nx, ny); nx /= L; ny /= L;
+        if (((a[0] + b[0]) / 2 - x) * nx + ((a[1] + b[1]) / 2 - y) * ny < 0) { nx = -nx; ny = -ny; }
+        if (ny + .3 * nx > .05) faces.push({ a, b, k: .84 - .14 * nx });
+      }
+      cells.push({ x, y, h: hh, d: cl(d), n2: R(), churn, born, died, cv0: cv ? 2020 : 0, cv1: cv ? 2021 + Math.floor(R() * 2) : 0, cat: CATS[Math.floor(R() * R() * 5)], g, faces });
+    }
+    cells.sort((p, q) => p.y - q.y || p.x - q.x);
+    let ti = 0, best = 1e9;
+    cells.forEach((c, i) => { const dd = (c.x - 46.5) ** 2 + (c.y - 57.5) ** 2; if (dd < best) { best = dd; ti = i; } });
+    return (this._g[v] = { cells, ti });
+  }
+
+  topColor(T, c, on) {
+    if (!on) return T.dead;
+    const t = metric(c, this.state.view);
+    return T.steps ? T.steps[Math.min(4, Math.floor(t * 5))] : ramp(T.stops, t);
+  }
+
+  map3d(v) {
+    const { year, view, cat } = this.state, relief = this.props.mapRelief ?? 1;
+    const key = [year, view, cat, relief].join('|');
+    if (this._m[v] && this._m[v].key === key) return this._m[v].el;
+    const { cells, ti } = this.geo(v), T = TH[v], S = 9;
+    const P = (x, y, z) => ((x - .3 * y) * S).toFixed(1) + ',' + (y * S * .56 - z).toFixed(1);
+    const kids = [];
+    Object.values(POLY).forEach((p, i) => kids.push(h('polygon', { key: 'e' + i, points: p.map(([x, y]) => P(x, y, -7)).join(' '), fill: T.edge })));
+    Object.values(POLY).forEach((p, i) => kids.push(h('polygon', { key: 'l' + i, points: p.map(([x, y]) => P(x, y, 0)).join(' '), fill: T.land })));
+    cells.forEach((c, i) => {
+      const inCat = cat === 'All' || c.cat === cat, on = inCat && alive(c, year);
+      const top = this.topColor(T, c, on), hh = c.h * T.hk * relief * (inCat ? 1 : .15);
+      c.faces.forEach((f, j) => kids.push(h('polygon', { key: i + 'f' + j, points: [P(f.a[0], f.a[1], hh), P(f.b[0], f.b[1], hh), P(f.b[0], f.b[1], 0), P(f.a[0], f.a[1], 0)].join(' '), fill: shade(top, f.k * T.K) })));
+      kids.push(h('polygon', { key: i + 't', points: c.g.map(([x, y]) => P(x, y, hh)).join(' '), fill: top, stroke: i === ti && this.props.showHover !== false ? T.hl : 'none', strokeWidth: 2 }));
+    });
+    [['MANHATTAN', 34, 30], ['THE BRONX', 78, -4], ['QUEENS', 96, 60], ['BROOKLYN', 64, 98], ['STATEN ISLAND', 6, 106]].forEach(([t, x, y], i) => {
+      const [px, py] = P(x, y, 0).split(',');
+      kids.push(h('text', { key: 'lb' + i, x: px, y: py, fill: T.label, style: { font: `500 11px '${T.font}', monospace`, letterSpacing: '.14em' } }, t));
+    });
+    const el = h('svg', { viewBox: VB.join(' '), style: { width: '100%', height: '100%', display: 'block' } }, kids);
+    const tc = cells[ti], tz = tc.h * T.hk * relief;
+    const sc = Math.min(1020 / VB[2], 610 / VB[3]), ox = 260 + (1020 - VB[2] * sc) / 2, oy = 110 + (610 - VB[3] * sc) / 2;
+    const sx = ox + ((tc.x - .3 * tc.y) * S - VB[0]) * sc, sy = oy + (tc.y * S * .56 - tz - VB[1]) * sc;
+    this._m[v] = { key, el, hc: { dx: Math.round(sx), dy: Math.round(sy), lx: Math.round(sx + 6), left: Math.round(sx + 34), top: Math.round(sy - 70) } };
+    return el;
+  }
+
+  mapFlat() {
+    const { year, view, cat } = this.state, key = [year, view, cat].join('|');
+    if (this._m.m && this._m.m.key === key) return this._m.m.el;
+    const { cells } = this.geo('m');
+    const kids = [];
+    Object.values(POLY).forEach((p, i) => kids.push(h('polygon', { key: 'l' + i, points: p.map(q => q.join(',')).join(' '), fill: '#E7E0D2' })));
+    cells.forEach((c, i) => {
+      const inCat = cat === 'All' || c.cat === cat, on = inCat && alive(c, year);
+      const fill = on ? ramp(['#4F7D5E', '#E8E1D3', '#C0402A'], metric(c, view)) : '#DCD4C5';
+      kids.push(h('polygon', { key: i, points: c.g.map(q => q[0].toFixed(2) + ',' + q[1].toFixed(2)).join(' '), fill, opacity: inCat ? 1 : .35 }));
+    });
+    kids.push(h('circle', { key: 'hl', cx: 46.5, cy: 57.5, r: 2.4, fill: 'none', stroke: '#1C1B18', strokeWidth: .6 }));
+    const el = h('svg', { viewBox: '6 -1 96 102', style: { width: '100%', height: '100%', display: 'block' } }, kids);
+    this._m.m = { key, el };
+    return el;
+  }
+
+  tenants(i) {
+    const R = R0(101 + i * 17), [addr, hood, n, med] = LEADERS[i];
+    let list;
+    if (i === 0) list = A_TEN.map(([nm, s, e]) => { const p = POOL.find(q => q[0] === nm); return { name: nm, cuisine: p[1], tier: p[2], s, e }; });
+    else {
+      const pool = POOL.slice().sort(() => R() - .5), w = Array.from({ length: n }, () => .3 + R() * R() * 3), gaps = Array.from({ length: n }, () => R() < .5 ? .1 : .2 + R() * .8);
+      const avail = 14.8 - gaps.reduce((a, b) => a + b, 0), ws = w.reduce((a, b) => a + b, 0);
+      let t = 2012 + gaps[0] * .5; list = [];
+      for (let k = 0; k < n; k++) { const life = w[k] / ws * avail; list.push({ name: pool[k][0], cuisine: pool[k][1], tier: pool[k][2], s: t, e: t + life }); t += life + (k < n - 1 ? gaps[k + 1] : 0); }
+      list[n - 1].e = 2026.8;
+    }
+    const span = 14.8, lives = list.map(t => t.e - t.s);
+    const bars = list.map((t, k) => {
+      const life = t.e - t.s, last = k === list.length - 1;
+      return { num: k + 1, name: t.name, cuisine: t.cuisine, tier: t.tier, left: ((t.s - 2012) / span * 100).toFixed(2), width: (life / span * 100).toFixed(2),
+        color: life < 1.5 ? '#B8321D' : life < 3 ? '#E2B13C' : '#1E5B3A', ink: life < 1.5 || life >= 3 ? '#F3EEE4' : '#1C1B18',
+        up: k % 2 === 0, down: k % 2 === 1, lifeShort: life.toFixed(1), life: last ? 'open · ' + life.toFixed(1) + 'y' : life.toFixed(1) + ' yrs',
+        yrs: Math.floor(t.s) + '–' + (last ? 'now' : Math.floor(t.e)) };
+    });
+    const sorted = lives.slice().sort((a, b) => a - b), medL = sorted[Math.floor(sorted.length / 2)];
+    return { rank: i + 1, addr, hood, n, med: medL.toFixed(1), vac: Math.round((1 - lives.reduce((a, b) => a + b, 0) / span) * 100) + '%', area: (3.1 + R() * 1.2).toFixed(1), bars };
+  }
+
+  renderVals() {
+    const { year, view, cat, playing, addr, hov } = this.state;
+    const pick = (k, v) => () => this.setState({ [k]: v });
+    const VIEWS = ['Churn', 'Lifespan', 'Risk', 'Rent'];
+    const mkV = (on, off) => VIEWS.map(l => ({ label: l, pick: pick('view', l), bg: l === view ? on[0] : 'transparent', fg: l === view ? on[1] : off }));
+    const CL = ['All', ...CATS];
+    const mkC = (on, offFg, offBd) => CL.map(l => ({ label: l, pick: pick('cat', l), bg: l === cat ? on[0] : 'transparent', fg: l === cat ? on[1] : offFg, bd: l === cat ? on[2] : offBd }));
+    const yi = year - 2012;
+    let open = 26; for (let i = 0; i <= yi; i++) open += OPEN[i] - CLOSE[i];
+    const bars = OPEN.map((o, i) => ({ oh: (o / 9.4 * 20).toFixed(1), ch: (CLOSE[i] / 9.4 * 20).toFixed(1), cs: (CLOSE[i] / 9.4 * 34).toFixed(1), os: (o / 9.4 * 18).toFixed(1), cs2: (CLOSE[i] / 9.4 * 17).toFixed(1), op: i <= yi ? 1 : .25 }));
+    const mapA = this.map3d('a'), mapB = this.map3d('b'), mapC = this.map3d('c');
+    const sel = this.tenants(addr);
+    const medX = (100 - 30) / 230 * 100, medY = (40 - 20) / 45 * 100;
+    const dots = HOODS.map(([name, rent, close, n]) => {
+      const ex = rent >= 100, dd = close >= 40, on = name === hov;
+      return { name, x: ((rent - 30) / 230 * 100).toFixed(2), y: ((close - 20) / 45 * 100).toFixed(2), s: Math.round(Math.sqrt(n) / 2.6 + 4),
+        fill: dd ? (ex ? '#B8321D' : '#E2B13C') : (ex ? '#1C1B18' : '#1E5B3A'), ring: on ? 3 : (!ex && dd ? 1 : 0), lab: on || LABELLED.includes(name), lm: Math.round(Math.sqrt(n) / 5.2),
+        enter: () => this.setState({ hov: name }) };
+    });
+    const hh = HOODS.find(q => q[0] === hov);
+    const quad = (hh[1] >= 100 ? 'Expensive' : 'Cheap') + ' & ' + (hh[2] >= 40 ? 'deadly' : 'safe');
+    const first = this.tenants(0);
+    return {
+      ...this.storyVals(), ...this.rentRiskVals(),
+      year, openStr: Math.round(open * 1000).toLocaleString('en-US'), bars, showHover: this.props.showHover ?? true,
+      legend: { title: LEG[view][0], lo: LEG[view][1], hi: LEG[view][2] },
+      mapA, mapB, mapC, mapM: this.mapFlat(),
+      hcA: this._m.a.hc, hcB: this._m.b.hc, hcC: this._m.c.hc,
+      viewsA: mkV(['#1C1B18', '#F3EEE4'], '#1C1B18'), viewsB: mkV(['#F0C043', '#15171C'], '#EFEEEA'), viewsC: mkV(['var(--color-accent-800)', 'var(--color-accent-100)'], 'var(--color-neutral-300)'),
+      catsA: mkC(['#1C1B18', '#F3EEE4', '#1C1B18'], '#1C1B18', '#CFC6B6'), catsB: mkC(['#EFEEEA', '#15171C'], '#EFEEEA'), catsC: mkC(['', 'var(--color-accent-200)', 'var(--color-accent)'], 'var(--color-neutral-300)', 'var(--color-neutral-600)'),
+      playIcon: playing ? 'ph ph-pause' : 'ph ph-play',
+      togglePlay: () => {
+        if (this.state.playing) { clearInterval(this._t); this.setState({ playing: false }); return; }
+        if (this.state.year >= 2026) this.setState({ year: 2012 });
+        this.setState({ playing: true });
+        this._t = setInterval(() => { if (this.state.year >= 2026) { clearInterval(this._t); this.setState({ playing: false }); } else this.setState(s => ({ year: s.year + 1 })); }, 650);
+      },
+      onYear: e => this.setState({ year: +e.target.value }),
+      leaders: LEADERS.map((l, i) => ({ rank: i + 1, addr: l[0], hood: l[1], n: l[2], med: l[3], pick: pick('addr', i), bg: i === addr ? '#FBF8F2' : 'transparent', bar: i === addr ? 'inset 3px 0 0 #B8321D' : 'none' })),
+      sel, ticks: [2012, 2014, 2016, 2018, 2020, 2022, 2024, 2026].map(y => ({ label: y, left: ((y - 2012) / 14.8 * 100).toFixed(2) })),
+      dots, medX: medX.toFixed(2), medY: medY.toFixed(2), hov: { name: hh[0], rent: hh[1], close: hh[2], n: hh[3].toLocaleString('en-US'), quad },
+      xTicks: [50, 100, 150, 200, 250].map(v => ({ label: '$' + v, pos: ((v - 30) / 230 * 100).toFixed(2) })),
+      yTicks: [20, 30, 40, 50, 60].map(v => ({ label: v + '%', pos: ((v - 20) / 45 * 100).toFixed(2) })),
+      firstBars: first.bars, lastThree: first.bars.slice(-3).reverse()
+    };
+  }
+}
+</script>
+</body>
+</html>
