@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import { IBM_Plex_Mono, Newsreader } from "next/font/google";
 import "./globals.css";
+import AskPanel from "@/components/ask/AskPanel";
 
 const newsreader = Newsreader({
   subsets: ["latin"],
@@ -26,7 +28,13 @@ export const viewport: Viewport = { themeColor: "#F3EEE4" };
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${newsreader.variable} ${plexMono.variable}`}>
-      <body>{children}</body>
+      <body>
+        {children}
+        {/* reads the URL, so it needs its own Suspense boundary under Cache Components */}
+        <Suspense fallback={null}>
+          <AskPanel />
+        </Suspense>
+      </body>
     </html>
   );
 }
