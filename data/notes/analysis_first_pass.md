@@ -29,7 +29,8 @@ weighted toward early ages, because the effect is not proportional over time.
 - **Chains:** 0.67× (a third less likely to close).
 - **Riskiest kinds of place:** juice/beverage 1.51×, café/coffee/tea 1.47×, pizza 1.32×, deli/sandwich 1.31×, Middle Eastern/Mediterranean 1.22× (vs American).
 - **Safest kinds of place:** Italian 0.88×, Japanese/Korean 0.92×.
-- **Neighbourhood value per sq ft has no measurable effect** (0.98, n.s.). Expensive areas aren't riskier, and they aren't safer either.
+- **Neighbourhood value per sq ft is barely protective** (0.97 per SD, p≈0.05). Expensive areas are not meaningfully riskier or safer.
+- **Foot traffic (tract index, opening year) slightly *raises* risk:** 1.04 per SD (p=0.01). Busy blocks don't keep places alive; they churn a little more, likely through more competition and entry.
 - **Boroughs barely differ,** except Staten Island at 1.13×.
 
 **3. Acclaim helps, measured fairly.** (observed_since.csv)
@@ -57,6 +58,6 @@ Annual exit rates 2013–25 regressed on the citywide rate, so this mostly measu
 - **Bars' (NYSLA-only) beta is unreliable (−0.13):** licence end dates only exist from 2015, and renewals drive the dates.
 - **Beta covers only 44 neighbourhoods** (those with ≥150 businesses open in a typical year). Lower the threshold, or pool to community districts, to fill the map.
 - **Price tiers:** add confidence intervals, and rerun after the menu download finishes (more menu-based tiers).
-- **Foot traffic:** add it to the Cox model once `traffic_by_tract_year.parquet` exists.
+- **Foot traffic** is in the Cox model now. Next: try components (subway vs jobs vs residents) and an evening/night share for bars.
 - **Cox proportional hazards:** the prior-tenant terms violate it. Consider age-split terms (prior × age<3y) in the next pass.
 - **Recent cohorts (2022+)** have under-detected closures (DOHMH purge lag), so their survival looks better than it is.

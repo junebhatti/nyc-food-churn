@@ -58,17 +58,21 @@ def traffic(b: pd.DataFrame) -> pd.DataFrame:
     if not f.exists():
         print("traffic index not built yet; skipping")
         return b
-    t = pd.read_parquet(f)
-    t = t.rename(columns={"year": "open_year"})
-    tract = "boroct2020" if "boroct2020" in t else "ct2020"
-    keep = [c for c in t.columns if c not in (tract, "open_year")]
-    t = t.rename(columns={c: f"traffic_{c}" for c in keep})
-    return b.merge(t, left_on=["ct2020", "open_year"], right_on=[tract, "open_year"], how="left")
+    # fti_within_year: the pre-2019 fti isn't comparable across years (no rideshare data), see traffic.md
+    cols = ["fti", "fti_within_year", "fti_pctile", "z_subway", "z_tlc", "z_jobs", "z_residents"]
+    t = pd.read_parquet(f, columns=["boroct2020", "year"] + cols)
+    t = t.rename(columns={"year": "open_year", **{c: f"traffic_{c}" for c in cols}})
+    t["boroct2020"] = t["boroct2020"].astype(str)
+    boro = b["bbl"].astype(str).str[0].where(b["bbl"].notna())
+    b["boroct2020"] = (boro + b["ct2020"].astype(str).str.zfill(6)).where(boro.notna() & b["ct2020"].notna())
+    b = b.merge(t, on=["boroct2020", "open_year"], how="left")
+    print(f"foot traffic attached to {b['traffic_fti_within_year'].notna().mean():.0%} of businesses")
+    return b
 
 
 def main() -> None:
     b = pd.read_parquet(OUT / "businesses.parquet")
-    drop = [c for c in b.columns if c.startswith(("acclaim", "traffic_")) or c in
+    drop = [c for c in b.columns if c.startswith(("acclaim", "traffic_", "boroct")) or c in
             {"family", "cuisine_clean", "limited_service", "brand_key", "is_chain_strict", "is_chain_loose",
              "nyc_max_concurrent", "operator_id", "multi_unit_operator", "first_time_operator",
              "operator_n_camis", "pluto_retailarea", "retail_area_per_storefront", "or_n_apps",

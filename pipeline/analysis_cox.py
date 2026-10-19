@@ -8,7 +8,8 @@ cohorts behave differently and recent closures are under-detected).
 Covariates, each against a reference level:
   cuisine family (ref american), borough (ref Manhattan), chain, limited service,
   storefront history (ref fresh: 1-2 / 3+ prior tenants), multi-tenant building,
-  neighbourhood value per sq ft in the opening year (DOF, standardized log; missing flagged).
+  neighbourhood value per sq ft in the opening year (DOF, standardized log; missing flagged),
+  tract foot-traffic index in the opening year (fti_within_year, a z-score; missing flagged).
 Price tier and acclaim are left out here: both are observed only after a place has survived,
 which biases a fixed covariate (see observed_since.csv for the fair comparison).
 A hazard ratio of 1.40 means 40% more likely to close at any given age.
@@ -39,6 +40,9 @@ def design(c: pd.DataFrame) -> pd.DataFrame:
     v = np.log(c["dof_mv_psf_median"].where(c["dof_mv_psf_median"] > 0))
     x["nbhd_value_missing"] = v.isna().astype(int)
     x["nbhd_value_z"] = ((v - v.mean()) / v.std()).fillna(0)
+    f = c["traffic_fti_within_year"]
+    x["foot_traffic_missing"] = f.isna().astype(int)
+    x["foot_traffic_z"] = ((f - f.mean()) / f.std()).fillna(0)
     return pd.concat([x, fam.astype(int), bor.astype(int)], axis=1)
 
 

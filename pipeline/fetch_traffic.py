@@ -4,7 +4,7 @@
     .venv/bin/python pipeline/fetch_traffic.py tlc build    # just some steps
 
 Steps: lodes, acs, ped (DOT counts), subway (hourly + MetroCard + turnstile samples; slow),
-tlc (all TLC months via remote duckdb), citibike (May+Oct samples), bid (BID counts),
+tlc (sampled TLC months via remote duckdb + c5iv-bn4s 2019+), citibike (May+Oct samples), bid (BID counts),
 build (tract x year panel + composite index + lot helper; needs the others).
 Monthly Socrata/TLC results are cached in data/raw/traffic/_tmp/ so reruns resume.
 Needs: duckdb, geopandas, scipy, pyproj, openpyxl, xlrd in .venv.
