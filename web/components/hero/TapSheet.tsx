@@ -56,7 +56,7 @@ export default function TapSheet({ row, hood, loading, onClose, placeId }: Props
                 </div>
               ))}
             </div>
-            <a href={placeId ? `/place/${placeId}` : "#cursed"} className="mono mt-4 flex h-11 items-center justify-center gap-2 border border-ink text-[11px] uppercase tracking-[0.06em]">
+            <a href={placeId ? `/place/${placeId}` : "/cursed"} className="mono mt-4 flex h-11 items-center justify-center gap-2 border border-ink text-[11px] uppercase tracking-[0.06em]">
               Full timeline <ArrowRight size={14} />
             </a>
           </>

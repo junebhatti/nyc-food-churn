@@ -1,15 +1,17 @@
 import Link from "next/link";
 import SearchBox from "./search/SearchBox";
+import StoriesMenu from "./StoriesMenu";
 
-/** Header used on the address pages (the home page header lives in Hero). */
-export default function TopBar() {
+/** Header on every page: name, address search and the stories menu. */
+export default function TopBar({ current }: { current?: string }) {
   return (
-    <header className="flex flex-wrap items-center justify-between gap-3 border-b border-rule px-4 py-3 md:h-14 md:px-10 md:py-0">
+    <header className="flex shrink-0 flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b border-rule px-4 py-3 md:h-14 md:flex-nowrap md:px-10 md:py-0">
       <Link href="/" className="flex items-baseline gap-4">
         <span className="text-[22px] font-medium">Half-Life</span>
-        <span className="label hidden md:inline">An atlas of NYC restaurant churn, 2012–2026</span>
+        <span className="label hidden lg:inline">An atlas of NYC restaurant churn, 2012–2026</span>
       </Link>
-      <div className="w-full md:w-auto"><SearchBox compact /></div>
+      <div className="order-last w-full md:order-none md:ml-auto md:w-[300px]"><SearchBox compact /></div>
+      <StoriesMenu current={current} />
     </header>
   );
 }

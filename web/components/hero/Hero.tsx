@@ -3,7 +3,6 @@
 import dynamic from "next/dynamic";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { List } from "@phosphor-icons/react";
 import { useAtlas } from "@/lib/store";
 import { useBuildings, useLand, useNeighborhoods, useParks, useTenants, useYearlyByNta } from "@/lib/data";
 import { placeHref } from "@/lib/places";
@@ -14,7 +13,7 @@ import type { Summary, Yearly } from "@/lib/types";
 import YearScrubber from "../controls/YearScrubber";
 import { CategoryButtons, ViewToggle } from "../controls/Toggles";
 import NeighborhoodPicker, { useNtaUrlSync } from "../controls/NeighborhoodPicker";
-import SearchBox from "../search/SearchBox";
+import TopBar from "../TopBar";
 import HoverCard from "./HoverCard";
 import TapSheet from "./TapSheet";
 import type { HoverInfo } from "./HeroMap";
@@ -81,12 +80,9 @@ export default function Hero({ summary, yearly }: Props) {
 
   if (mobile) {
     return (
+      <>
+      <TopBar current="map" />
       <section className="px-4">
-        <header className="flex h-[52px] items-center justify-between border-b border-rule">
-          <span className="text-[20px] font-medium">Half-Life</span>
-          <button type="button" aria-label="Menu" className="flex h-11 w-11 items-center justify-center"><List size={22} /></button>
-        </header>
-        <div className="mt-3"><SearchBox compact /></div>
         <div className="pt-6">{headline}</div>
         <div className="mt-5"><ViewToggle mobile /></div>
         <div className="mt-2"><NeighborhoodPicker hoods={hoods.data} mobile /></div>
@@ -103,25 +99,13 @@ export default function Hero({ summary, yearly }: Props) {
           <TapSheet row={tenants.data?.[tapped]} hood={hoodOf(tapped)} loading={!tenants.data} onClose={() => setTapped(null)} placeId={buildings.data?.[tapped]?.id} />
         )}
       </section>
+      </>
     );
   }
 
   return (
-    <section className="relative flex h-[min(900px,100svh)] min-h-[720px] flex-col">
-      <header className="flex h-14 shrink-0 items-center justify-between border-b border-rule px-10">
-        <div className="flex items-baseline gap-4">
-          <span className="text-[22px] font-medium">Half-Life</span>
-          <span className="label">An atlas of NYC restaurant churn, 2012–2026</span>
-        </div>
-        <SearchBox />
-        <nav className="mono hidden gap-5 text-[11px] uppercase tracking-[0.06em] text-muted xl:flex">
-          <a href="#cursed" className="hover:text-ink">01 Cursed addresses</a>
-          <a href="#half-life" className="hover:text-ink">02 Half-life</a>
-          <a href="#rent-risk" className="hover:text-ink">03 Rent vs risk</a>
-          <a href="#beta" className="hover:text-ink">04 Beta</a>
-          <a href="#pitch" className="hover:text-ink">07 Pitch yours</a>
-        </nav>
-      </header>
+    <section className="relative flex h-svh min-h-[720px] flex-col">
+      <TopBar current="map" />
       <div className="relative min-h-0 flex-1">
         <div className="absolute inset-y-0 left-[18%] right-0" onMouseLeave={() => setHover(null)}>
           {map}

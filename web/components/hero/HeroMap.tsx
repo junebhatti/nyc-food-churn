@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import DeckGL from "@deck.gl/react";
-import { AmbientLight, DirectionalLight, LightingEffect, LinearInterpolator, type MapViewState } from "@deck.gl/core";
+import { AmbientLight, DirectionalLight, LightingEffect, type MapViewState } from "@deck.gl/core";
 import { ColumnLayer, SolidPolygonLayer } from "@deck.gl/layers";
 import { useAtlas } from "@/lib/store";
 import { hasCategory } from "@/lib/data";
@@ -10,11 +10,8 @@ import { boroughLabels, clampView, landPolygons, makeLandTest, NYC_CENTER, outli
 import { usePalette } from "@/lib/usePalette";
 import { buildingColor, hexBins, makeScale, rawValue, type Cell } from "@/lib/metrics";
 import type { Building, Neighborhood } from "@/lib/types";
-import MapControls from "./MapControls";
 import { useTrackpad } from "@/lib/useTrackpad";
 import { FLY, focusOutline, frameGeometry } from "@/lib/focus";
-
-const CAMERA_TRANSITION = new LinearInterpolator(["bearing", "pitch"]);
 
 // Matte plaster relief: soft ambient plus one light from the west/north-west, no gloss.
 const lighting = new LightingEffect({
@@ -51,28 +48,16 @@ export default function HeroMap({ buildings, hoods, land, parks, flat = false, i
   const focusHood = ntaIdx >= 0 ? hoods[ntaIdx] : null;
   const inFocus = useCallback((b: Building) => ntaIdx < 0 || b.nta === ntaIdx, [ntaIdx]);
   // Opens top-down and north-up like a street map (Bronx at the top, Brooklyn and Queens to the
-  // right of Manhattan); the controls tilt into the 3D relief and rotate it.
+  // right of Manhattan); a trackpad swipe tilts into the 3D relief and rotates it.
   const [viewState, setViewState] = useState<MapViewState>({
     ...NYC_CENTER,
     zoom: initialZoom,
     pitch: 0,
     bearing: 0,
   });
-  // Where the camera is heading. Button clicks build on this, not on the mid-animation camera,
-  // so "3D" then "rotate" quickly doesn't cancel the tilt.
-  const target = useRef({ bearing: 0, pitch: 0 });
-  const [shownTarget, setShownTarget] = useState({ bearing: 0, pitch: 0 }); // mirror for rendering the controls
-  const setTarget = (t: { bearing: number; pitch: number }) => {
-    target.current = t;
-    setShownTarget(t);
-  };
-  const animateTo = (next: { bearing?: number; pitch?: number }) => {
-    setTarget({ ...target.current, ...next });
-    setViewState((v) => ({ ...v, ...target.current, transitionDuration: 450, transitionInterpolator: CAMERA_TRANSITION }) as MapViewState);
-  };
   const minZoom = initialZoom - 0.6; // can't zoom out past a little more than the whole city
 
-  // Trackpad: pinch zooms; once the map is clicked, swipe pans and shift+swipe rotates/tilts.
+  // Trackpad: pinch zooms, sideways swipe rotates, vertical swipe tilts; drag pans.
   const box = useRef<HTMLDivElement>(null);
   const viewRef = useRef(viewState);
   useEffect(() => {
@@ -83,13 +68,11 @@ export default function HeroMap({ buildings, hoods, land, parks, flat = false, i
     (v: MapViewState) => {
       const next = clampView(v, minZoom);
       viewRef.current = next;
-      target.current = { bearing: next.bearing ?? 0, pitch: next.pitch ?? 0 };
-      setShownTarget(target.current);
       setViewState(next);
     },
     [minZoom],
   );
-  const trackpad = useTrackpad({ el: box, getView, setView, enabled: !flat });
+  useTrackpad({ el: box, getView, setView, enabled: !flat });
 
   // Measure the box ourselves and hand deck.gl the real size: left alone it measures the canvas
   // before layout (300x150) and draws the first frames stretched.
@@ -181,18 +164,13 @@ export default function HeroMap({ buildings, hoods, land, parks, flat = false, i
   ];
 
   return (
-    <div ref={box} className="absolute inset-0" onPointerDown={trackpad.activate}>
+    <div ref={box} className="absolute inset-0">
     {size && <DeckGL
       width={size.width}
       height={size.height}
       viewState={viewState}
-      onViewStateChange={({ viewState: v, interactionState }) => {
-        const next = clampView(v as MapViewState, minZoom);
-        // A drag or wheel (not an animation step) sets a new resting camera.
-        if (!interactionState?.inTransition) setTarget({ bearing: next.bearing ?? 0, pitch: next.pitch ?? 0 });
-        setViewState(next);
-      }}
-      // Wheel/pinch are handled by useTrackpad, so the page can still scroll past an inactive map.
+      onViewStateChange={({ viewState: v }) => setViewState(clampView(v as MapViewState, minZoom))}
+      // Wheel and pinch are handled by useTrackpad; deck.gl keeps drag-to-pan.
       controller={flat ? { dragRotate: false, touchRotate: false } : { dragRotate: true, scrollZoom: false }}
       layers={layers}
       effects={flat ? [] : [lighting]}
@@ -211,12 +189,9 @@ export default function HeroMap({ buildings, hoods, land, parks, flat = false, i
         else onOpen?.(idx);
       }}
     />}
-    {!flat && <MapControls bearing={viewState.bearing ?? 0} pitch={shownTarget.pitch} targetBearing={shownTarget.bearing} onChange={animateTo} />}
     {!flat && (
       <div className="label pointer-events-none absolute bottom-4 left-1/2 z-10 -translate-x-1/2 border border-rule bg-paper-raised/90 px-2.5 py-1.5">
-        {trackpad.active
-          ? "Swipe to pan · pinch to zoom · shift+swipe to rotate and tilt"
-          : "Click the map to explore with your trackpad · pinch to zoom"}
+        Drag to pan · pinch to zoom · swipe to rotate and tilt
       </div>
     )}
     </div>

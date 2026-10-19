@@ -10,19 +10,18 @@
 Data gathering, merge, analysis and the site are all done and live. Nothing is running or paused.
 
 **Site features**
-- Hero map (deck.gl):
+- Home `/` is the full-screen map (deck.gl):
   - Opens flat and north-up, with water gaps, parks and borough outlines.
-  - Rotate/tilt/2D-3D/compass controls.
-  - Trackpad: pinch zooms; click the map, then swipe pans and shift+swipe rotates/tilts.
+  - Gestures, with no on-map buttons (changed 2026-10-19, `web/lib/useTrackpad.ts`): drag pans, pinch zooms, a two-finger sideways swipe rotates, a vertical swipe tilts (up tilts into 3D), and a mouse wheel zooms. The map takes every wheel event over it.
   - View, category, year and neighbourhood filters (`?n=<NTA>`); hover card; click opens the address page.
-- Sections:
-  - 01 Cursed Addresses
-  - 02 Half-life
-  - 03 Rent vs Risk
-  - 04 Beta
-  - 05 Cursed spot test
-  - 06 2020 shock
-  - 07 Pitch yours (Cox model)
+- Each story has its own page (split out 2026-10-19). The list is `web/lib/stories.ts`, the frame is `web/components/StoryPage.tsx` (header, then prev/next, then footer), and the header's "Stories" menu (☰ on phones) is `web/components/StoriesMenu.tsx`:
+  - `/cursed` 01 Cursed Addresses
+  - `/half-life` 02 Half-life
+  - `/rent-vs-risk` 03 Rent vs Risk
+  - `/beta` 04 Beta
+  - `/cursed-spot` 05 Cursed spot test
+  - `/2020` 06 2020 shock
+  - `/pitch` 07 Pitch yours (Cox model)
 - Address pages `/place/<id>` for ~45k buildings: timeline, business cards with DOHMH grades, acclaim and Google/Yelp links, and nearby addresses.
 - Search box: addresses, business names, neighbourhoods; NYC GeoSearch fallback.
 - Neighbourhood panel under the map when a neighbourhood is selected.

@@ -1,4 +1,4 @@
-/** Shared section frame: ink top rule, kicker, H2 and prose, matching sections 01 and 03. */
+/** Shared section frame: ink top rule, kicker, H2 and prose, matching Cursed addresses and Rent vs risk. */
 export default function Section({
   id,
   kicker,

@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState, type RefObject } from "react";
-import { WebMercatorViewport, type MapViewState } from "@deck.gl/core";
+import { useEffect, type RefObject } from "react";
+import type { MapViewState } from "@deck.gl/core";
 
 const ZOOM_PER_PINCH = 0.012; // per wheel pixel while pinching (ctrl+wheel in Chrome/Firefox)
-const ROTATE_PER_PX = 0.25; // degrees per pixel of shift+swipe
+const ZOOM_PER_NOTCH = 0.5; // per mouse-wheel click
+const ROTATE_PER_PX = 0.25; // degrees of bearing per pixel of sideways swipe
+const TILT_PER_PX = 0.2; // degrees of pitch per pixel of vertical swipe
 const MAX_PITCH = 60;
 
 interface Options {
@@ -14,50 +16,41 @@ interface Options {
   enabled: boolean;
 }
 
+/** A real mouse wheel: line-based deltas (Firefox) or whole 100ish-pixel notches with no sideways
+ *  movement. Trackpads send small, mixed deltas. A very fast vertical trackpad flick can look like
+ *  a notch; it then zooms instead of tilting, which is harmless. */
+const isMouseWheel = (e: WheelEvent) =>
+  e.deltaMode === 1 || (e.deltaX === 0 && Number.isInteger(e.deltaY) && Math.abs(e.deltaY) >= 50);
+
 /**
- * Apple-Maps-style trackpad control for a deck.gl map that sits inside a scrolling page.
- * - Pinch always zooms (ctrl+wheel in Chrome/Firefox, gesture events in Safari).
- * - After the map is clicked ("active"), two-finger swipe pans and shift+swipe rotates/tilts;
- *   leaving the map deactivates it, so swiping over an inactive map scrolls the page as usual.
- * - Safari's two-finger rotate gesture turns the map.
+ * Trackpad control for the full-page deck.gl map:
+ * - pinch zooms (ctrl+wheel in Chrome/Firefox, gesture events in Safari),
+ * - a two-finger sideways swipe rotates, a vertical swipe tilts (up tilts into 3D),
+ * - a mouse wheel zooms, since a mouse can't pinch.
+ * Panning is click-and-drag, handled by deck.gl's own controller.
  */
 export function useTrackpad({ el, getView, setView, enabled }: Options) {
-  const [active, setActive] = useState(false);
-  const activeRef = useRef(false);
-  useEffect(() => {
-    activeRef.current = active;
-  }, [active]);
-
   useEffect(() => {
     const node = el.current;
     if (!node || !enabled) return;
 
-    const size = () => ({ width: node.clientWidth, height: node.clientHeight });
-
     const onWheel = (e: WheelEvent) => {
+      e.preventDefault(); // the map owns every wheel event over it, including browser zoom
       const v = getView();
       if (e.ctrlKey) {
-        e.preventDefault(); // pinch: zoom the map, never the browser page
         setView({ ...v, zoom: v.zoom - e.deltaY * ZOOM_PER_PINCH });
         return;
       }
-      if (!activeRef.current) return; // let the page scroll
-      e.preventDefault();
-      if (e.shiftKey) {
-        // Some browsers turn shift+vertical scroll into horizontal; take whichever axis moved.
-        const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-        const horizontal = Math.abs(e.deltaX) >= Math.abs(e.deltaY);
-        setView(
-          horizontal
-            ? { ...v, bearing: (v.bearing ?? 0) + d * ROTATE_PER_PX }
-            : { ...v, pitch: Math.min(MAX_PITCH, Math.max(0, (v.pitch ?? 0) - d * ROTATE_PER_PX)) },
-        );
+      if (isMouseWheel(e)) {
+        setView({ ...v, zoom: v.zoom - Math.sign(e.deltaY) * ZOOM_PER_NOTCH });
         return;
       }
-      const { width, height } = size();
-      const vp = new WebMercatorViewport({ ...v, width, height });
-      const [longitude, latitude] = vp.unproject([width / 2 + e.deltaX, height / 2 + e.deltaY]);
-      setView({ ...v, longitude, latitude });
+      // Follow the dominant axis so a vertical swipe doesn't also drift the bearing.
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+        setView({ ...v, bearing: (v.bearing ?? 0) + e.deltaX * ROTATE_PER_PX });
+      } else {
+        setView({ ...v, pitch: Math.min(MAX_PITCH, Math.max(0, (v.pitch ?? 0) + e.deltaY * TILT_PER_PX)) });
+      }
     };
 
     // Safari: pinch and rotate arrive as gesture events.
@@ -77,21 +70,16 @@ export function useTrackpad({ el, getView, setView, enabled }: Options) {
     const onGestureEnd = () => {
       start = null;
     };
-    const onLeave = () => setActive(false);
 
     node.addEventListener("wheel", onWheel, { passive: false });
     node.addEventListener("gesturestart", onGestureStart);
     node.addEventListener("gesturechange", onGestureChange);
     node.addEventListener("gestureend", onGestureEnd);
-    node.addEventListener("mouseleave", onLeave);
     return () => {
       node.removeEventListener("wheel", onWheel);
       node.removeEventListener("gesturestart", onGestureStart);
       node.removeEventListener("gesturechange", onGestureChange);
       node.removeEventListener("gestureend", onGestureEnd);
-      node.removeEventListener("mouseleave", onLeave);
     };
   }, [el, getView, setView, enabled]);
-
-  return { active, activate: () => setActive(true) };
 }

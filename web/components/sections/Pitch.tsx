@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import type { CurveRow, PitchData } from "@/lib/types";
 import SurvivalChart, { Legend, type Series } from "../charts/SurvivalChart";
 import Section, { Stat, pct } from "./Section";
@@ -21,7 +22,7 @@ interface Choice {
 }
 
 const PRIOR_KEYS = ["prior_1_2", "prior_3plus"];
-const PRIOR_FADES_AT = 3; // years; section 05 shows the storefront-history penalty is gone by years 4-5
+const PRIOR_FADES_AT = 3; // years; the cursed spot test (/cursed-spot) shows the storefront-history penalty is gone by years 4-5
 
 /** Cox model prediction, S(t) = S0(t) ^ exp(sum((x - mean) * coef)), except that the storefront-history
  *  terms only apply in the first PRIOR_FADES_AT years (the model's proportional-hazards fit would
@@ -72,7 +73,7 @@ export default function Pitch({ data, city }: { data: PitchData; city: CurveRow 
       id="pitch"
       kicker="07 — Pitch yours"
       title={<>Open a restaurant. See your odds.</>}
-      intro={<>Pick what you&rsquo;d open and where. The estimate comes from a survival model fit on {data.fit.n.toLocaleString()} places that opened in {data.fit.opened}, controlling for cuisine, borough, chain status, service style, the storefront&rsquo;s history, local property values and foot traffic. A storefront&rsquo;s history only counts for the first three years, as section 05 shows. It&rsquo;s a base rate, not a forecast: food, money and luck aren&rsquo;t in the data.</>}
+      intro={<>Pick what you&rsquo;d open and where. The estimate comes from a survival model fit on {data.fit.n.toLocaleString()} places that opened in {data.fit.opened}, controlling for cuisine, borough, chain status, service style, the storefront&rsquo;s history, local property values and foot traffic. A storefront&rsquo;s history only counts for the first three years, as <Link href="/cursed-spot" className="underline decoration-rule underline-offset-2 hover:decoration-ink">the cursed spot test</Link> shows. It&rsquo;s a base rate, not a forecast: food, money and luck aren&rsquo;t in the data.</>}
     >
       <div className="grid gap-10 lg:grid-cols-[320px_minmax(0,1fr)]">
         <form className="space-y-5 border-t border-ink pt-4" onSubmit={(e) => e.preventDefault()}>

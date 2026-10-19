@@ -93,7 +93,7 @@ export default function AskPanel() {
       <div className="flex-1 overflow-y-auto px-4 py-3">
         {turns.length === 0 && (
           <div className="space-y-2">
-            <p className="text-[15px] text-ink-2">What the numbers mean, how closures were measured, or what a section is showing.</p>
+            <p className="text-[15px] text-ink-2">What the numbers mean, how closures were measured, or what a chart is showing.</p>
             {SUGGESTIONS.map((s) => (
               <button key={s} type="button" onClick={() => ask(s)} className="block w-full border border-rule px-3 py-2 text-left text-[14px] hover:bg-paper">{s}</button>
             ))}
