@@ -6,6 +6,7 @@ import Beta from "@/components/sections/Beta";
 import CursedTest from "@/components/sections/CursedTest";
 import Covid from "@/components/sections/Covid";
 import Pitch from "@/components/sections/Pitch";
+import NeighborhoodPanel from "@/components/hero/NeighborhoodPanel";
 import type { BetaData, CovidData, CursedAddress, CursedTestData, HalfLifeData, PitchData, Summary, Yearly } from "@/lib/types";
 // Small files are bundled at build time (written by pipeline/export_site.py and export_analysis.py);
 // the big map files load in the browser.
@@ -31,6 +32,7 @@ export default function Page() {
   return (
     <main>
       <Hero summary={summary} yearly={yearly} />
+      <NeighborhoodPanel />
       <CursedAddresses addresses={cursed} />
       <HalfLife data={halflife} />
       <RentVsRisk />

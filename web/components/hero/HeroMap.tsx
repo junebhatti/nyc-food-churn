@@ -12,6 +12,7 @@ import { buildingColor, hexBins, makeScale, rawValue, type Cell } from "@/lib/me
 import type { Building, Neighborhood } from "@/lib/types";
 import MapControls from "./MapControls";
 import { useTrackpad } from "@/lib/useTrackpad";
+import { FLY, focusOutline, frameGeometry } from "@/lib/focus";
 
 const CAMERA_TRANSITION = new LinearInterpolator(["bearing", "pitch"]);
 
@@ -41,10 +42,14 @@ interface Props {
   initialZoom?: number;
   onHover?: (h: HoverInfo | null) => void;
   onTap?: (building: number) => void;
+  onOpen?: (building: number) => void; // desktop click: open the address page
 }
 
-export default function HeroMap({ buildings, hoods, land, parks, flat = false, initialZoom = 10.2, onHover, onTap }: Props) {
-  const { year, view, category } = useAtlas();
+export default function HeroMap({ buildings, hoods, land, parks, flat = false, initialZoom = 10.2, onHover, onTap, onOpen }: Props) {
+  const { year, view, category, nta } = useAtlas();
+  const ntaIdx = useMemo(() => (nta ? hoods.findIndex((h) => h.id === nta) : -1), [nta, hoods]);
+  const focusHood = ntaIdx >= 0 ? hoods[ntaIdx] : null;
+  const inFocus = useCallback((b: Building) => ntaIdx < 0 || b.nta === ntaIdx, [ntaIdx]);
   // Opens top-down and north-up like a street map (Bronx at the top, Brooklyn and Queens to the
   // right of Manhattan); the controls tilt into the 3D relief and rotate it.
   const [viewState, setViewState] = useState<MapViewState>({
@@ -107,8 +112,8 @@ export default function HeroMap({ buildings, hoods, land, parks, flat = false, i
   const value = useMemo(() => (b: Building) => scale(rawValue(b, view, hoods)), [scale, view, hoods]);
   const showBuildings = !flat && viewState.zoom > BUILDING_ZOOM;
   const cells = useMemo<Cell[]>(
-    () => (showBuildings ? [] : hexBins(buildings, flat ? MOBILE_HEX_RADIUS_M : HEX_RADIUS_M, value, year, category, onLand)),
-    [buildings, value, year, category, showBuildings, flat, onLand],
+    () => (showBuildings ? [] : hexBins(buildings, flat ? MOBILE_HEX_RADIUS_M : HEX_RADIUS_M, value, year, category, onLand, inFocus)),
+    [buildings, value, year, category, showBuildings, flat, onLand, inFocus],
   );
 
   // Tallest hexes (99th percentile) rise ~2.5 km, so the whole city reads as one relief.
@@ -117,6 +122,17 @@ export default function HeroMap({ buildings, hoods, land, parks, flat = false, i
     return h.length ? 2500 / Math.max(1, h[Math.floor(0.99 * (h.length - 1))]) : 1;
   }, [cells]);
 
+
+  // Fly to the chosen neighbourhood (or back out to the city when it's cleared).
+  const lastNta = useRef<string | null>(null);
+  useEffect(() => {
+    if (!size || nta === lastNta.current) return;
+    lastNta.current = nta;
+    const to = focusHood
+      ? frameGeometry(focusHood.geometry, size, viewRef.current)
+      : { ...viewRef.current, ...NYC_CENTER, zoom: initialZoom };
+    setViewState({ ...to, transitionDuration: "auto", transitionInterpolator: FLY } as MapViewState);
+  }, [nta, focusHood, size, initialZoom]);
 
   const layers = [
     new SolidPolygonLayer<GeoJSON.Position[][]>({
@@ -138,11 +154,11 @@ export default function HeroMap({ buildings, hoods, land, parks, flat = false, i
           extruded: true,
           elevationScale: 22,
           getPosition: (b) => [b.lon, b.lat],
-          getElevation: (b) => (hasCategory(b, category) ? b.tenants : b.tenants * 0.15),
-          getFillColor: (b) => buildingColor(b, value(b), year, category),
+          getElevation: (b) => (hasCategory(b, category) && inFocus(b) ? b.tenants : b.tenants * 0.15),
+          getFillColor: (b) => buildingColor(b, value(b), year, category, inFocus(b)),
           material: MATERIAL,
           pickable: true,
-          updateTriggers: { getFillColor: [year, view, category], getElevation: [category] },
+          updateTriggers: { getFillColor: [year, view, category, ntaIdx], getElevation: [category, ntaIdx] },
           transitions: { getFillColor: 300 },
         })
       : new ColumnLayer<Cell>({
@@ -159,6 +175,7 @@ export default function HeroMap({ buildings, hoods, land, parks, flat = false, i
           pickable: true,
           transitions: { getFillColor: 300 },
         }),
+    ...(focusHood ? [focusOutline(focusHood.geometry)] : []),
     boroughLabels("boroughs", (viewState.pitch ?? 0) > 5 ? 2800 : 0),
   ];
 
@@ -187,7 +204,10 @@ export default function HeroMap({ buildings, hoods, land, parks, flat = false, i
       }}
       onClick={(info) => {
         const o = info.object as Building | Cell | undefined;
-        if (o && onTap) onTap("top" in o ? o.top : o.idx);
+        if (!o) return;
+        const idx = "top" in o ? o.top : o.idx;
+        if (onTap) onTap(idx);
+        else onOpen?.(idx);
       }}
     />}
     {!flat && <MapControls bearing={viewState.bearing ?? 0} pitch={shownTarget.pitch} targetBearing={shownTarget.bearing} onChange={animateTo} />}

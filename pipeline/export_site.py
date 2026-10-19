@@ -15,7 +15,9 @@ different). Run after the build_* steps: .venv/bin/python pipeline/export_site.p
 from __future__ import annotations
 
 import gzip
+import hashlib
 import json
+import re
 
 import geopandas as gpd
 import numpy as np
@@ -75,6 +77,30 @@ def load() -> pd.DataFrame:
     return b
 
 
+def place_id(building_key: str) -> str:
+    """Stable, URL-safe id for /place/<id>: b<BIN>, l<BBL>, or t<hash> for text-only addresses."""
+    kind, _, val = building_key.partition(":")
+    if kind == "BIN":
+        return f"b{val}"
+    if kind == "BBL":
+        return f"l{val}"
+    return "t" + hashlib.md5(val.encode()).hexdigest()[:10]
+
+
+def shard_of(pid: str, n: int = 128) -> int:
+    """FNV-1a 32-bit; web/lib/places.ts uses the same function to find a place's shard file."""
+    h = 0x811C9DC5
+    for ch in pid.encode():
+        h = ((h ^ ch) * 0x01000193) & 0xFFFFFFFF
+    return h % n
+
+
+def address_of(row) -> str:
+    street = f"{row['building']} {row['street']}" if isinstance(row.get("building"), str) else str(row["street"])
+    # .title() turns "5th" into "5Th"; put ordinals back in lower case
+    return re.sub(r"(\d)(St|Nd|Rd|Th)\b", lambda m: m.group(1) + m.group(2).lower(), " ".join(street.split()).title())
+
+
 def lit_masks(b: pd.DataFrame) -> pd.DataFrame:
     """Per business, a 15-bit mask of the years 2012..2026 it was open at any point."""
     m = np.zeros(len(b), dtype=np.int64)
@@ -121,27 +147,35 @@ def buildings(b: pd.DataFrame, nta: dict) -> tuple[dict, list]:
                  for c in CATS]
         closed = d.loc[d["event"], "years"]
         last = d.iloc[-1]
-        street = f"{last['building']} {last['street']}".strip() if isinstance(last.get("building"), str) else str(last["street"])
-        rows.append([round(float(d["lat"].median()), 5), round(float(d["lon"].median()), 5), len(d),
+        rows.append([place_id(key), round(float(d["lat"].median()), 5), round(float(d["lon"].median()), 5), len(d),
                      clean(round(float(closed.median()), 2)) if len(closed) else None,
                      nta.get(last["nta2020"]), *cmask])
-        tenants.append([" ".join(street.split()).title(), last["nta2020"] if isinstance(last["nta2020"], str) else None,
+        tenants.append([address_of(last), last["nta2020"] if isinstance(last["nta2020"], str) else None,
                         [[str(t["dba"]).strip()[:48], CATS.index(t["site_category"]), t["label"], clean(t["o"]),
                           clean(t["c"]) if t["event"] else None] for _, t in d.iterrows()]])
-    cols = ["lat", "lon", "tenants", "medianLife", "nta", *[f"lit_{c}" for c in CATS]]
+    cols = ["id", "lat", "lon", "tenants", "medianLife", "nta", *[f"lit_{c}" for c in CATS]]
     return {"columns": cols, "rows": rows}, tenants
 
 
+def year_series(d: pd.DataFrame) -> dict:
+    end = d["end_date"].fillna(LIVE)
+    return {"open": [int((d["open_date"].dt.year == y).sum()) for y in YEARS],
+            "close": [int((d["event"] & (d["close_date"].dt.year == y)).sum()) for y in YEARS],
+            "alive": [int(((d["open_date"] <= pd.Timestamp(f"{y}-12-31")) & (end >= pd.Timestamp(f"{y}-01-01"))).sum())
+                      for y in YEARS]}
+
+
 def yearly(b: pd.DataFrame) -> dict:
-    out = {}
-    for c in CATS + ["all"]:
-        d = b if c == "all" else b[b["site_category"] == c]
-        end = d["end_date"].fillna(LIVE)
-        out[c] = {"open": [int((d["open_date"].dt.year == y).sum()) for y in YEARS],
-                  "close": [int((d["event"] & (d["close_date"].dt.year == y)).sum()) for y in YEARS],
-                  "alive": [int(((d["open_date"] <= pd.Timestamp(f"{y}-12-31")) & (end >= pd.Timestamp(f"{y}-01-01"))).sum())
-                            for y in YEARS]}
+    out = {c: year_series(b if c == "all" else b[b["site_category"] == c]) for c in CATS + ["all"]}
     return {"years": YEARS, **out}
+
+
+def yearly_by_nta(b: pd.DataFrame) -> dict:
+    """The scrubber's openings/closings/open counts for each neighbourhood and category."""
+    out = {}
+    for code, d in b.dropna(subset=["nta2020"]).groupby("nta2020"):
+        out[code] = {c: year_series(d if c == "all" else d[d["site_category"] == c]) for c in CATS + ["all"]}
+    return out
 
 
 def max_open_at_once(d: pd.DataFrame) -> int:
@@ -168,7 +202,7 @@ def cursed(b: pd.DataFrame, names: dict, nta_life: dict, n: int = 50) -> list[di
             cover[int((o - span0) * 365):max(int((e - span0) * 365), 0)] = True
         last = d.iloc[-1]
         street = f"{last['building']} {last['street']}" if isinstance(last.get("building"), str) else str(last["street"])
-        out.append({"rank": rank, "address": " ".join(street.split()).title(),
+        out.append({"rank": rank, "id": place_id(r["building_key"]), "address": address_of(last),
                     "neighborhood": names.get(last["nta2020"], ""), "boro": str(last["boro"]).title(),
                     "tenants": len(d), "medianLife": clean(round(float(d.loc[d["event"], "years"].median()), 2)),
                     "vacantPct": round(float(1 - cover.mean()), 3), "areaMedianLife": nta_life.get(last["nta2020"]),
@@ -213,6 +247,7 @@ def main() -> None:
     write("buildings.json", bld)
     write("tenants.json", tenants)
     write("yearly.json", yearly(b))
+    write("yearly_nta.json", yearly_by_nta(b))
     write("cursed.json", cursed(b, names, nta_life))
     land = gpd.read_file(f"/vsigzip/{RAW / 'gov' / 'geo_boroughs.geojson.gz'}")
     land["geometry"] = land.geometry.simplify(0.0003, preserve_topology=True)

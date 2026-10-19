@@ -4,28 +4,38 @@ import { useEffect, useState } from "react";
 import { FIRST_YEAR } from "./store";
 import { CATEGORIES, type Building, type CategoryFilter, type Neighborhood, type TenantRow } from "./types";
 
-async function getJson<T>(name: string): Promise<T> {
-  const res = await fetch(`/data/${name}`);
-  if (!res.ok) throw new Error(`Failed to load /data/${name}: HTTP ${res.status}`);
-  return (await res.json()) as T;
+// One download per file per page, shared by every component that asks for it.
+const inflight = new Map<string, Promise<unknown>>();
+
+function getJson<T>(name: string): Promise<T> {
+  if (!inflight.has(name)) {
+    const p = fetch(`/data/${name}`).then((res) => {
+      if (!res.ok) throw new Error(`Failed to load /data/${name}: HTTP ${res.status}`);
+      return res.json();
+    });
+    p.catch(() => inflight.delete(name)); // allow a retry after a failure
+    inflight.set(name, p);
+  }
+  return inflight.get(name) as Promise<T>;
 }
 
 interface BuildingsFile {
   columns: string[];
-  rows: (number | null)[][];
+  rows: (string | number | null)[][];
 }
 
 function parseBuildings(f: BuildingsFile): Building[] {
   const col = (name: string) => f.columns.indexOf(name);
-  const [lat, lon, tenants, life, nta] = ["lat", "lon", "tenants", "medianLife", "nta"].map(col);
+  const [id, lat, lon, tenants, life, nta] = ["id", "lat", "lon", "tenants", "medianLife", "nta"].map(col);
   const lit = CATEGORIES.map((c) => col(`lit_${c}`));
   return f.rows.map((r, idx) => ({
     idx,
+    id: r[id] as string,
     lat: r[lat] as number,
     lon: r[lon] as number,
     tenants: r[tenants] as number,
-    medianLife: r[life],
-    nta: r[nta],
+    medianLife: r[life] as number | null,
+    nta: r[nta] as number | null,
     lit: lit.map((i) => (r[i] as number) ?? 0),
   }));
 }
@@ -54,6 +64,8 @@ export const useBuildings = () => useJson<Building[]>("buildings.json", (r) => p
 export const useNeighborhoods = () => useJson<Neighborhood[]>("neighborhoods.json");
 export const useLand = () => useJson<GeoJSON.FeatureCollection>("land.json");
 export const useParks = () => useJson<GeoJSON.FeatureCollection>("parks.json");
+export const useYearlyByNta = (enabled: boolean) =>
+  useJson<Record<string, Record<CategoryFilter, { open: number[]; close: number[]; alive: number[] }>>>("yearly_nta.json", undefined, enabled);
 export const useTenants = (enabled: boolean) => useJson<TenantRow[]>("tenants.json", undefined, enabled);
 
 /** Was any business of the selected category open in this building during `year`? */

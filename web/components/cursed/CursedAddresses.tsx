@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import type { CursedAddress } from "@/lib/types";
 import TimelineStrip from "./Timeline";
@@ -49,6 +50,9 @@ export default function CursedAddresses({ addresses }: { addresses: CursedAddres
             <div className="min-w-0">
               <div className="label">Rank {a.rank} · {a.neighborhood}</div>
               <div className="mt-1 text-[32px] leading-none md:text-[44px]">{a.address}</div>
+              <Link href={`/place/${a.id}`} className="mono mt-2 inline-block text-[11px] uppercase tracking-[0.06em] underline-offset-2 hover:underline">
+                Full address page, health grades &amp; links →
+              </Link>
             </div>
             <div className="grid grid-cols-4 gap-5">
               <Stat label="Tenants" value={String(a.tenants)} />

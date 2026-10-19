@@ -29,6 +29,7 @@ export interface Neighborhood {
 
 export interface Building {
   idx: number;
+  id: string; // stable place id for /place/<id>
   lat: number;
   lon: number;
   tenants: number;
@@ -60,6 +61,7 @@ export interface CursedTenant {
 
 export interface CursedAddress {
   rank: number;
+  id: string;
   address: string;
   neighborhood: string;
   boro: string;
@@ -134,3 +136,40 @@ export interface PitchData {
   neighborhoods: PitchNeighborhood[];
   fit: { n: number; events: number; concordance: number; opened: string };
 }
+
+// Address pages (pipeline/export_places.py)
+
+export interface PlaceBusiness {
+  name: string;
+  category: string;
+  cuisine: string;
+  open: number | null;
+  close: number | null;
+  isOpen: boolean;
+  life: number;
+  price: string | null;
+  chain: boolean;
+  liquor: boolean;
+  source: "dohmh" | "sla" | "snap";
+  inspections: { n: number; last: string; grade: string | null; gradeDate: string | null; scores: [string, number][] } | null;
+  acclaim: { kind: string; label: string; url?: string | null }[];
+}
+
+export interface Place {
+  id: string;
+  address: string;
+  zip: string | null;
+  boro: string | null;
+  lat: number;
+  lon: number;
+  nta: string | null;
+  ntaName: string | null;
+  tenants: number;
+  medianLife: number | null;
+  hood: { closure3y: number | null; rent: number | null; medianLife: number | null; beta: number | null };
+  businesses: PlaceBusiness[]; // newest first
+  nearby: [string, string, number, number][]; // [id, address, tenants, metres]
+}
+
+/** [id, address, neighbourhood, "name | name | ..."] */
+export type SearchRow = [string, string, string, string];

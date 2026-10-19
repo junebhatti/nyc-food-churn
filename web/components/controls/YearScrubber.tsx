@@ -2,18 +2,19 @@
 
 import { Pause, Play } from "@phosphor-icons/react";
 import { FIRST_YEAR, LAST_YEAR, useAtlas } from "@/lib/store";
-import type { Yearly } from "@/lib/types";
+import type { Yearly, YearSeries } from "@/lib/types";
 
 interface Props {
   yearly: Yearly;
   compact?: boolean; // mobile: 18px bars, smaller year
   openNow?: number;
+  series?: YearSeries; // e.g. one neighbourhood's counts; defaults to the city for the category
 }
 
 /** Play button, the year, an openings/closings butterfly chart and the range input. */
-export default function YearScrubber({ yearly, compact = false, openNow }: Props) {
+export default function YearScrubber({ yearly, compact = false, openNow, series: override }: Props) {
   const { year, playing, category, setYear, togglePlay } = useAtlas();
-  const series = yearly[category];
+  const series = override ?? yearly[category];
   const max = Math.max(...series.open, ...series.close, 1);
   const barH = compact ? 18 : 22;
 

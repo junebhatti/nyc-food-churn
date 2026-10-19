@@ -13,6 +13,8 @@ interface AtlasState {
   view: View;
   category: CategoryFilter;
   hoveredBuilding: number | null;
+  nta: string | null; // neighbourhood filter (NTA 2020 code), mirrored in the URL as ?n=
+  setNta: (n: string | null) => void;
   setYear: (y: number) => void;
   setView: (v: View) => void;
   setCategory: (c: CategoryFilter) => void;
@@ -28,6 +30,8 @@ export const useAtlas = create<AtlasState>((set, get) => ({
   view: "churn",
   category: "all",
   hoveredBuilding: null,
+  nta: null,
+  setNta: (nta) => set({ nta }),
   setYear: (year) => set({ year }),
   setView: (view) => set({ view }),
   setCategory: (category) => set({ category }),

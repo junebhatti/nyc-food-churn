@@ -57,6 +57,7 @@ export function hexBins(
   year: number,
   category: CategoryFilter,
   onLand?: (id: string, lon: number, lat: number) => boolean,
+  inFocus: (b: Building) => boolean = () => true,
 ): Cell[] {
   const size = radiusM;
   const cells = new Map<string, { q: number; r: number; h: number; sum: number; n: number; lit: boolean; top: number; topN: number; lon: number; lat: number; k: number }>();
@@ -75,11 +76,12 @@ export function hexBins(
     const key = `${q},${r}`;
     let c = cells.get(key);
     if (!c) cells.set(key, (c = { q, r, h: 0, sum: 0, n: 0, lit: false, top: b.idx, topN: -1, lon: 0, lat: 0, k: 0 }));
-    c.h += b.tenants;
+    const focus = inFocus(b);
+    c.h += focus ? b.tenants : b.tenants * 0.15; // outside the chosen neighbourhood: low and dark
     c.lon += b.lon;
     c.lat += b.lat;
     c.k += 1;
-    if (isLit(b, year, category)) {
+    if (focus && isLit(b, year, category)) {
       c.lit = true;
       const v = value(b);
       if (v != null) {
@@ -114,7 +116,7 @@ export function hexBins(
   });
 }
 
-export function buildingColor(b: Building, t: number | null, year: number, category: CategoryFilter): RGB {
-  if (!hasCategory(b, category) || !isLit(b, year, category) || t == null) return DEAD;
+export function buildingColor(b: Building, t: number | null, year: number, category: CategoryFilter, focus = true): RGB {
+  if (!focus || !hasCategory(b, category) || !isLit(b, year, category) || t == null) return DEAD;
   return ramp(t);
 }

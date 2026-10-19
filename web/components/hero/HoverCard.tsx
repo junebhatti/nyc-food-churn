@@ -45,6 +45,7 @@ export default function HoverCard({ row, hood, x, y }: Props) {
             </div>
           )}
         </div>
+        <div className="label mt-2 text-ink">Click for the full history →</div>
         <div className="mt-2 grid grid-cols-2 border-t border-rule pt-2">
           <div>
             <div className="label">3-yr closure</div>

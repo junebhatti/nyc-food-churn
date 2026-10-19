@@ -2,15 +2,19 @@
 
 import dynamic from "next/dynamic";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { List } from "@phosphor-icons/react";
 import { useAtlas } from "@/lib/store";
-import { useBuildings, useLand, useNeighborhoods, useParks, useTenants } from "@/lib/data";
+import { useBuildings, useLand, useNeighborhoods, useParks, useTenants, useYearlyByNta } from "@/lib/data";
+import { placeHref } from "@/lib/places";
 import { LEGEND_CHIPS } from "@/lib/color";
 import { LEGEND } from "@/lib/metrics";
 import { useIsMobile } from "@/lib/useIsMobile";
 import type { Summary, Yearly } from "@/lib/types";
 import YearScrubber from "../controls/YearScrubber";
 import { CategoryButtons, ViewToggle } from "../controls/Toggles";
+import NeighborhoodPicker, { useNtaUrlSync } from "../controls/NeighborhoodPicker";
+import SearchBox from "../search/SearchBox";
 import HoverCard from "./HoverCard";
 import TapSheet from "./TapSheet";
 import type { HoverInfo } from "./HeroMap";
@@ -25,7 +29,10 @@ interface Props {
 
 export default function Hero({ summary, yearly }: Props) {
   const mobile = useIsMobile();
-  const { year, view, category } = useAtlas();
+  const { year, view, category, nta } = useAtlas();
+  const router = useRouter();
+  useNtaUrlSync();
+  const byNta = useYearlyByNta(nta != null);
   const buildings = useBuildings();
   const hoods = useNeighborhoods();
   const land = useLand();
@@ -35,7 +42,10 @@ export default function Hero({ summary, yearly }: Props) {
   const tenants = useTenants(hover != null || tapped != null);
   const error = buildings.error ?? hoods.error ?? land.error;
   const ready = buildings.data && hoods.data && land.data;
-  const openInYear = yearly[category].alive[year - yearly.years[0]];
+  const ntaSeries = nta ? byNta.data?.[nta]?.[category] : undefined;
+  const series = ntaSeries ?? yearly[category];
+  const openInYear = series.alive[year - yearly.years[0]];
+  const hoodName = nta ? hoods.data?.find((h) => h.id === nta)?.name : undefined;
   const legend = LEGEND[view];
 
   const map = ready ? (
@@ -48,6 +58,7 @@ export default function Hero({ summary, yearly }: Props) {
       initialZoom={mobile ? 8.75 : 9.8}
       onHover={mobile ? undefined : setHover}
       onTap={mobile ? setTapped : undefined}
+      onOpen={(i) => router.push(placeHref(buildings.data![i].id))}
     />
   ) : (
     <div className="label flex h-full items-center justify-center">{error ? `Map data failed to load: ${error}` : "Loading the city…"}</div>
@@ -75,19 +86,21 @@ export default function Hero({ summary, yearly }: Props) {
           <span className="text-[20px] font-medium">Half-Life</span>
           <button type="button" aria-label="Menu" className="flex h-11 w-11 items-center justify-center"><List size={22} /></button>
         </header>
+        <div className="mt-3"><SearchBox compact /></div>
         <div className="pt-6">{headline}</div>
         <div className="mt-5"><ViewToggle mobile /></div>
+        <div className="mt-2"><NeighborhoodPicker hoods={hoods.data} mobile /></div>
         <div className="relative mt-4 aspect-square w-full bg-paper">{map}</div>
         <div className="mt-2 flex">{LEGEND_CHIPS.map((c) => <div key={c} className="h-2 flex-1" style={{ background: c }} />)}</div>
         <div className="label mt-1 flex justify-between"><span>{legend.lo}</span><span>{legend.hi}</span></div>
         <p className="label mt-3">Flat map on small screens. Tap a hex for its buildings.</p>
         {/* Sticky within the map section only, so it doesn't cover the sections below. */}
         <div className="sticky bottom-0 z-30 -mx-4 mt-4 border-t border-ink bg-paper px-4 pb-3.5 pt-2.5">
-          <YearScrubber yearly={yearly} compact openNow={openInYear} />
+          <YearScrubber yearly={yearly} compact openNow={openInYear} series={series} />
           <div className="mt-2"><CategoryButtons mobile /></div>
         </div>
         {tapped != null && (
-          <TapSheet row={tenants.data?.[tapped]} hood={hoodOf(tapped)} loading={!tenants.data} onClose={() => setTapped(null)} />
+          <TapSheet row={tenants.data?.[tapped]} hood={hoodOf(tapped)} loading={!tenants.data} onClose={() => setTapped(null)} placeId={buildings.data?.[tapped]?.id} />
         )}
       </section>
     );
@@ -100,7 +113,8 @@ export default function Hero({ summary, yearly }: Props) {
           <span className="text-[22px] font-medium">Half-Life</span>
           <span className="label">An atlas of NYC restaurant churn, 2012–2026</span>
         </div>
-        <nav className="mono flex gap-5 text-[11px] uppercase tracking-[0.06em] text-muted">
+        <SearchBox />
+        <nav className="mono hidden gap-5 text-[11px] uppercase tracking-[0.06em] text-muted xl:flex">
           <a href="#cursed" className="hover:text-ink">01 Cursed addresses</a>
           <a href="#half-life" className="hover:text-ink">02 Half-life</a>
           <a href="#rent-risk" className="hover:text-ink">03 Rent vs risk</a>
@@ -119,11 +133,15 @@ export default function Hero({ summary, yearly }: Props) {
             Every column is a building that has housed a restaurant, bar, café, bakery or bodega since 2012. Height is how many have come and gone.
           </p>
           <div className="mt-5 flex gap-10 border-t border-ink pt-3">
-            <div><div className="label">Open in {year}</div><div className="mono tnum text-[26px]">{openInYear.toLocaleString()}</div></div>
+            <div><div className="label">Open in {year}{hoodName ? ` · ${hoodName.split("-")[0]}` : ""}</div><div className="mono tnum text-[26px]">{openInYear.toLocaleString()}</div></div>
             <div><div className="label">Median lifespan</div><div className="mono tnum text-[26px]">{summary.medianLife} yrs</div></div>
           </div>
         </div>
-        <div className="pointer-events-none absolute right-10 top-6 text-right">
+        <div className="absolute right-10 top-6 flex flex-col items-end text-right">
+          <div className="label mb-1.5">Neighborhood</div>
+          <NeighborhoodPicker hoods={hoods.data} />
+        </div>
+        <div className="pointer-events-none absolute right-10 top-[96px] text-right">
           <div className="label text-ink">{legend.title}</div>
           <div className="ml-auto mt-2 flex w-40">{LEGEND_CHIPS.map((c) => <div key={c} className="h-2 flex-1" style={{ background: c }} />)}</div>
           <div className="label mt-1 flex w-40 justify-between"><span>{legend.lo}</span><span>{legend.hi}</span></div>
@@ -133,7 +151,7 @@ export default function Hero({ summary, yearly }: Props) {
       <div className="flex h-[100px] shrink-0 items-center gap-8 border-t border-ink px-10">
         <div><div className="label mb-1.5">View</div><ViewToggle /></div>
         <div><div className="label mb-1.5">Category</div><CategoryButtons /></div>
-        <YearScrubber yearly={yearly} />
+        <YearScrubber yearly={yearly} series={series} />
       </div>
     </section>
   );

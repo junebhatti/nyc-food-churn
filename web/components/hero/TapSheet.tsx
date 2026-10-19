@@ -9,13 +9,14 @@ interface Props {
   hood: Neighborhood | undefined;
   loading: boolean;
   onClose: () => void;
+  placeId: string | undefined;
 }
 
 const START = 2012;
 const END = 2026.8;
 
 /** Mobile bottom sheet that replaces the hover card (artboard 1g). */
-export default function TapSheet({ row, hood, loading, onClose }: Props) {
+export default function TapSheet({ row, hood, loading, onClose, placeId }: Props) {
   return (
     <>
       <div className="fixed inset-0 z-40 bg-paper/45" onClick={onClose} aria-hidden />
@@ -55,7 +56,7 @@ export default function TapSheet({ row, hood, loading, onClose }: Props) {
                 </div>
               ))}
             </div>
-            <a href="#cursed" onClick={onClose} className="mono mt-4 flex h-11 items-center justify-center gap-2 border border-ink text-[11px] uppercase tracking-[0.06em]">
+            <a href={placeId ? `/place/${placeId}` : "#cursed"} className="mono mt-4 flex h-11 items-center justify-center gap-2 border border-ink text-[11px] uppercase tracking-[0.06em]">
               Full timeline <ArrowRight size={14} />
             </a>
           </>
