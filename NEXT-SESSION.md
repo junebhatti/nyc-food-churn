@@ -30,8 +30,8 @@ Data gathering is done. Every source has a note in `data/notes/`; start with `au
 Stopped for diminishing returns: bars (data/notes/bars.md) and DOHMH gaps round 3 (dohmh_gaps2.md).
 
 ## Site (2026-10-19)
-- Live: https://half-life-nyc.vercel.app (Vercel project `half-life-nyc`, team junaidbhatti). Deployed from `web/` with the CLI (`cd web && npx vercel deploy --prod`); it is NOT connected to GitHub, so pushes don't auto-deploy.
-- Data: `pipeline/export_site.py` writes `web/public/data/`. Rerun it after any `build_*` change, then redeploy.
+- Live: https://half-life-nyc.vercel.app (Vercel project `half-life-nyc`, team junaidbhatti). Connected to GitHub with Root Directory = `web`: every push to `main` auto-deploys to production, and other branches get preview URLs.
+- Data: `pipeline/export_site.py` writes `web/public/data/`. Rerun it after any `build_*` change, then commit and push to redeploy.
 - Built sections: hero map + controls, 01 Cursed Addresses, 03 Rent vs Risk, mobile. Not designed yet: 02 Half-life, 04 Beta, 07 Pitch yours, and dark mode.
 - The Rent vs Risk headline was changed to match the data: pricier areas are a little safer, but rent doesn't predict closure once other factors are controlled for.
 
