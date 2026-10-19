@@ -15,6 +15,41 @@
   --bodega-text: #8f6a12;
   --land: #e7e0d2;
   --dead: #dad2c3;
+  --violet: #7a6f9b;
+  /* Map legend: the five ramp chips (lib/color.ts holds the same ramp as RGB). */
+  --ramp-0: #4f7d5e;
+  --ramp-1: #a9b8a0;
+  --ramp-2: #f4eee2;
+  --ramp-3: #dc9a82;
+  --ramp-4: #c0402a;
+  color-scheme: light;
+}
+
+/* Dark theme follows the system setting. Handoff reference 1c: navy ground, the awning, deli
+   and bodega hues lifted to meet 4.5:1. Keep in sync with DARK in lib/color.ts. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #161826;
+    --paper-raised: #1f2233;
+    --ink: #e9e9ed;
+    --ink-2: #c9cad3;
+    --muted: #9a9cab;
+    --rule: #3a3e52;
+    --rule-soft: #2a2d40;
+    --awning: #e8644c;
+    --deli: #5db585;
+    --bodega: #e8c46a;
+    --bodega-text: #e8c46a;
+    --land: #23263a;
+    --dead: #2e3146;
+    --violet: #9184d9;
+    --ramp-0: #4fa273;
+    --ramp-1: #568175;
+    --ramp-2: #5c6077;
+    --ramp-3: #a26262;
+    --ramp-4: #e8644c;
+    color-scheme: dark;
+  }
 }
 
 @theme inline {

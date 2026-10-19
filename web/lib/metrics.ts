@@ -1,6 +1,6 @@
 // Per-building values for each map view, hex binning, and the colour/height of every column.
 
-import { DEAD, quantileDomain, ramp, type RGB } from "./color";
+import { quantileDomain, ramp, type Palette, type RGB } from "./color";
 import { hasCategory, isLit } from "./data";
 import type { Building, CategoryFilter, Neighborhood, View } from "./types";
 
@@ -56,6 +56,7 @@ export function hexBins(
   value: (b: Building) => number | null,
   year: number,
   category: CategoryFilter,
+  palette: Palette,
   onLand?: (id: string, lon: number, lat: number) => boolean,
   inFocus: (b: Building) => boolean = () => true,
 ): Cell[] {
@@ -110,13 +111,13 @@ export function hexBins(
       lon,
       lat,
       height: c.h,
-      color: c.lit && t != null ? ramp(t) : DEAD,
+      color: c.lit && t != null ? ramp(t, palette) : palette.dead,
       top: c.top,
     };
   });
 }
 
-export function buildingColor(b: Building, t: number | null, year: number, category: CategoryFilter, focus = true): RGB {
-  if (!focus || !hasCategory(b, category) || !isLit(b, year, category) || t == null) return DEAD;
-  return ramp(t);
+export function buildingColor(b: Building, t: number | null, year: number, category: CategoryFilter, palette: Palette, focus = true): RGB {
+  if (!focus || !hasCategory(b, category) || !isLit(b, year, category) || t == null) return palette.dead;
+  return ramp(t, palette);
 }

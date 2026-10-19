@@ -2,6 +2,7 @@
 
 import { PathLayer, SolidPolygonLayer, TextLayer } from "@deck.gl/layers";
 import type { MapViewState } from "@deck.gl/core";
+import type { Palette } from "./color";
 
 export const NYC_CENTER = { longitude: -73.94, latitude: 40.7 };
 export const BOUNDS = { west: -74.28, east: -73.68, south: 40.48, north: 40.93 };
@@ -29,20 +30,20 @@ const BOROUGH_LABELS = [
 type Ring = GeoJSON.Position[];
 
 /** Borough coastlines as thin ink lines, so the columns sit on a recognisable map. */
-export function outlineLayer(id: string, landPolys: GeoJSON.Position[][][]) {
+export function outlineLayer(id: string, landPolys: GeoJSON.Position[][][], p: Palette) {
   const rings: Ring[] = landPolys.flatMap((p) => p);
   return new PathLayer<Ring>({
     id,
     data: rings,
     getPath: (r) => r as unknown as [number, number][],
-    getColor: [28, 27, 24, 150],
+    getColor: [...p.ink, 150],
     getWidth: 1.1,
     widthUnits: "pixels",
   });
 }
 
 /** Plex Mono uppercase borough names floating above the relief. */
-export function boroughLabels(id: string, height: number) {
+export function boroughLabels(id: string, height: number, p: Palette) {
   return new TextLayer<(typeof BOROUGH_LABELS)[number]>({
     id,
     data: BOROUGH_LABELS,
@@ -51,10 +52,10 @@ export function boroughLabels(id: string, height: number) {
     getSize: 11,
     fontFamily: "IBM Plex Mono, ui-monospace, monospace",
     characterSet: "auto",
-    getColor: [90, 85, 76],
+    getColor: p.muted,
     fontSettings: { sdf: false },
     background: true,
-    getBackgroundColor: [243, 238, 228, 210],
+    getBackgroundColor: [...p.paper, 210],
     backgroundPadding: [4, 2],
     parameters: { depthCompare: "always" }, // always on top of the columns
   });
@@ -70,15 +71,13 @@ export function landPolygons(land: GeoJSON.FeatureCollection): GeoJSON.Position[
   );
 }
 
-const PARK_GREEN: [number, number, number] = [190, 206, 168];
-
 /** Parks as flat muted green under the columns (Central Park, Prospect Park, Flushing Meadows...). */
-export function parksLayer(id: string, parks: GeoJSON.FeatureCollection) {
+export function parksLayer(id: string, parks: GeoJSON.FeatureCollection, p: Palette) {
   return new SolidPolygonLayer<GeoJSON.Position[][]>({
     id,
     data: landPolygons(parks),
     getPolygon: (p) => p as unknown as [number, number][][],
-    getFillColor: PARK_GREEN,
+    getFillColor: p.park,
   });
 }
 

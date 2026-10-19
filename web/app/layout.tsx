@@ -23,7 +23,10 @@ export const metadata: Metadata = {
     "Every NYC restaurant, bar, café, bakery and bodega since 2012: which storefronts can't keep a tenant, how long places last, and whether the rent is worth the risk.",
 };
 
-export const viewport: Viewport = { themeColor: "#F3EEE4" };
+export const viewport: Viewport = { themeColor: [
+  { media: "(prefers-color-scheme: light)", color: "#F3EEE4" },
+  { media: "(prefers-color-scheme: dark)", color: "#161826" },
+] };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

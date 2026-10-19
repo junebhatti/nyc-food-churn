@@ -1,6 +1,6 @@
 "use client";
 
-export const SERIES_COLORS = ["var(--ink)", "var(--awning)", "var(--deli)", "var(--bodega-text)", "#7A6F9B", "var(--muted)"];
+export const SERIES_COLORS = ["var(--ink)", "var(--awning)", "var(--deli)", "var(--bodega-text)", "var(--violet)", "var(--muted)"];
 
 export interface Series {
   label: string;

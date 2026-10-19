@@ -7,7 +7,7 @@ import { ColumnLayer, SolidPolygonLayer } from "@deck.gl/layers";
 import { useAtlas } from "@/lib/store";
 import { hasCategory } from "@/lib/data";
 import { boroughLabels, clampView, landPolygons, makeLandTest, NYC_CENTER, outlineLayer, parksLayer } from "@/lib/mapView";
-import { LAND } from "@/lib/color";
+import { usePalette } from "@/lib/usePalette";
 import { buildingColor, hexBins, makeScale, rawValue, type Cell } from "@/lib/metrics";
 import type { Building, Neighborhood } from "@/lib/types";
 import MapControls from "./MapControls";
@@ -105,6 +105,7 @@ export default function HeroMap({ buildings, hoods, land, parks, flat = false, i
     return () => ro.disconnect();
   }, []);
 
+  const palette = usePalette();
   // Boroughs are MultiPolygons; the land plate wants one ring set per polygon.
   const landPolys = useMemo(() => landPolygons(land), [land]);
   const onLand = useMemo(() => makeLandTest(landPolys), [landPolys]);
@@ -112,8 +113,8 @@ export default function HeroMap({ buildings, hoods, land, parks, flat = false, i
   const value = useMemo(() => (b: Building) => scale(rawValue(b, view, hoods)), [scale, view, hoods]);
   const showBuildings = !flat && viewState.zoom > BUILDING_ZOOM;
   const cells = useMemo<Cell[]>(
-    () => (showBuildings ? [] : hexBins(buildings, flat ? MOBILE_HEX_RADIUS_M : HEX_RADIUS_M, value, year, category, onLand, inFocus)),
-    [buildings, value, year, category, showBuildings, flat, onLand, inFocus],
+    () => (showBuildings ? [] : hexBins(buildings, flat ? MOBILE_HEX_RADIUS_M : HEX_RADIUS_M, value, year, category, palette, onLand, inFocus)),
+    [buildings, value, year, category, palette, showBuildings, flat, onLand, inFocus],
   );
 
   // Tallest hexes (99th percentile) rise ~2.5 km, so the whole city reads as one relief.
@@ -139,11 +140,11 @@ export default function HeroMap({ buildings, hoods, land, parks, flat = false, i
       id: "land",
       data: landPolys,
       getPolygon: (p) => p as unknown as [number, number][][], // GeoJSON rings are number[] positions
-      getFillColor: LAND,
+      getFillColor: palette.land,
       _full3d: false,
     }),
-    ...(parks ? [parksLayer("parks", parks)] : []),
-    outlineLayer("outline", landPolys),
+    ...(parks ? [parksLayer("parks", parks, palette)] : []),
+    outlineLayer("outline", landPolys, palette),
     showBuildings
       ? new ColumnLayer<Building>({
           id: "buildings",
@@ -155,10 +156,10 @@ export default function HeroMap({ buildings, hoods, land, parks, flat = false, i
           elevationScale: 22,
           getPosition: (b) => [b.lon, b.lat],
           getElevation: (b) => (hasCategory(b, category) && inFocus(b) ? b.tenants : b.tenants * 0.15),
-          getFillColor: (b) => buildingColor(b, value(b), year, category, inFocus(b)),
+          getFillColor: (b) => buildingColor(b, value(b), year, category, palette, inFocus(b)),
           material: MATERIAL,
           pickable: true,
-          updateTriggers: { getFillColor: [year, view, category, ntaIdx], getElevation: [category, ntaIdx] },
+          updateTriggers: { getFillColor: [year, view, category, ntaIdx, palette], getElevation: [category, ntaIdx] },
           transitions: { getFillColor: 300 },
         })
       : new ColumnLayer<Cell>({
@@ -175,8 +176,8 @@ export default function HeroMap({ buildings, hoods, land, parks, flat = false, i
           pickable: true,
           transitions: { getFillColor: 300 },
         }),
-    ...(focusHood ? [focusOutline(focusHood.geometry)] : []),
-    boroughLabels("boroughs", (viewState.pitch ?? 0) > 5 ? 2800 : 0),
+    ...(focusHood ? [focusOutline(focusHood.geometry, palette)] : []),
+    boroughLabels("boroughs", (viewState.pitch ?? 0) > 5 ? 2800 : 0, palette),
   ];
 
   return (

@@ -4,7 +4,8 @@ import { useMemo } from "react";
 import DeckGL from "@deck.gl/react";
 import { AmbientLight, DirectionalLight, LightingEffect } from "@deck.gl/core";
 import { PolygonLayer, SolidPolygonLayer, TextLayer } from "@deck.gl/layers";
-import { LAND, quadrantBlock, type Quadrant } from "@/lib/color";
+import { quadrantBlock, type Quadrant } from "@/lib/color";
+import { usePalette } from "@/lib/usePalette";
 import type { RiskHood } from "@/lib/quadrants";
 import { boroughLabels, clampView, NYC_CENTER, outlineLayer } from "@/lib/mapView";
 import type { MapViewState } from "@deck.gl/core";
@@ -15,7 +16,6 @@ const lighting = new LightingEffect({
   sun: new DirectionalLight({ color: [255, 248, 236], intensity: 1.1, direction: [1, -1.2, -1.6] }),
 });
 const MATERIAL = { ambient: 0.6, diffuse: 0.5, shininess: 0, specularColor: [0, 0, 0] as [number, number, number] };
-const FILTERED_OUT: [number, number, number] = [226, 218, 203];
 
 interface Props {
   rows: RiskHood[];
@@ -32,6 +32,7 @@ const polys = (g: GeoJSON.Geometry): GeoJSON.Position[][][] =>
 
 /** One extruded block per neighbourhood, raised by its 3-yr closure odds (handoff 3a). */
 export default function RiskMap({ rows, land, selected, filter, onSelect }: Props) {
+  const palette = usePalette();
   const data = useMemo<Poly[]>(() => rows.flatMap((h) => polys(h.geometry).map((ring) => ({ id: h.id, ring, hood: h }))), [rows]);
   const landPolys = useMemo(() => land.features.flatMap((f) => polys(f.geometry)), [land]);
   const minC = Math.min(...rows.map((r) => r.closure3y));
@@ -46,8 +47,8 @@ export default function RiskMap({ rows, land, selected, filter, onSelect }: Prop
   const [viewState, setViewState] = useState<MapViewState>({ ...NYC_CENTER, zoom: 9.3, pitch: 40, bearing: 0 });
 
   const layers = [
-    new SolidPolygonLayer<GeoJSON.Position[][]>({ id: "land", data: landPolys, getPolygon: (p) => p as unknown as [number, number][][], getFillColor: LAND }),
-    outlineLayer("outline", landPolys),
+    new SolidPolygonLayer<GeoJSON.Position[][]>({ id: "land", data: landPolys, getPolygon: (p) => p as unknown as [number, number][][], getFillColor: palette.land }),
+    outlineLayer("outline", landPolys, palette),
     new PolygonLayer<Poly>({
       id: "hoods",
       data,
@@ -57,10 +58,10 @@ export default function RiskMap({ rows, land, selected, filter, onSelect }: Prop
       getPolygon: (d) => d.ring,
       getElevation: (d) => (filter && d.hood.quadrant !== filter ? 40 : (d.hood.closure3y - minC) * 9000 + 60),
       getFillColor: (d) =>
-        filter && d.hood.quadrant !== filter ? FILTERED_OUT : quadrantBlock(d.hood.quadrant, d.id === selected),
+        filter && d.hood.quadrant !== filter ? palette.filteredOut : quadrantBlock(d.hood.quadrant, d.id === selected, palette),
       material: MATERIAL,
       pickable: true,
-      updateTriggers: { getFillColor: [selected, filter], getElevation: [filter] },
+      updateTriggers: { getFillColor: [selected, filter, palette], getElevation: [filter] },
       transitions: { getElevation: 300 },
     }),
     new TextLayer({
@@ -70,13 +71,13 @@ export default function RiskMap({ rows, land, selected, filter, onSelect }: Prop
       getText: (d: { text: string }) => d.text,
       getSize: 15,
       fontFamily: "Newsreader, Georgia, serif",
-      getColor: [28, 27, 24],
+      getColor: palette.ink,
       background: true,
-      getBackgroundColor: [243, 238, 228, 230],
+      getBackgroundColor: [...palette.paper, 230],
       backgroundPadding: [4, 2],
       getPixelOffset: [0, -14],
     }),
-    boroughLabels("boroughs", 3300),
+    boroughLabels("boroughs", 3300, palette),
   ];
 
   return (

@@ -145,7 +145,7 @@ export default function Hero({ summary, yearly }: Props) {
           <div className="label text-ink">{legend.title}</div>
           <div className="ml-auto mt-2 flex w-40">{LEGEND_CHIPS.map((c) => <div key={c} className="h-2 flex-1" style={{ background: c }} />)}</div>
           <div className="label mt-1 flex w-40 justify-between"><span>{legend.lo}</span><span>{legend.hi}</span></div>
-          <div className="label mt-2 inline-flex items-center gap-1.5"><span className="inline-block h-2 w-3 bg-[#DAD2C3]" /> Dark this year</div>
+          <div className="label mt-2 inline-flex items-center gap-1.5"><span className="inline-block h-2 w-3 bg-[var(--dead)]" /> Dark this year</div>
         </div>
       </div>
       <div className="flex h-[100px] shrink-0 items-center gap-8 border-t border-ink px-10">

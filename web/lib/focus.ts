@@ -2,6 +2,7 @@
 
 import { FlyToInterpolator, WebMercatorViewport, type MapViewState } from "@deck.gl/core";
 import { PathLayer } from "@deck.gl/layers";
+import type { Palette } from "./color";
 
 export const FLY = new FlyToInterpolator({ speed: 1.6 });
 
@@ -25,12 +26,12 @@ export function frameGeometry(g: GeoJSON.Geometry, size: { width: number; height
 }
 
 /** Thick ink outline around the chosen neighbourhood. */
-export function focusOutline(g: GeoJSON.Geometry) {
+export function focusOutline(g: GeoJSON.Geometry, p: Palette) {
   return new PathLayer<GeoJSON.Position[]>({
     id: "focus-outline",
     data: rings(g),
     getPath: (r) => r as unknown as [number, number][],
-    getColor: [28, 27, 24, 230],
+    getColor: [...p.ink, 230],
     getWidth: 2.5,
     widthUnits: "pixels",
     parameters: { depthCompare: "always" },
