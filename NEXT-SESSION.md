@@ -1,57 +1,59 @@
 # Next session
 
-## Goal
-A Next.js + deck.gl atlas of NYC food & drink churn, styled like the oil visualizer (github.com/Dario-Soatto/oil-visualizer) with its own palette. A scrolling story that ends in an explorer:
-- 3D churn map: column height = businesses per building since about 2011
-- Survival curves and median lifespan by neighborhood
-- Neighborhood risk "spreads" vs storefront rent
-- Beta by group and neighborhood (the user's favourite)
-- Survival by group: cuisine, cheap → fine, chain vs independent, first-time vs multi-unit operator, storefront history ("cursed spot" × Lindy/age)
-- Later: a "pitch your restaurant" tool
-Standalone project deployed to Vercel and linked from the personal site. Repo: github.com/junebhatti/nyc-food-churn (private; data/raw is gitignored).
+## What this is
+**Half-Life**, an atlas of NYC food & drink churn, live at https://half-life-nyc.vercel.app.
+- Repo: github.com/junebhatti/nyc-food-churn (private). `data/raw/` and `data/processed/` are gitignored.
+- Vercel project `half-life-nyc`, connected to GitHub with Root Directory = `web`. Every push to `main` auto-deploys.
+- Design source: `design/design_handoff_half_life/` (Claude Design). Notes on every data source and analysis: `data/notes/`.
 
-## State (2026-10-18)
-Data gathering is done. Every source has a note in `data/notes/`; start with `audit.md`, `analysis_inputs.md` and `groundtruth.md`.
-- DOHMH union: `data/raw/dohmh/union_inspections.parquet`, 85,259 CAMIS, built from 76 copies 2012-07 → 2026-10. OATH tickets add ages back to 1997 (`data/raw/early/`).
-- Benchmarks: 1.3–1.45× Census CBP counts everywhere; exit rate 13.5%/yr vs BDS 11.9%.
-- Ready-made analysis inputs: `data/raw/analysis_inputs/` (cuisine families, chains, operators, storefront history, rent by NTA-year, RRF design).
+## State (2026-10-19)
+Data gathering, merge, analysis and the site are all done and live. Nothing is running or paused.
 
-## Paused on purpose (resume these first, in parallel)
-1. **Menu download** (archive.org MenuPages): 16,439 of ~25,200 restaurants fetched, records verified clean. The tuning agent found **4 workers runs at ~4.6 pages/s with 0% errors** (vs 1.2/s with 1 worker). Resume with:
-   `cd pipeline && ../.venv/bin/python -u menus_wayback.py fetch 0 4 >> ../data/raw/menus/archive_run.log 2>&1`
-   That's ~35 min for the rest. Then the Zagat/NY Mag CDX + fetch stages (see data/notes/menus.md). Then rebuild the tiers:
-   `.venv/bin/python pipeline/fetch_menus.py build tiers && .venv/bin/python pipeline/menus_guides.py build && .venv/bin/python pipeline/fetch_menus.py tiers`
-   Drop to 3 workers if anything else is hitting archive.org; back off on any 429/503.
-2. **Taxi + Uber/Lyft foot-traffic data:** the user asked for an agent to dig into these errors and get them right (details in data/notes/traffic.md, "Status when paused"):
-   - green cab 2013-10 returns 403 and the retry loop never skipped it
-   - the FHV (Uber/Lyft) Socrata query hung
-   Fix both, finish `pipeline/traffic_tlc.py` run(), then build `data/raw/traffic/traffic_by_tract_year.parquet` (the composite foot-traffic index). Subway, jobs, Citi Bike and DOT pieces are already done.
+**Site features**
+- Hero map (deck.gl):
+  - Opens flat and north-up, with water gaps, parks and borough outlines.
+  - Rotate/tilt/2D-3D/compass controls.
+  - Trackpad: pinch zooms; click the map, then swipe pans and shift+swipe rotates/tilts.
+  - View, category, year and neighbourhood filters (`?n=<NTA>`); hover card; click opens the address page.
+- Sections:
+  - 01 Cursed Addresses
+  - 02 Half-life
+  - 03 Rent vs Risk
+  - 04 Beta
+  - 05 Cursed spot test
+  - 06 2020 shock
+  - 07 Pitch yours (Cox model)
+- Address pages `/place/<id>` for ~45k buildings: timeline, business cards with DOHMH grades, acclaim and Google/Yelp links, and nearby addresses.
+- Search box: addresses, business names, neighbourhoods; NYC GeoSearch fallback.
+- Neighbourhood panel under the map when a neighbourhood is selected.
+- "Ask about the data" side panel: `web/app/api/ask/route.ts`.
+  - `claude-opus-5-5`, low effort, short answers, refusal fallback, input caps, best-effort per-IP limit of 10/hour.
+  - Briefing: `web/lib/ask/context.ts` (update its numbers if the pipeline is rerun).
+  - Key: `ANTHROPIC_API_KEY` in `web/.env.local` and in Vercel (Production). The user set up an Anthropic workspace with a monthly spend cap (see `docs/anthropic-key-setup.md`).
+- Mobile: flat hex map, sticky scrubber within the hero, tap sheet, search, picker.
 
-Stopped for diminishing returns: bars (data/notes/bars.md) and DOHMH gaps round 3 (dohmh_gaps2.md).
+## Rebuild everything (about 10 minutes, all local)
+```
+.venv/bin/python -W ignore pipeline/fetch_analysis_inputs.py base cuisine chains operators operators2 storefront size rent age rrf
+cd pipeline
+../.venv/bin/python -W ignore build_lifespans.py && ../.venv/bin/python -W ignore build_businesses.py && ../.venv/bin/python -W ignore build_bodegas.py
+../.venv/bin/python -W ignore build_buildings.py && ../.venv/bin/python -W ignore build_attach.py && ../.venv/bin/python -W ignore build_checks.py
+../.venv/bin/python -W ignore analysis_survival.py && ../.venv/bin/python -W ignore analysis_cox.py && ../.venv/bin/python -W ignore analysis_beta.py
+../.venv/bin/python -W ignore export_site.py && ../.venv/bin/python -W ignore export_places.py && ../.venv/bin/python -W ignore export_analysis.py
+```
+Then `cd web && npm run build`, commit and push.
 
-## Site (2026-10-19)
-- Live: https://half-life-nyc.vercel.app (Vercel project `half-life-nyc`, team junaidbhatti). Connected to GitHub with Root Directory = `web`: every push to `main` auto-deploys to production, and other branches get preview URLs.
-- Data: `pipeline/export_site.py` writes `web/public/data/`. Rerun it after any `build_*` change, then commit and push to redeploy.
-- Built sections: hero map + controls, 01 Cursed Addresses, 02 Half-life, 03 Rent vs Risk, 04 Beta, 05 Cursed spot test, 06 2020 shock, 07 Pitch yours, mobile. 02/04-07 follow the design system but weren't drawn by Claude Design; dark mode is still open.
-- Section data: `pipeline/export_analysis.py` (after `analysis_*.py`). The pitch tool fades the storefront-history penalty after year 3 (proportional hazards would carry it for all ten years).
-- The Rent vs Risk headline was changed to match the data: pricier areas are a little safer, but rent doesn't predict closure once other factors are controlled for.
-
-## Next steps
-0. **Merge pipeline is BUILT** (2026-10-19): see data/notes/merge.md for commands, outputs (data/processed/) and validation. 69,166 businesses, 39,605 buildings. Rerun build_attach.py + build_checks.py after the menu tiers and traffic index finish.
-1. Rerun a quick audit over everything (data/notes/audit.md lists what to check), then commit and push.
-2. Offer the user a backup zip of `data/raw` (about 2.5 GB, not in git).
-3. (done) Build the merge pipeline into one business table, applying the corrections in groundtruth.md:
-   - merge same-name, same-address permits (−11% closures)
-   - closure date = L + 0.37·(U − L) (≈0.3 for 2016–18)
-   - opening = earlier of first listing (incl. 1900-01-01 rows) and first inspection
-   - flag reopenings and relocations
-   - use PARTIAL/DERIVED copies only as proof of life
-   - normalize `boro`; drop (0,0) coordinates
-   - correct the 2020–23 delayed purges
-   - rerun signals/ratings CAMIS matching on the 85k union
-4. (done 2026-10-19, see data/notes/analysis_first_pass.md) First analysis pass: Kaplan-Meier survival by group, Cox model, cursed-spot × age, beta by group and neighborhood. Pick the 3–4 strongest findings, then design the page.
+## Open items (none started)
+- Send sections 02 and 04–07 to Claude Design for a polish pass (built in the design system, never drawn by the designer).
+- Dark mode (the handoff lists it as an open item).
+- Mobile map: no rotate/tilt controls (flat by design).
+- Optional data: Zagat/NY Mag archived menus (stages exist in `pipeline/menus_wayback.py`; never run). Foursquare releases after 2025-02 need an HF_TOKEN.
+- Link the site from the personal site (`~/Developer/Claude Vibecoding/personal-site`), or point a subdomain of junaidrbhatti.com at it.
+- Offer the user a backup zip of `data/raw` (about 2.5 GB, not in git, some sources can't be re-downloaded).
+- Repo size: `web/public/data/places/` (48 MB) is rewritten on every export. Consider moving it to Vercel Blob or another static host if the repo gets heavy.
 
 ## Constraints
-- Raw data includes research-only sources (UCSD Google Local, the NYT reviews copy). Publish derived stats only, with credit.
+- Raw data includes research-only sources (UCSD Google Local, the NYT reviews copy). Publish derived stats only, with credit. No review text or ratings on the site; link out instead.
 - Keep files under about 400 lines (`pipeline/dohmh_extra.py` is 562; split it when touched).
-- `.env.local` holds GITHUB_TOKEN (read-only, public repos); never print it.
+- `.env.local` (root) holds GITHUB_TOKEN; `web/.env.local` holds ANTHROPIC_API_KEY and VERCEL_OIDC_TOKEN. Never print them.
+- `web/` is Next.js 16 with Cache Components: anything reading the URL needs a Suspense boundary, and dynamic routes need at least one `generateStaticParams` entry. Read `web/node_modules/next/dist/docs/` before using unfamiliar APIs.
