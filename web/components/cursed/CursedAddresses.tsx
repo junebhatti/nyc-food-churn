@@ -61,9 +61,7 @@ export default function CursedAddresses({ addresses }: { addresses: CursedAddres
               <Stat label="Area median" value={a.areaMedianLife != null ? `${a.areaMedianLife.toFixed(1)}y` : "—"} muted />
             </div>
           </div>
-          <div className="mt-6 overflow-x-auto">
-            <div className="min-w-[640px]"><TimelineStrip timeline={a.timeline} /></div>
-          </div>
+          <div className="mt-6"><TimelineStrip timeline={a.timeline} /></div>
           <div className="label mt-8 flex flex-wrap gap-4">
             <Key color="var(--awning)" text="Under 1.5 yrs" />
             <Key color="var(--bodega)" text="1.5–3 yrs" />

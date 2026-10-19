@@ -77,8 +77,8 @@ function PlaceView({ place: p }: { place: Place }) {
 
       {timeline.length > 0 && (
         <section className="mt-10 border border-ink bg-paper-raised p-5 md:p-7">
-          <div className="label mb-2">Every food and drink business at this address</div>
-          <div className="overflow-x-auto"><div className="min-w-[640px]"><TimelineStrip timeline={timeline} /></div></div>
+          <div className="label mb-4">Every food and drink business at this address</div>
+          <TimelineStrip timeline={timeline} />
         </section>
       )}
 

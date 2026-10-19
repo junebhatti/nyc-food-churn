@@ -9,64 +9,82 @@ export function lifeColor(years: number): string {
   return years < 1.5 ? "var(--awning)" : years <= 3 ? "var(--bodega)" : "var(--deli)";
 }
 
-const textOn = (years: number) => (years >= 1.5 && years <= 3 ? "var(--ink)" : "var(--paper)");
+const ROW = "grid grid-cols-[112px_minmax(0,1fr)] items-center gap-3 md:grid-cols-[220px_minmax(0,1fr)] md:gap-5";
 
-const LANES = 4; // 0/2 above the strip (near/far), 1/3 below (near/far)
-const LANE_H = 34;
+/** Spans when at least one tenant was open, for the "occupied vs empty" row on top. */
+function occupied(timeline: CursedTenant[]): [number, number][] {
+  const spans = timeline.map((t) => [Math.max(t.open, SPAN_START), t.close ?? SPAN_END] as [number, number]).sort((a, b) => a[0] - b[0]);
+  const out: [number, number][] = [];
+  for (const [s, e] of spans) {
+    const last = out[out.length - 1];
+    if (last && s <= last[1]) last[1] = Math.max(last[1], e);
+    else out.push([s, e]);
+  }
+  return out;
+}
 
-/** 34px strip with ink rules, a vacancy hatch behind, tenant bars, and names in four lanes
- *  (two above, two below) so quick turnovers don't collide; each name stops before the next in its lane. */
+/** One row per business on a shared 2012–2026 axis, oldest first, so tenants that overlapped
+ *  (several storefronts in one building) never cover each other. The top row shows when the
+ *  address had any food tenant, with a hatch where it had none. */
 export default function TimelineStrip({ timeline }: { timeline: CursedTenant[] }) {
   const ticks = Array.from({ length: 8 }, (_, i) => 2012 + i * 2);
-  const room = timeline.map((t, i) => {
-    const next = timeline[i + LANES];
-    return next ? pct(next.open) - pct(t.open) - 0.6 : 100 - pct(t.open);
-  });
+  const grid = (
+    <div className="pointer-events-none absolute inset-0">
+      {ticks.map((y) => <div key={y} className="absolute inset-y-0 w-px bg-rule-soft" style={{ left: `${pct(y)}%` }} />)}
+    </div>
+  );
   return (
-    <div className="relative" style={{ paddingTop: LANE_H * 2, paddingBottom: LANE_H * 2 }}>
+    <div>
+      <div className={ROW}>
+        <span />
+        <div className="label relative h-4">
+          {ticks.map((y, i) => (
+            <span key={y} className={`absolute -translate-x-1/2 ${i % 2 ? "max-md:hidden" : ""}`} style={{ left: `${pct(y)}%` }}>{y}</span>
+          ))}
+        </div>
+      </div>
+
+      <div className={`${ROW} mt-2 border-b border-ink pb-2`}>
+        <span className="label">At this address</span>
+        <div className="vacancy-hatch relative h-3 border-y border-rule">
+          {occupied(timeline).map(([s, e]) => (
+            <div key={s} className="absolute inset-y-0 bg-muted" style={{ left: `${pct(s)}%`, width: `${Math.max(pct(e) - pct(s), 0.3)}%` }} />
+          ))}
+        </div>
+      </div>
+
       {timeline.map((t, i) => {
-        const lane = i % LANES;
-        const above = lane % 2 === 0;
-        const far = lane >= 2;
-        const offset = far ? 0 : LANE_H;
+        const end = t.close ?? SPAN_END;
+        const left = pct(t.open);
+        const width = Math.max(pct(end) - left, 0.4);
+        const life = t.isOpen ? `open · ${t.life.toFixed(1)}y` : `${t.life.toFixed(1)}y`;
+        const labelAfter = left + width < 84; // otherwise the label sits before the bar
         return (
-          <div
-            key={`l${i}`}
-            className="absolute overflow-hidden border-l border-ink pl-1.5"
-            style={{
-              left: `${pct(t.open)}%`,
-              width: `${Math.max(room[i], 3)}%`,
-              ...(above ? { top: offset, height: LANE_H * 2 - offset } : { bottom: offset, height: LANE_H * 2 - offset }),
-            }}
-          >
-            <div className={`flex h-full flex-col ${above ? "justify-start" : "justify-end"}`}>
-              <span className="truncate text-[14px] leading-tight" title={t.name}>{t.name}</span>
-              <span className="label truncate !text-[10px]">{t.cuisine}</span>
+          <div key={`${t.name}-${i}`} className={`${ROW} border-b border-rule-soft py-1.5`}>
+            <div className="min-w-0">
+              <div className="truncate text-[15px] leading-tight" title={t.name}>{t.name}</div>
+              <div className="label truncate !text-[10px]">{t.cuisine}</div>
+            </div>
+            <div className="relative h-5">
+              {grid}
+              <div
+                className="absolute inset-y-1"
+                title={`${t.name}: ${t.life.toFixed(1)} years`}
+                style={{ left: `${left}%`, width: `${width}%`, background: lifeColor(t.life) }}
+              />
+              {t.open < SPAN_START && (
+                <span className="mono absolute left-1 top-1/2 -translate-y-1/2 text-[10px] text-paper">◂ {Math.floor(t.open)}</span>
+              )}
+              <span
+                className={`mono tnum absolute top-1/2 -translate-y-1/2 whitespace-nowrap text-[11px] ${t.isOpen ? "text-deli" : "text-muted"}`}
+                style={labelAfter ? { left: `calc(${left + width}% + 6px)` } : { right: `calc(${100 - left}% + 6px)` }}
+              >
+                {life}
+              </span>
             </div>
           </div>
         );
       })}
-      <div className="vacancy-hatch relative h-[34px] border-y border-ink">
-        {timeline.map((t, i) => {
-          const end = t.close ?? SPAN_END;
-          const w = pct(end) - pct(t.open);
-          return (
-            <div
-              key={i}
-              title={`${t.name}: ${t.life.toFixed(1)} years`}
-              className="mono absolute inset-y-0 flex items-center justify-center overflow-hidden text-[11px]"
-              style={{ left: `${pct(t.open)}%`, width: `${Math.max(w, 0.4)}%`, background: lifeColor(t.life), color: textOn(t.life), boxShadow: "inset -1px 0 0 var(--paper-raised)" }}
-            >
-              {w > 4 ? `${t.life.toFixed(1)}y` : ""}
-            </div>
-          );
-        })}
-      </div>
-      <div className="label absolute inset-x-0 bottom-[-18px] h-4">
-        {ticks.map((y) => (
-          <span key={y} className="absolute -translate-x-1/2" style={{ left: `${pct(y)}%` }}>{y}</span>
-        ))}
-      </div>
     </div>
   );
 }
