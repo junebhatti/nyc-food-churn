@@ -44,7 +44,7 @@ cd pipeline
 Then `cd web && npm run build`, commit and push.
 
 ## Open items (none started)
-- Send sections 02 and 04–07 to Claude Design for a polish pass (built in the design system, never drawn by the designer).
+- Design polish: the brief for sections 02 and 04–07 is written, with current screenshots, in `design/polish_brief/`. It hasn't been sent yet: the user takes it to Claude Design, and the returned handoff gets built in code.
 - Dark mode: done 2026-10-19 and follows the system setting (no toggle). Tokens live in `web/app/globals.css`, the map palette in `DARK` in `web/lib/color.ts`, and the two must stay in sync. The dark colours are my reading of the handoff's 1c reference, so confirm them with the designer.
 - Check: the mobile flat map rendered blank in the in-app browser's 375px emulation, on both localhost and production, in light and dark. This may only be an emulator quirk; try it on a real phone.
 - Mobile map: no rotate/tilt controls (flat by design).
