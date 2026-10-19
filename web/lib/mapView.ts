@@ -1,6 +1,6 @@
 // Shared camera rules for the deck.gl maps: north-up like a printed NYC map, held to the city.
 
-import { PathLayer, TextLayer } from "@deck.gl/layers";
+import { PathLayer, SolidPolygonLayer, TextLayer } from "@deck.gl/layers";
 import type { MapViewState } from "@deck.gl/core";
 
 export const NYC_CENTER = { longitude: -73.94, latitude: 40.7 };
@@ -68,4 +68,45 @@ export function landPolygons(land: GeoJSON.FeatureCollection): GeoJSON.Position[
         ? [(f.geometry as GeoJSON.Polygon).coordinates]
         : [],
   );
+}
+
+const PARK_GREEN: [number, number, number] = [190, 206, 168];
+
+/** Parks as flat muted green under the columns (Central Park, Prospect Park, Flushing Meadows...). */
+export function parksLayer(id: string, parks: GeoJSON.FeatureCollection) {
+  return new SolidPolygonLayer<GeoJSON.Position[][]>({
+    id,
+    data: landPolygons(parks),
+    getPolygon: (p) => p as unknown as [number, number][][],
+    getFillColor: PARK_GREEN,
+  });
+}
+
+/** Point-in-land test (even-odd ray casting) with a per-cell cache; the hex grid is fixed, so each
+ *  cell is tested once per page view. */
+export function makeLandTest(landPolys: GeoJSON.Position[][][]) {
+  const boxes = landPolys.map((poly) => {
+    let w = Infinity, e = -Infinity, s = Infinity, n = -Infinity;
+    for (const [x, y] of poly[0]) {
+      w = Math.min(w, x); e = Math.max(e, x); s = Math.min(s, y); n = Math.max(n, y);
+    }
+    return { poly, w, e, s, n };
+  });
+  const inRing = (ring: GeoJSON.Position[], x: number, y: number) => {
+    let inside = false;
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const [xi, yi] = ring[i], [xj, yj] = ring[j];
+      if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+    }
+    return inside;
+  };
+  const cache = new Map<string, boolean>();
+  return (id: string, x: number, y: number) => {
+    const hit = cache.get(id);
+    if (hit !== undefined) return hit;
+    const on = boxes.some((b) => x >= b.w && x <= b.e && y >= b.s && y <= b.n &&
+      inRing(b.poly[0], x, y) && !b.poly.slice(1).some((hole) => inRing(hole, x, y)));
+    cache.set(id, on);
+    return on;
+  };
 }

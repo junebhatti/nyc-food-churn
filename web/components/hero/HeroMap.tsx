@@ -6,7 +6,7 @@ import { AmbientLight, DirectionalLight, LightingEffect, LinearInterpolator, typ
 import { ColumnLayer, SolidPolygonLayer } from "@deck.gl/layers";
 import { useAtlas } from "@/lib/store";
 import { hasCategory } from "@/lib/data";
-import { boroughLabels, clampView, landPolygons, NYC_CENTER, outlineLayer } from "@/lib/mapView";
+import { boroughLabels, clampView, landPolygons, makeLandTest, NYC_CENTER, outlineLayer, parksLayer } from "@/lib/mapView";
 import { LAND } from "@/lib/color";
 import { buildingColor, hexBins, makeScale, rawValue, type Cell } from "@/lib/metrics";
 import type { Building, Neighborhood } from "@/lib/types";
@@ -22,7 +22,9 @@ const lighting = new LightingEffect({
 });
 const MATERIAL = { ambient: 0.6, diffuse: 0.5, shininess: 0, specularColor: [0, 0, 0] as [number, number, number] };
 const BUILDING_ZOOM = 12.6; // above this, one column per building
-const HEX_RADIUS_M = 380;
+const HEX_RADIUS_M = 220; // small enough that the East River and Harlem River stay visible
+const MOBILE_HEX_RADIUS_M = 330;
+const HEX_FILL = 0.82; // gap between hexes so the coastline and parks read through
 
 export interface HoverInfo {
   building: number;
@@ -34,13 +36,14 @@ interface Props {
   buildings: Building[];
   hoods: Neighborhood[];
   land: GeoJSON.FeatureCollection;
+  parks: GeoJSON.FeatureCollection | null;
   flat?: boolean; // mobile: pitch 0, no extrusion
   initialZoom?: number;
   onHover?: (h: HoverInfo | null) => void;
   onTap?: (building: number) => void;
 }
 
-export default function HeroMap({ buildings, hoods, land, flat = false, initialZoom = 10.2, onHover, onTap }: Props) {
+export default function HeroMap({ buildings, hoods, land, parks, flat = false, initialZoom = 10.2, onHover, onTap }: Props) {
   const { year, view, category } = useAtlas();
   // Opens top-down and north-up like a street map (Bronx at the top, Brooklyn and Queens to the
   // right of Manhattan); the controls tilt into the 3D relief and rotate it.
@@ -83,12 +86,29 @@ export default function HeroMap({ buildings, hoods, land, flat = false, initialZ
   );
   const trackpad = useTrackpad({ el: box, getView, setView, enabled: !flat });
 
+  // Measure the box ourselves and hand deck.gl the real size: left alone it measures the canvas
+  // before layout (300x150) and draws the first frames stretched.
+  const [size, setSize] = useState<{ width: number; height: number } | null>(null);
+  useEffect(() => {
+    const node = box.current;
+    if (!node) return;
+    const ro = new ResizeObserver(([e]) => {
+      const { width, height } = e.contentRect;
+      if (width > 0 && height > 0) setSize({ width: Math.round(width), height: Math.round(height) });
+    });
+    ro.observe(node);
+    return () => ro.disconnect();
+  }, []);
+
+  // Boroughs are MultiPolygons; the land plate wants one ring set per polygon.
+  const landPolys = useMemo(() => landPolygons(land), [land]);
+  const onLand = useMemo(() => makeLandTest(landPolys), [landPolys]);
   const scale = useMemo(() => makeScale(buildings, view, hoods), [buildings, view, hoods]);
   const value = useMemo(() => (b: Building) => scale(rawValue(b, view, hoods)), [scale, view, hoods]);
   const showBuildings = !flat && viewState.zoom > BUILDING_ZOOM;
   const cells = useMemo<Cell[]>(
-    () => (showBuildings ? [] : hexBins(buildings, flat ? 520 : HEX_RADIUS_M, value, year, category)),
-    [buildings, value, year, category, showBuildings, flat],
+    () => (showBuildings ? [] : hexBins(buildings, flat ? MOBILE_HEX_RADIUS_M : HEX_RADIUS_M, value, year, category, onLand)),
+    [buildings, value, year, category, showBuildings, flat, onLand],
   );
 
   // Tallest hexes (99th percentile) rise ~2.5 km, so the whole city reads as one relief.
@@ -97,8 +117,6 @@ export default function HeroMap({ buildings, hoods, land, flat = false, initialZ
     return h.length ? 2500 / Math.max(1, h[Math.floor(0.99 * (h.length - 1))]) : 1;
   }, [cells]);
 
-  // Boroughs are MultiPolygons; the land plate wants one ring set per polygon.
-  const landPolys = useMemo(() => landPolygons(land), [land]);
 
   const layers = [
     new SolidPolygonLayer<GeoJSON.Position[][]>({
@@ -108,6 +126,7 @@ export default function HeroMap({ buildings, hoods, land, flat = false, initialZ
       getFillColor: LAND,
       _full3d: false,
     }),
+    ...(parks ? [parksLayer("parks", parks)] : []),
     outlineLayer("outline", landPolys),
     showBuildings
       ? new ColumnLayer<Building>({
@@ -130,7 +149,7 @@ export default function HeroMap({ buildings, hoods, land, flat = false, initialZ
           id: "hexes",
           data: cells,
           diskResolution: 6,
-          radius: (flat ? 520 : HEX_RADIUS_M) * 0.9,
+          radius: (flat ? MOBILE_HEX_RADIUS_M : HEX_RADIUS_M) * HEX_FILL,
           extruded: !flat,
           elevationScale: hexScale,
           getPosition: (c) => [c.lon, c.lat],
@@ -145,7 +164,9 @@ export default function HeroMap({ buildings, hoods, land, flat = false, initialZ
 
   return (
     <div ref={box} className="absolute inset-0" onPointerDown={trackpad.activate}>
-    <DeckGL
+    {size && <DeckGL
+      width={size.width}
+      height={size.height}
       viewState={viewState}
       onViewStateChange={({ viewState: v, interactionState }) => {
         const next = clampView(v as MapViewState, minZoom);
@@ -153,8 +174,6 @@ export default function HeroMap({ buildings, hoods, land, flat = false, initialZ
         if (!interactionState?.inTransition) setTarget({ bearing: next.bearing ?? 0, pitch: next.pitch ?? 0 });
         setViewState(next);
       }}
-      // deck.gl measures the canvas before layout (300x150); re-render once it knows the real size.
-      onResize={() => setViewState((v) => ({ ...v }))}
       // Wheel/pinch are handled by useTrackpad, so the page can still scroll past an inactive map.
       controller={flat ? { dragRotate: false, touchRotate: false } : { dragRotate: true, scrollZoom: false }}
       layers={layers}
@@ -170,7 +189,7 @@ export default function HeroMap({ buildings, hoods, land, flat = false, initialZ
         const o = info.object as Building | Cell | undefined;
         if (o && onTap) onTap("top" in o ? o.top : o.idx);
       }}
-    />
+    />}
     {!flat && <MapControls bearing={viewState.bearing ?? 0} pitch={shownTarget.pitch} targetBearing={shownTarget.bearing} onChange={animateTo} />}
     {!flat && (
       <div className="label pointer-events-none absolute bottom-4 left-1/2 z-10 -translate-x-1/2 border border-rule bg-paper-raised/90 px-2.5 py-1.5">

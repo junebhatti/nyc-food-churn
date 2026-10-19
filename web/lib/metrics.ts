@@ -56,9 +56,10 @@ export function hexBins(
   value: (b: Building) => number | null,
   year: number,
   category: CategoryFilter,
+  onLand?: (id: string, lon: number, lat: number) => boolean,
 ): Cell[] {
   const size = radiusM;
-  const cells = new Map<string, { q: number; r: number; h: number; sum: number; n: number; lit: boolean; top: number; topN: number }>();
+  const cells = new Map<string, { q: number; r: number; h: number; sum: number; n: number; lit: boolean; top: number; topN: number; lon: number; lat: number; k: number }>();
   for (const b of buildings) {
     if (!hasCategory(b, category)) continue;
     const x = (b.lon + 74) * M_PER_DEG_LON;
@@ -73,8 +74,11 @@ export function hexBins(
     else if (dr > ds) r = -q - s;
     const key = `${q},${r}`;
     let c = cells.get(key);
-    if (!c) cells.set(key, (c = { q, r, h: 0, sum: 0, n: 0, lit: false, top: b.idx, topN: -1 }));
+    if (!c) cells.set(key, (c = { q, r, h: 0, sum: 0, n: 0, lit: false, top: b.idx, topN: -1, lon: 0, lat: 0, k: 0 }));
     c.h += b.tenants;
+    c.lon += b.lon;
+    c.lat += b.lat;
+    c.k += 1;
     if (isLit(b, year, category)) {
       c.lit = true;
       const v = value(b);
@@ -92,10 +96,17 @@ export function hexBins(
     const x = size * Math.sqrt(3) * (c.q + c.r / 2);
     const y = size * 1.5 * c.r;
     const t = c.n ? c.sum / c.n : null;
+    let lon = x / M_PER_DEG_LON - 74;
+    let lat = y / M_PER_DEG_LAT + LAT0;
+    // A grid cell centred in the river would paint over the water; sit it on its buildings instead.
+    if (onLand && !onLand(id, lon, lat)) {
+      lon = c.lon / c.k;
+      lat = c.lat / c.k;
+    }
     return {
       id,
-      lon: x / M_PER_DEG_LON - 74,
-      lat: y / M_PER_DEG_LAT + LAT0,
+      lon,
+      lat,
       height: c.h,
       color: c.lit && t != null ? ramp(t) : DEAD,
       top: c.top,

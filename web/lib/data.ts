@@ -53,6 +53,7 @@ function useJson<T>(name: string, parse?: (raw: unknown) => T, enabled = true) {
 export const useBuildings = () => useJson<Building[]>("buildings.json", (r) => parseBuildings(r as BuildingsFile));
 export const useNeighborhoods = () => useJson<Neighborhood[]>("neighborhoods.json");
 export const useLand = () => useJson<GeoJSON.FeatureCollection>("land.json");
+export const useParks = () => useJson<GeoJSON.FeatureCollection>("parks.json");
 export const useTenants = (enabled: boolean) => useJson<TenantRow[]>("tenants.json", undefined, enabled);
 
 /** Was any business of the selected category open in this building during `year`? */

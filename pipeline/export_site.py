@@ -6,7 +6,8 @@
   neighborhoods.json  NTA polygons + rent, 3-yr closure odds, places, median life, survival curve
   yearly.json         openings / closings per year and category (scrubber butterfly chart)
   cursed.json         top single-storefront buildings by tenant count, with full timelines
-  land.json           borough outlines (the map's land plate)
+  land.json           borough outlines (the map's land plate, clipped to the shoreline)
+  parks.json          parks of PARK_MIN_ACRES+ (NYC Parks Properties, enfh-gkve), drawn under the columns
 Rent = mean storefront rent $/sq ft/yr (LL157, 2019-24). Closure odds and lifespans use
 Kaplan-Meier on places opened since 2012-07-06, excluding bodegas (SNAP dates mean something
 different). Run after the build_* steps: .venv/bin/python pipeline/export_site.py
@@ -29,6 +30,10 @@ YEARS = list(range(2012, 2027))
 CATS = ["restaurant", "bar", "cafe", "bakery", "bodega"]
 LIVE = pd.Timestamp("2026-10-16")
 MIN_NTA = 60
+PARK_MIN_ACRES = 12
+PARKS_URL = ("https://data.cityofnewyork.us/resource/enfh-gkve.geojson"
+             f"?$where=acres>{PARK_MIN_ACRES}&$limit=2000")
+PARKS_CACHE = RAW / "gov" / "parks_large.geojson.gz"
 FAMILY_LABEL = {
     "american": "American", "latin_caribbean": "Latin & Caribbean", "chinese": "Chinese",
     "cafe_coffee_tea": "Café", "pizza": "Pizza", "bakery_desserts": "Bakery & desserts",
@@ -174,6 +179,22 @@ def cursed(b: pd.DataFrame, names: dict, nta_life: dict, n: int = 50) -> list[di
     return out
 
 
+def parks() -> dict:
+    """Large parks, fetched once from NYC Open Data and cached in data/raw/gov/."""
+    if not PARKS_CACHE.exists():
+        import requests
+        r = requests.get(PARKS_URL, timeout=120)
+        r.raise_for_status()
+        PARKS_CACHE.write_bytes(gzip.compress(r.content))
+    g = gpd.read_file(f"/vsigzip/{PARKS_CACHE}")
+    g = g[g.geometry.notna()].copy()
+    g["geometry"] = g.geometry.simplify(0.00012, preserve_topology=True)
+    g = g[~g.geometry.is_empty]
+    out = json.loads(g[["geometry"]].to_json(), parse_float=lambda v: round(float(v), 5))
+    print(f"  parks: {len(g)} of {PARK_MIN_ACRES}+ acres")
+    return out
+
+
 def main() -> None:
     b = load()
     hoods = neighborhoods(b)
@@ -196,6 +217,7 @@ def main() -> None:
     land = gpd.read_file(f"/vsigzip/{RAW / 'gov' / 'geo_boroughs.geojson.gz'}")
     land["geometry"] = land.geometry.simplify(0.0003, preserve_topology=True)
     write("land.json", json.loads(land[["geometry"]].to_json(), parse_float=lambda v: round(float(v), 5)))
+    write("parks.json", parks())
     print(summary)
 
 

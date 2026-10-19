@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { useState } from "react";
 import { List } from "@phosphor-icons/react";
 import { useAtlas } from "@/lib/store";
-import { useBuildings, useLand, useNeighborhoods, useTenants } from "@/lib/data";
+import { useBuildings, useLand, useNeighborhoods, useParks, useTenants } from "@/lib/data";
 import { LEGEND_CHIPS } from "@/lib/color";
 import { LEGEND } from "@/lib/metrics";
 import { useIsMobile } from "@/lib/useIsMobile";
@@ -29,6 +29,7 @@ export default function Hero({ summary, yearly }: Props) {
   const buildings = useBuildings();
   const hoods = useNeighborhoods();
   const land = useLand();
+  const parks = useParks();
   const [hover, setHover] = useState<HoverInfo | null>(null);
   const [tapped, setTapped] = useState<number | null>(null);
   const tenants = useTenants(hover != null || tapped != null);
@@ -42,6 +43,7 @@ export default function Hero({ summary, yearly }: Props) {
       buildings={buildings.data!}
       hoods={hoods.data!}
       land={land.data!}
+      parks={parks.data}
       flat={mobile === true}
       initialZoom={mobile ? 8.75 : 9.8}
       onHover={mobile ? undefined : setHover}
