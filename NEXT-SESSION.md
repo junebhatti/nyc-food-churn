@@ -14,6 +14,7 @@ Data gathering, merge, analysis and the site are all done and live. Nothing is r
   - Opens flat and north-up, with water gaps, parks and borough outlines.
   - Gestures, with no on-map buttons (changed 2026-10-19, `web/lib/useTrackpad.ts`): drag pans, pinch zooms, a two-finger sideways swipe rotates, a vertical swipe tilts (up tilts into 3D), and a mouse wheel zooms. The map takes every wheel event over it.
   - View, category, year and neighbourhood filters (`?n=<NTA>`); hover card; click opens the address page.
+  - Street lines appear once you zoom to single buildings (added 2026-10-19). Source: NYC Street Centerline (inkn-q76z), exported by `pipeline/export_streets.py` to `web/public/data/streets.json` (4.4 MB, 1.3 MB gz, loaded lazily). Streets 60 ft or wider are drawn heavier. No names are drawn, though the raw cache has them.
 - Each story has its own page (split out 2026-10-19). The list is `web/lib/stories.ts`, the frame is `web/components/StoryPage.tsx` (header, then prev/next, then footer), and the header's "Stories" menu (☰ on phones) is `web/components/StoriesMenu.tsx`:
   - `/cursed` 01 Cursed Addresses
   - `/half-life` 02 Half-life
@@ -39,6 +40,7 @@ cd pipeline
 ../.venv/bin/python -W ignore build_buildings.py && ../.venv/bin/python -W ignore build_attach.py && ../.venv/bin/python -W ignore build_checks.py
 ../.venv/bin/python -W ignore analysis_survival.py && ../.venv/bin/python -W ignore analysis_cox.py && ../.venv/bin/python -W ignore analysis_beta.py
 ../.venv/bin/python -W ignore export_site.py && ../.venv/bin/python -W ignore export_places.py && ../.venv/bin/python -W ignore export_analysis.py
+../.venv/bin/python -W ignore export_streets.py   # only when street data needs refreshing
 ```
 Then `cd web && npm run build`, commit and push.
 

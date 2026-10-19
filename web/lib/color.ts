@@ -14,6 +14,8 @@ export interface Palette {
   dead: RGB;
   land: RGB;
   park: RGB;
+  street: RGB;
+  streetMajor: RGB;
   ink: RGB;
   muted: RGB;
   paper: RGB;
@@ -30,6 +32,8 @@ export const LIGHT: Palette = {
   dead: hex("#DAD2C3"),
   land: hex("#E7E0D2"),
   park: hex("#BECEA8"),
+  street: hex("#BDB19C"),
+  streetMajor: hex("#A0937B"),
   ink: hex("#1C1B18"),
   muted: hex("#5A554C"),
   paper: hex("#F3EEE4"),
@@ -46,6 +50,8 @@ export const DARK: Palette = {
   dead: hex("#2E3146"),
   land: hex("#23263A"),
   park: hex("#25392F"),
+  street: hex("#484D68"),
+  streetMajor: hex("#666C8C"),
   ink: hex("#E9E9ED"),
   muted: hex("#9A9CAB"),
   paper: hex("#161826"),

@@ -63,6 +63,19 @@ function useJson<T>(name: string, parse?: (raw: unknown) => T, enabled = true) {
 export const useBuildings = () => useJson<Building[]>("buildings.json", (r) => parseBuildings(r as BuildingsFile));
 export const useNeighborhoods = () => useJson<Neighborhood[]>("neighborhoods.json");
 export const useLand = () => useJson<GeoJSON.FeatureCollection>("land.json");
+
+/** Street lines for the zoomed-in map: flat [lon, lat, lon, lat, ...] lists (pipeline/export_streets.py). */
+export interface Streets {
+  major: number[][];
+  minor: number[][];
+}
+function parseStreets(raw: unknown): Streets {
+  const s = raw as Partial<Streets>;
+  if (!Array.isArray(s?.major) || !Array.isArray(s?.minor)) throw new Error("streets.json is missing its major/minor lists");
+  return s as Streets;
+}
+/** Only fetched once `enabled` (the map is zoomed to single buildings); kept after that. */
+export const useStreets = (enabled: boolean) => useJson<Streets>("streets.json", parseStreets, enabled);
 export const useParks = () => useJson<GeoJSON.FeatureCollection>("parks.json");
 export const useYearlyByNta = (enabled: boolean) =>
   useJson<Record<string, Record<CategoryFilter, { open: number[]; close: number[]; alive: number[] }>>>("yearly_nta.json", undefined, enabled);

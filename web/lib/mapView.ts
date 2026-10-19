@@ -81,6 +81,25 @@ export function parksLayer(id: string, parks: GeoJSON.FeatureCollection, p: Pale
   });
 }
 
+/** Street centrelines under the building columns, so blocks and avenues read when zoomed in.
+ *  Widths are in metres (a side street is drawn about half its real width) with a pixel floor. */
+export function streetLayers(id: string, streets: { major: number[][]; minor: number[][] }, p: Palette) {
+  const layer = (kind: "minor" | "major", width: number, minPx: number, color: [number, number, number]) =>
+    new PathLayer<number[]>({
+      id: `${id}-${kind}`,
+      data: streets[kind],
+      getPath: (d) => d,
+      positionFormat: "XY",
+      getColor: color,
+      getWidth: width,
+      widthUnits: "meters",
+      widthMinPixels: minPx,
+      capRounded: true,
+      jointRounded: true,
+    });
+  return [layer("minor", 5, 0.8, p.street), layer("major", 10, 1.4, p.streetMajor)];
+}
+
 /** Point-in-land test (even-odd ray casting) with a per-cell cache; the hex grid is fixed, so each
  *  cell is tested once per page view. */
 export function makeLandTest(landPolys: GeoJSON.Position[][][]) {

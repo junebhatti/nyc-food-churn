@@ -5,8 +5,8 @@ import DeckGL from "@deck.gl/react";
 import { AmbientLight, DirectionalLight, LightingEffect, type MapViewState } from "@deck.gl/core";
 import { ColumnLayer, SolidPolygonLayer } from "@deck.gl/layers";
 import { useAtlas } from "@/lib/store";
-import { hasCategory } from "@/lib/data";
-import { boroughLabels, clampView, landPolygons, makeLandTest, NYC_CENTER, outlineLayer, parksLayer } from "@/lib/mapView";
+import { hasCategory, useStreets } from "@/lib/data";
+import { boroughLabels, clampView, landPolygons, makeLandTest, NYC_CENTER, outlineLayer, parksLayer, streetLayers } from "@/lib/mapView";
 import { usePalette } from "@/lib/usePalette";
 import { buildingColor, hexBins, makeScale, rawValue, type Cell } from "@/lib/metrics";
 import type { Building, Neighborhood } from "@/lib/types";
@@ -95,6 +95,7 @@ export default function HeroMap({ buildings, hoods, land, parks, flat = false, i
   const scale = useMemo(() => makeScale(buildings, view, hoods), [buildings, view, hoods]);
   const value = useMemo(() => (b: Building) => scale(rawValue(b, view, hoods)), [scale, view, hoods]);
   const showBuildings = !flat && viewState.zoom > BUILDING_ZOOM;
+  const streets = useStreets(showBuildings);
   const cells = useMemo<Cell[]>(
     () => (showBuildings ? [] : hexBins(buildings, flat ? MOBILE_HEX_RADIUS_M : HEX_RADIUS_M, value, year, category, palette, onLand, inFocus)),
     [buildings, value, year, category, palette, showBuildings, flat, onLand, inFocus],
@@ -127,6 +128,7 @@ export default function HeroMap({ buildings, hoods, land, parks, flat = false, i
       _full3d: false,
     }),
     ...(parks ? [parksLayer("parks", parks, palette)] : []),
+    ...(showBuildings && streets.data ? streetLayers("streets", streets.data, palette) : []),
     outlineLayer("outline", landPolys, palette),
     showBuildings
       ? new ColumnLayer<Building>({
