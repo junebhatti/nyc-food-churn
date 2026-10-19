@@ -16,12 +16,18 @@ Data gathering is done. Every source has a note in `data/notes/`; start with `au
 - Benchmarks: 1.3–1.45× Census CBP counts everywhere; exit rate 13.5%/yr vs BDS 11.9%.
 - Ready-made analysis inputs: `data/raw/analysis_inputs/` (cuisine families, chains, operators, storefront history, rent by NTA-year, RRF design).
 
-## Still running when this session ended
-1. **Menu download** (archive.org MenuPages, then Zagat/NY Mag), with a speed-tuning agent watching it. Log: `data/raw/menus/archive_run.log`. If ALL_DONE is logged but the tiers weren't rebuilt, run:
+## Paused on purpose (resume these first, in parallel)
+1. **Menu download** (archive.org MenuPages): 16,390 of ~25,200 restaurants fetched, records verified clean. The tuning agent found **4 workers runs at ~4.6 pages/s with 0% errors** (vs 1.2/s with 1 worker). Resume with:
+   `cd pipeline && ../.venv/bin/python -u menus_wayback.py fetch 0 4 >> ../data/raw/menus/archive_run.log 2>&1`
+   That's ~35 min for the rest. Then the Zagat/NY Mag CDX + fetch stages (see data/notes/menus.md). Then rebuild the tiers:
    `.venv/bin/python pipeline/fetch_menus.py build tiers && .venv/bin/python pipeline/menus_guides.py build && .venv/bin/python pipeline/fetch_menus.py tiers`
-   If the runner died, restart it (it skips fetched pages); see `data/notes/menus.md`.
-2. **Foot traffic**: was finishing green-cab TLC data. Check `data/notes/traffic.md` and `data/raw/traffic/manifest.json`. If incomplete, rerun `pipeline/fetch_traffic.py` (it skips finished steps).
-Bars (`data/notes/bars.md`) and DOHMH gaps round 3 (`dohmh_gaps2.md`) were stopped on purpose for diminishing returns.
+   Drop to 3 workers if anything else is hitting archive.org; back off on any 429/503.
+2. **Taxi + Uber/Lyft foot-traffic data:** the user asked for an agent to dig into these errors and get them right (details in data/notes/traffic.md, "Status when paused"):
+   - green cab 2013-10 returns 403 and the retry loop never skipped it
+   - the FHV (Uber/Lyft) Socrata query hung
+   Fix both, finish `pipeline/traffic_tlc.py` run(), then build `data/raw/traffic/traffic_by_tract_year.parquet` (the composite foot-traffic index). Subway, jobs, Citi Bike and DOT pieces are already done.
+
+Stopped for diminishing returns: bars (data/notes/bars.md) and DOHMH gaps round 3 (dohmh_gaps2.md).
 
 ## Next steps
 1. Rerun a quick audit over everything (data/notes/audit.md lists what to check), then commit and push.

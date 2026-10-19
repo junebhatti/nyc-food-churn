@@ -95,3 +95,10 @@ for every BBL; join it to `subway_station_year` to get entries by year.
 - **SafeGraph's free COVID-era releases** (Weekly Patterns, Social Distancing Metrics 2019–21): the program has ended and no public archive was found.
 - **Unacast:** about $38k/yr. **Replica:** sold to agencies. **StreetLight:** discounted academic licences.
 - **Free and coarse:** Google Community Mobility, county-level daily, 2020-02 → 2022-10 (gstatic.com/covid19/mobility/). Apple Mobility Trends has been taken down; only mirrors remain.
+
+## Status when paused (2026-10-18, 23:35)
+The agent was stopped before it finished. Done: subway (yearly, hourly, evening share, lot access), LODES jobs, ACS population, Citi Bike, DOT counts, BID counts (the 11 parquet files in data/raw/traffic/).
+**Not done:**
+- **TLC taxi/FHV:** yellow is fetched for all years (cached under `_tmp/tlc/`). Green stalled on 2013-10: CloudFront returns 403 for `green_tripdata_2013-10.parquet` (likely nonexistent; green service began 2013-08), and `_month_retry` kept retrying instead of skipping. FHV/Uber/Lyft (`traffic_tlc_socrata.fhv_pickups()`, Socrata aggregate per year) hung with 0% CPU for 30+ min and was killed.
+- **The composite `traffic_by_tract_year.parquet` index:** never built. It depends on run() in traffic_tlc.py finishing.
+**Fix next time:** treat 403/404 as "month doesn't exist" and skip it; add timeouts and paging to the Socrata FHV queries (or aggregate from the HVFHV parquet files on CloudFront); then rebuild the index.
