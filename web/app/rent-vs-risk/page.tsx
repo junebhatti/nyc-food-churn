@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import StoryPage from "@/components/StoryPage";
+import { pageMeta } from "../_og/meta";
+import { STORY_SHARE } from "../_og/stories";
 import RentVsRisk from "@/components/risk/RentVsRisk";
 
-export const metadata: Metadata = { title: "Rent vs risk — NYC Turnover" };
+const s = STORY_SHARE["rent-vs-risk"];
+export const metadata: Metadata = pageMeta(s.title, s.description, "/rent-vs-risk");
 
 export default function Page() {
   return (

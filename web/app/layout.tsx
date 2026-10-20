@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 import { IBM_Plex_Mono, Newsreader } from "next/font/google";
 import "./globals.css";
+import { HOME, SITE_NAME, SITE_URL } from "./_og/meta";
 import AskPanel from "@/components/ask/AskPanel";
 
 const newsreader = Newsreader({
@@ -18,9 +19,10 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NYC Turnover — an atlas of restaurant churn",
-  description:
-    "Every NYC restaurant, bar, café, bakery and bodega since 2012: which storefronts can't keep a tenant, how long places last, and whether the rent is worth the risk.",
+  metadataBase: new URL(SITE_URL),
+  ...HOME,
+  openGraph: { title: HOME.title, description: HOME.description, siteName: SITE_NAME, type: "website", locale: "en_US" },
+  twitter: { card: "summary_large_image", title: HOME.title, description: HOME.description },
 };
 
 export const viewport: Viewport = { themeColor: [
