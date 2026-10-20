@@ -116,27 +116,8 @@ export interface CovidData {
   periods: string[];
   open: number[];
   close: number[];
-}
-
-export interface PitchNeighborhood {
-  id: string;
-  name: string;
-  boro: string;
-  valueZ: number;
-  trafficZ: number;
-  beta: number | null;
-  rent: number | null;
-  closure3y: number | null;
-}
-
-export interface PitchData {
-  grid: number[];
-  baseline: number[];
-  coef: Record<string, number>;
-  means: Record<string, number>;
-  cuisines: { id: string; label: string }[];
-  neighborhoods: PitchNeighborhood[];
-  fit: { n: number; events: number; concordance: number; opened: string };
+  /** Places open per half-year: at the start (o), end (c), and highest/lowest month-end (h/l). */
+  candles: { o: number; h: number; l: number; c: number }[];
 }
 
 // Address pages (pipeline/export_places.py)

@@ -13,7 +13,6 @@ export const STORIES: Story[] = [
   { slug: "beta", num: "04", label: "Beta" },
   { slug: "cursed-spot", num: "05", label: "The cursed spot test" },
   { slug: "2020", num: "06", label: "The 2020 shock" },
-  { slug: "pitch", num: "07", label: "Pitch yours" },
 ];
 
 export const storyHref = (slug: string) => `/${slug}`;

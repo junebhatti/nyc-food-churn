@@ -83,5 +83,4 @@ Terms used on the site
 - Spread: a group's normal-year (2013-2017) closure rate above or below the city's, in basis points.
 - Rent per sq ft: median storefront asking rent per square foot per year from the city's storefront registry (2019-2024 average), by neighborhood. Risk-adjusted rent = rent / (1 - 3-yr closure odds).
 - Health grades (A/B/C) on address pages are the city's restaurant inspection grades.
-- The "Pitch yours" tool is a Cox survival model fit on about 19,000 places opened 2015-2021; its storefront-history effect is applied only for the first 3 years.
 - Reviews are not shown; address pages link to Google Maps and Yelp instead.`;

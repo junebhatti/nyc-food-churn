@@ -6,10 +6,10 @@ import { useBuildings, useNeighborhoods } from "@/lib/data";
 import { placeHref } from "@/lib/places";
 import { loadIndex } from "@/lib/search";
 import { useAtlas } from "@/lib/store";
-import type { PitchData } from "@/lib/types";
-import pitchJson from "@/public/data/pitch.json";
+import type { BetaData } from "@/lib/types";
+import betaJson from "@/public/data/beta.json";
 
-const betaOf = new Map((pitchJson as unknown as PitchData).neighborhoods.map((n) => [n.id, n.beta]));
+const betaOf = new Map((betaJson as unknown as BetaData).rows.filter((r) => r.group === "nta2020").map((r) => [r.level, r.beta]));
 const TOP = 8;
 
 /** Shown under the map while a neighbourhood is selected: its numbers and its most-churned addresses. */

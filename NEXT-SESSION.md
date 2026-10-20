@@ -22,8 +22,8 @@ Data gathering, merge, analysis and the site are all done and live. Nothing is r
   - `/rent-vs-risk` 03 Rent vs Risk
   - `/beta` 04 Beta
   - `/cursed-spot` 05 Cursed spot test
-  - `/2020` 06 2020 shock
-  - `/pitch` 07 Pitch yours (Cox model)
+  - `/2020` 06 2020 shock: half-yearly candlesticks of places open, with openings and closings as volume (`candles` in covid.json, from `covid()` in export_analysis.py)
+  - Pitch yours (07) was removed on 2026-10-19 at the user's request, along with its route, component, pitch.json and the pipeline step.
 - Address pages `/place/<id>` for ~45k buildings: timeline, business cards with DOHMH grades, acclaim and Google/Yelp links, and nearby addresses.
 - Search box: addresses, business names, neighbourhoods; NYC GeoSearch fallback.
 - Neighbourhood panel under the map when a neighbourhood is selected.
