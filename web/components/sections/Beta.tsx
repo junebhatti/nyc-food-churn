@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { BetaData, BetaRow } from "@/lib/types";
+import { useWidth } from "@/lib/useWidth";
 import Section from "./Section";
 
 const TABS = [
@@ -12,11 +13,13 @@ const TABS = [
 
 /** City exit rate by year: the "market" that beta is measured against. */
 function CityRate({ city }: { city: BetaData["city"] }) {
-  const W = 420, H = 150, P = { l: 30, r: 8, t: 10, b: 22 };
+  const [box, W] = useWidth(420);
+  const H = 150, P = { l: 30, r: 8, t: 10, b: 22 };
   const max = Math.ceil(Math.max(...city.map((c) => c.city_exit_pct)) / 5) * 5;
   const bw = (W - P.l - P.r) / city.length;
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label="Citywide closure rate by year">
+    <div ref={box}>
+    <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} className="block max-w-full" role="img" aria-label="Citywide closure rate by year">
       {[0, max / 2, max].map((v) => (
         <text key={v} x={P.l - 6} y={P.t + (1 - v / max) * (H - P.t - P.b) + 3} textAnchor="end" fontSize={9} fill="var(--muted)" className="mono">{v}%</text>
       ))}
@@ -31,24 +34,33 @@ function CityRate({ city }: { city: BetaData["city"] }) {
       })}
       <line x1={P.l} x2={W - P.r} y1={H - P.b} y2={H - P.b} stroke="var(--ink)" />
     </svg>
+    </div>
   );
 }
 
+const SHOW = 15;
+// Phones: name, bar, beta. From md: plus the normal-year and COVID columns.
+const COLS = "grid grid-cols-[minmax(0,1fr)_minmax(80px,1fr)_40px] gap-3 md:grid-cols-[minmax(0,1fr)_minmax(110px,1.3fr)_44px_64px_64px]";
+const pts = (v: number) => `${v > 0 ? "+" : ""}${v.toFixed(1)} pts`;
+
 function BetaBars({ rows }: { rows: BetaRow[] }) {
+  const [all, setAll] = useState(false);
   const sorted = [...rows].sort((a, b) => b.beta - a.beta);
+  const shown = all ? sorted : sorted.slice(0, SHOW);
   const lo = Math.min(0, ...sorted.map((r) => r.beta));
   const hi = Math.max(2, ...sorted.map((r) => r.beta));
   const x = (v: number) => ((v - lo) / (hi - lo)) * 100;
   return (
     <div>
-      <div className="label mb-2 grid grid-cols-[minmax(0,200px)_1fr_48px_70px_70px] gap-3 border-b border-ink pb-2">
-        <span>Group</span><span>Steadier ← 1 → hit harder</span><span className="text-right">Beta</span>
-        <span className="text-right">Normal yrs</span><span className="text-right">2019–21</span>
+      <div className={`label mb-2 border-b border-ink pb-2 ${COLS}`}>
+        <span>Group</span><span className="truncate">Steadier · 1 · harder</span><span className="text-right">Beta</span>
+        <span className="hidden text-right md:block">Normal yrs</span><span className="hidden text-right md:block">2019–21</span>
       </div>
-      <div className="max-h-[520px] overflow-y-auto">
-        {sorted.map((r) => (
-          <div key={r.level} className="grid grid-cols-[minmax(0,200px)_1fr_48px_70px_70px] items-center gap-3 border-b border-rule py-1.5"
-            title={`${r.label}: baseline closure rate ${r.baseline_exit_pct.toFixed(1)}%/yr (2013–17), ${r.avg_at_risk} places in a typical year`}>
+      {shown.map((r) => {
+        const spread = r.spread_bp / 100;
+        return (
+          <div key={r.level} className={`items-center border-b border-rule py-1.5 ${COLS}`}
+            title={`${r.label}: baseline closure rate ${r.baseline_exit_pct.toFixed(1)}%/yr (2013–17), ${r.avg_at_risk} places in a typical year; normal years ${pts(spread)} vs the city; 2019–21 ${pts(r.covid_excess_pts)}`}>
             <span className="truncate text-[15px]">{r.label}</span>
             <div className="relative h-3">
               <div className="absolute inset-y-0 w-px bg-ink" style={{ left: `${x(1)}%` }} />
@@ -58,15 +70,21 @@ function BetaBars({ rows }: { rows: BetaRow[] }) {
               }} />
             </div>
             <span className="mono tnum text-right text-[13px]">{r.beta.toFixed(2)}</span>
-            <span className={`mono tnum text-right text-[12px] ${r.spread_bp > 0 ? "text-awning" : "text-deli"}`}>{r.spread_bp > 0 ? "+" : ""}{(r.spread_bp / 100).toFixed(1)} pts</span>
-            <span className="mono tnum text-right text-[12px] text-muted">{r.covid_excess_pts > 0 ? "+" : ""}{r.covid_excess_pts.toFixed(1)} pts</span>
+            <span className={`mono tnum hidden text-right text-[12px] md:block ${Math.abs(spread) < 0.05 ? "text-muted" : spread > 0 ? "text-awning" : "text-deli"}`}>{pts(spread)}</span>
+            <span className="mono tnum hidden text-right text-[12px] text-muted md:block">{pts(r.covid_excess_pts)}</span>
           </div>
-        ))}
-      </div>
+        );
+      })}
+      {sorted.length > SHOW && (
+        <button type="button" onClick={() => setAll(!all)}
+          className="mono mt-3 h-10 border border-ink px-4 text-[11px] uppercase tracking-[0.06em] hover:bg-paper-raised">
+          {all ? `Show top ${SHOW}` : `Show all ${sorted.length}`}
+        </button>
+      )}
       <p className="label mt-3 leading-relaxed">
-        <span className="text-awning">Red</span>: hit harder than the city in bad years. <span className="text-deli">Green</span>: steadier.
-        Normal yrs: how much more (+) or less (−) often places close here in an ordinary year than across the city, in percentage points.
-        2019–21: the extra closures in the COVID years, in points. Hover a row for its baseline.
+        The bar grows right of the line for groups hit harder than the city in bad years (<span className="text-awning">red</span>) and left
+        for steadier ones (<span className="text-deli">green</span>). Normal yrs: how much more (+) or less (−) often places close here in an
+        ordinary year than across the city, in percentage points. 2019–21: the extra closures in the COVID years.
       </p>
     </div>
   );

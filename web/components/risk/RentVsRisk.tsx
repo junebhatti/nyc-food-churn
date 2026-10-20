@@ -41,17 +41,18 @@ export default function RentVsRisk() {
         <p className="prose-hl self-end">
           One dot per neighborhood. Across: storefront rent per square foot per year. Up: the odds a new place closes within three years.
           In the priciest third of neighborhoods 31% of new places close by year three, against 37% in the cheapest third. But once cuisine,
-          chains and a storefront&rsquo;s history are accounted for, rent stops predicting closure at all. On the map, each neighborhood is one
-          block, raised by its closure odds.
+          chains and a storefront&rsquo;s history are accounted for, rent stops predicting closure at all.{mobile === false && <> On the map, each neighborhood is one
+          block, raised by its closure odds.</>}
         </p>
       </div>
 
-      <div className="mt-10 grid items-start gap-9 lg:grid-cols-[280px_minmax(0,500px)_1fr]">
+      {/* Three columns only where the map gets real width; below that it spans the row under the panel and scatter. */}
+      <div className="mt-10 grid items-start gap-9 lg:grid-cols-[280px_minmax(0,1fr)] min-[1360px]:grid-cols-[280px_minmax(0,500px)_1fr]">
         <Panel sel={sel} rows={rows} rentMed={rentMed} closeMed={closeMed} better={better} counts={counts}
           filter={filter} setFilter={setFilter} onSelect={setSelected} />
         <Scatter rows={rows} rentMed={rentMed} closeMed={closeMed} selected={sel.id} filter={filter} onSelect={setSelected} />
         {mobile === false && land.data && (
-          <div>
+          <div className="lg:col-span-2 min-[1360px]:col-span-1">
             <div className="relative h-[480px]"><RiskMap rows={rows} land={land.data} selected={sel.id} filter={filter} onSelect={setSelected} /></div>
             <p className="label mt-2">Block height = 3-yr closure odds · Colour = quadrant</p>
           </div>

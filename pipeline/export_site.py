@@ -45,7 +45,7 @@ FAMILY_LABEL = {
     "european": "European", "juice_beverages": "Juice", "chicken": "Chicken", "south_asian": "South Asian",
     "burgers_hotdogs": "Burgers & hot dogs", "jewish_kosher": "Kosher", "bbq_steak_southern": "BBQ & Southern",
     "seafood": "Seafood", "vegetarian_vegan": "Vegetarian", "african": "African", "other_unknown": "Other",
-    "bar": "Bar", "bodega": "Bodega",
+    "bar": "Bar (licence only)", "bodega": "Bodega",
 }
 
 

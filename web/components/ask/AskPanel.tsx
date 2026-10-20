@@ -45,6 +45,20 @@ export default function AskPanel() {
     end.current?.scrollIntoView({ block: "end" });
   }, [turns]);
 
+  // Escape closes; focus moves into the panel on open and back to the header button on close.
+  const panel = useRef<HTMLElement>(null);
+  const close = () => {
+    setOpen(false);
+    document.querySelector<HTMLButtonElement>('button[aria-label="Ask about the data"]')?.focus();
+  };
+  useEffect(() => {
+    if (!open) return;
+    panel.current?.focus();
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && close();
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open]);
+
   useEffect(() => {
     const show = () => setOpen(true);
     window.addEventListener(OPEN_ASK, show);
@@ -81,14 +95,14 @@ export default function AskPanel() {
   if (!open) return null;
 
   return (
-    <aside role="dialog" aria-label="Ask about the data"
+    <aside ref={panel} tabIndex={-1} role="dialog" aria-label="Ask about the data" style={{ outline: "none" }}
       className="fixed inset-x-0 bottom-0 z-50 flex max-h-[75svh] flex-col border-t border-ink bg-paper-raised md:inset-x-auto md:bottom-auto md:right-0 md:top-0 md:h-svh md:max-h-none md:w-[380px] md:border-l md:border-t-0">
       <div className="flex items-center justify-between border-b border-rule px-4 py-3">
         <div>
           <div className="kicker">Ask about the data</div>
           <div className="label mt-0.5">Answers come from Claude, grounded in how this site was built</div>
         </div>
-        <button type="button" onClick={() => setOpen(false)} aria-label="Close" className="flex h-9 w-9 items-center justify-center border border-ink"><X size={14} /></button>
+        <button type="button" onClick={close} aria-label="Close" className="flex h-11 w-11 items-center justify-center border border-ink"><X size={14} /></button>
       </div>
       <div className="flex-1 overflow-y-auto px-4 py-3">
         {turns.length === 0 && (

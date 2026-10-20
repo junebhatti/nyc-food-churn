@@ -1,5 +1,7 @@
 "use client";
 
+import { useWidth } from "@/lib/useWidth";
+
 export const SERIES_COLORS = ["var(--ink)", "var(--awning)", "var(--deli)", "var(--bodega-text)", "var(--violet)", "var(--muted)"];
 
 export interface Series {
@@ -17,19 +19,20 @@ interface Props {
   label: string;
 }
 
-const W = 640;
 const PAD = { l: 44, r: 16, t: 14, b: 32 };
 
 /** Share still open by years since opening, with the half-life (50%) line dashed. */
 export default function SurvivalChart({ grid, series, height = 340, label }: Props) {
-  const H = height;
+  const [box, W] = useWidth(640);
+  const H = Math.min(height, Math.max(220, W * 0.72)); // shorter on phones so curves keep their shape
   const x = (t: number) => PAD.l + (t / grid[grid.length - 1]) * (W - PAD.l - PAD.r);
   const y = (s: number) => PAD.t + (1 - s) * (H - PAD.t - PAD.b);
   const path = (v: (number | null)[]) =>
     v.reduce((d, s, i) => (s == null ? d : d + `${d ? "L" : "M"}${x(grid[i]).toFixed(1)},${y(s).toFixed(1)}`), "");
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label={label}>
+    <div ref={box}>
+    <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} className="block max-w-full" role="img" aria-label={label}>
       {[0, 0.25, 0.5, 0.75, 1].map((s) => (
         <g key={s}>
           <line x1={PAD.l} x2={W - PAD.r} y1={y(s)} y2={y(s)} stroke={s === 0.5 ? "var(--ink)" : "var(--rule-soft)"}
@@ -48,6 +51,7 @@ export default function SurvivalChart({ grid, series, height = 340, label }: Pro
           strokeDasharray={s.dashed ? "5 4" : undefined} />
       ))}
     </svg>
+    </div>
   );
 }
 

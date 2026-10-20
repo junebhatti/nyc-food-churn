@@ -54,14 +54,14 @@ function PlaceView({ place: p }: { place: Place }) {
   const maps = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${p.address} ${p.boro ?? ""} NY ${p.zip ?? ""}`)}`;
   return (
     <>
-      <Link href={p.nta ? `/?n=${p.nta}` : "/"} className="mono inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.06em] text-muted hover:text-ink">
+      <Link href={p.nta ? `/?n=${p.nta}` : "/"} className="mono inline-flex min-h-10 items-center gap-1.5 text-[11px] uppercase tracking-[0.06em] text-muted hover:text-ink">
         <ArrowLeft size={12} /> {p.ntaName ? `${p.ntaName} on the map` : "Back to the map"}
       </Link>
       <p className="kicker mt-6">Address · {p.ntaName ?? p.boro ?? "New York"}</p>
       <h1 className="mt-2 text-[40px] leading-[1.02] tracking-[-0.02em] md:text-[56px]">{p.address}</h1>
       <div className="mono mt-2 flex flex-wrap items-center gap-4 text-[12px] text-muted">
         <span>{[p.boro, p.zip].filter(Boolean).join(" · ")}</span>
-        <a href={maps} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-ink underline-offset-2 hover:underline">
+        <a href={maps} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-10 items-center gap-1 text-ink underline-offset-2 hover:underline">
           Open in Google Maps <ArrowUpRight size={12} />
         </a>
       </div>

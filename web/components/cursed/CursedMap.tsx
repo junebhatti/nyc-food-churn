@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import DeckGL from "@deck.gl/react";
 import type { MapViewState } from "@deck.gl/core";
 import { ScatterplotLayer, SolidPolygonLayer, TextLayer } from "@deck.gl/layers";
@@ -27,6 +27,13 @@ const STREETS_ZOOM = 11.5; // streets appear (and load) once zoomed this close
 
 type Dot = { a: CursedAddress; i: number };
 
+const COARSE = "(pointer: coarse)";
+function subscribeCoarse(cb: () => void) {
+  const m = window.matchMedia(COARSE);
+  m.addEventListener("change", cb);
+  return () => m.removeEventListener("change", cb);
+}
+
 /** City map of the listed cursed addresses: numbered dots, the selected one red. Picking an
  *  address (here or in the list) flies to it; "Whole city" flies back. Pinch or double-click
  *  zooms, drag pans, and plain scrolling still scrolls the page. */
@@ -36,6 +43,8 @@ export default function CursedMap({ addresses, land, parks, selected, onSelect }
   const [viewState, setViewState] = useState<MapViewState>(CITY);
   const [hover, setHover] = useState<{ i: number; x: number; y: number } | null>(null);
   const box = useRef<HTMLDivElement>(null);
+  // Touch screens: one finger scrolls the page (it would otherwise be trapped by the map); pinch zooms and moves it.
+  const touch = useSyncExternalStore(subscribeCoarse, () => window.matchMedia(COARSE).matches, () => false);
   const showStreets = viewState.zoom > STREETS_ZOOM;
   const streets = useStreets(showStreets);
 
@@ -112,7 +121,8 @@ export default function CursedMap({ addresses, land, parks, selected, onSelect }
       <DeckGL
         viewState={viewState}
         onViewStateChange={({ viewState: v }) => setViewState(clampView(v as MapViewState, MIN_ZOOM))}
-        controller={{ scrollZoom: false, dragRotate: false, touchRotate: false, doubleClickZoom: true }}
+        controller={{ scrollZoom: false, dragRotate: false, touchRotate: false, doubleClickZoom: true, dragPan: !touch }}
+        touchAction={touch ? "pan-y" : "none"}
         layers={layers}
         pickingRadius={10}
         getCursor={({ isHovering, isDragging }) => (isDragging ? "grabbing" : isHovering ? "pointer" : "grab")}
@@ -138,7 +148,7 @@ export default function CursedMap({ addresses, land, parks, selected, onSelect }
           <ArrowsOut size={13} /> Whole city
         </button>
       )}
-      <div className="label pointer-events-none absolute bottom-3 left-3 bg-paper/85 px-2 py-1">Pinch or double-click to zoom · drag to pan</div>
+      <div className="label pointer-events-none absolute bottom-3 left-3 bg-paper/85 px-2 py-1">{touch ? "Pinch to zoom · tap a dot" : "Pinch or double-click to zoom · drag to pan"}</div>
     </div>
   );
 }

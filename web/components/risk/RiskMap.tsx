@@ -44,7 +44,7 @@ export default function RiskMap({ rows, land, selected, filter, onSelect }: Prop
     return [{ position: [c[0], c[1], (sel.closure3y - minC) * 9000 + 300], text: sel.name.split("-")[0] }];
   }, [sel, minC]);
 
-  const [viewState, setViewState] = useState<MapViewState>({ ...NYC_CENTER, zoom: 9.3, pitch: 40, bearing: 0 });
+  const [viewState, setViewState] = useState<MapViewState>({ ...NYC_CENTER, zoom: 9.05, pitch: 40, bearing: 0 });
 
   const layers = [
     new SolidPolygonLayer<GeoJSON.Position[][]>({ id: "land", data: landPolys, getPolygon: (p) => p as unknown as [number, number][][], getFillColor: palette.land }),

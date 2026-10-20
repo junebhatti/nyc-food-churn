@@ -9,11 +9,14 @@ export function lifeColor(years: number): string {
   return years < 1.5 ? "var(--awning)" : years <= 3 ? "var(--bodega)" : "var(--deli)";
 }
 
-const ROW = "grid grid-cols-[112px_minmax(0,1fr)] items-center gap-3 md:grid-cols-[220px_minmax(0,1fr)] md:gap-5";
+/** Where a tenant's bar ends: today if open, else its close date, else (no close date recorded) open + lifespan. */
+const endOf = (t: CursedTenant) => (t.isOpen ? SPAN_END : t.close ?? t.open + t.life);
+
+const ROW = "grid grid-cols-[112px_minmax(0,1fr)] items-center gap-3 md:grid-cols-[170px_minmax(0,1fr)] md:gap-5 xl:grid-cols-[220px_minmax(0,1fr)]";
 
 /** Spans when at least one tenant was open, for the "occupied vs empty" row on top. */
 function occupied(timeline: CursedTenant[]): [number, number][] {
-  const spans = timeline.map((t) => [Math.max(t.open, SPAN_START), t.close ?? SPAN_END] as [number, number]).sort((a, b) => a[0] - b[0]);
+  const spans = timeline.map((t) => [Math.max(t.open, SPAN_START), endOf(t)] as [number, number]).sort((a, b) => a[0] - b[0]);
   const out: [number, number][] = [];
   for (const [s, e] of spans) {
     const last = out[out.length - 1];
@@ -39,7 +42,7 @@ export default function TimelineStrip({ timeline }: { timeline: CursedTenant[] }
         <span />
         <div className="label relative h-4">
           {ticks.map((y, i) => (
-            <span key={y} className={`absolute -translate-x-1/2 ${i % 2 ? "max-md:hidden" : ""}`} style={{ left: `${pct(y)}%` }}>{y}</span>
+            <span key={y} className={`absolute -translate-x-1/2 ${i % 2 ? "max-xl:hidden" : ""}`} style={{ left: `${pct(y)}%` }}>{y}</span>
           ))}
         </div>
       </div>
@@ -54,11 +57,11 @@ export default function TimelineStrip({ timeline }: { timeline: CursedTenant[] }
       </div>
 
       {timeline.map((t, i) => {
-        const end = t.close ?? SPAN_END;
         const left = pct(t.open);
-        const width = Math.max(pct(end) - left, 0.4);
+        const width = Math.max(pct(endOf(t)) - left, 0.4);
         const life = t.isOpen ? `open · ${t.life.toFixed(1)}y` : `${t.life.toFixed(1)}y`;
-        const labelAfter = left + width < 84; // otherwise the label sits before the bar
+        // After the bar if there's room, else before it, else (a bar spanning nearly everything) inside its end.
+        const place = left + width < 84 ? "after" : left > 16 ? "before" : "inside";
         return (
           <div key={`${t.name}-${i}`} className={`${ROW} border-b border-rule-soft py-1.5`}>
             <div className="min-w-0">
@@ -76,8 +79,10 @@ export default function TimelineStrip({ timeline }: { timeline: CursedTenant[] }
                 <span className="mono absolute left-1 top-1/2 -translate-y-1/2 text-[10px] text-paper">◂ {Math.floor(t.open)}</span>
               )}
               <span
-                className={`mono tnum absolute top-1/2 -translate-y-1/2 whitespace-nowrap text-[11px] ${t.isOpen ? "text-deli" : "text-muted"}`}
-                style={labelAfter ? { left: `calc(${left + width}% + 6px)` } : { right: `calc(${100 - left}% + 6px)` }}
+                className={`mono tnum absolute top-1/2 -translate-y-1/2 whitespace-nowrap text-[11px] ${place === "inside" ? "text-paper" : t.isOpen ? "text-deli" : "text-muted"}`}
+                style={place === "after" ? { left: `calc(${left + width}% + 6px)` }
+                  : place === "before" ? { right: `calc(${100 - left}% + 6px)` }
+                  : { right: `calc(${100 - left - width}% + 6px)` }}
               >
                 {life}
               </span>

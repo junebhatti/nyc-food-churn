@@ -135,10 +135,11 @@ export default function Hero({ summary, yearly }: Props) {
           <div className="label mt-2 inline-flex items-center gap-1.5"><span className="inline-block h-2 w-3 bg-[var(--dead)]" /> Dark this year</div>
         </div>
       </div>
-      <div className="flex h-[100px] shrink-0 items-center gap-8 border-t border-ink px-10">
+      {/* One row from 1280px; below that the slider wraps to its own full-width row. */}
+      <div className="flex shrink-0 flex-wrap items-center gap-x-8 gap-y-3 border-t border-ink px-10 py-3 xl:h-[100px] xl:flex-nowrap xl:py-0">
         <div><div className="label mb-1.5">View</div><ViewToggle /></div>
         <div><div className="label mb-1.5">Category</div><CategoryButtons /></div>
-        <YearScrubber yearly={yearly} series={series} />
+        <div className="flex w-full min-w-0 xl:w-auto xl:flex-1"><YearScrubber yearly={yearly} series={series} /></div>
       </div>
     </section>
   );

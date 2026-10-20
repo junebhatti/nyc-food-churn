@@ -71,10 +71,10 @@ export default function BusinessCard({ b, address, boro }: { b: PlaceBusiness; a
 
       {SOURCE_NOTE[b.source] && <p className="label mt-3">{SOURCE_NOTE[b.source]}</p>}
 
-      <div className="mono mt-auto flex flex-wrap gap-x-4 gap-y-1 border-t border-rule pt-3 text-[11px] uppercase tracking-[0.06em]">
-        <a href={links.google} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 underline-offset-2 hover:underline">Google Maps <ArrowUpRight size={11} /></a>
-        <a href={links.yelp} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 underline-offset-2 hover:underline">Yelp reviews <ArrowUpRight size={11} /></a>
-        <a href={links.web} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 underline-offset-2 hover:underline">Search <ArrowUpRight size={11} /></a>
+      <div className="mono mt-auto flex flex-wrap gap-x-4 border-t border-rule pt-1 text-[11px] uppercase tracking-[0.06em]">
+        <a href={links.google} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-10 items-center gap-1 underline-offset-2 hover:underline">Google Maps <ArrowUpRight size={11} /></a>
+        <a href={links.yelp} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-10 items-center gap-1 underline-offset-2 hover:underline">Yelp reviews <ArrowUpRight size={11} /></a>
+        <a href={links.web} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-10 items-center gap-1 underline-offset-2 hover:underline">Search <ArrowUpRight size={11} /></a>
       </div>
     </article>
   );

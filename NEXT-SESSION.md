@@ -1,73 +1,50 @@
-# Next session
+# Next Session — NYC Turnover (2026-10-20)
 
-## What this is
-**NYC Turnover** (renamed from Half-Life on 2026-10-19), an atlas of NYC food & drink churn, live at https://half-life-nyc.vercel.app. A matching address, nycturnover.vercel.app, is to be added in Vercel's Domains settings, with the old address kept working. "Half-life" stays as the name of story 02 and the 50% chart line, because it's the statistic.
-- Repo: github.com/junebhatti/nyc-food-churn (private). `data/raw/` and `data/processed/` are gitignored.
-- Vercel project `half-life-nyc`, connected to GitHub with Root Directory = `web`. Every push to `main` auto-deploys.
-- Design source: `design/design_handoff_half_life/` (Claude Design). Notes on every data source and analysis: `data/notes/`.
+## Where things stand
+NYC Turnover (formerly Half-Life) is live at https://half-life-nyc.vercel.app; every push to `main` auto-deploys (Vercel project `half-life-nyc`, root `web/`). Everything is committed and pushed; nothing is running. Seven QA agents tested the live site on 2026-10-20: it's solid as a portfolio link, but has 5 launch blockers (below) to fix before posting to Reddit/HN or pitching press. Home `/` is the map alone; the six stories are separate pages (`web/lib/stories.ts`); ~45k address pages at `/place/<id>`; Ask panel at `web/app/api/ask/route.ts` with its briefing in `web/lib/ask/context.ts`.
 
-## State (2026-10-19)
-Data gathering, merge, analysis and the site are all done and live. Nothing is running or paused.
+## Done this session (2026-10-19/20)
+- Linked from junaidrbhatti.com/projects (personal-site repo, entry "NYC Turnover").
+- Renamed to NYC Turnover; dark mode (`web/app/globals.css` + `DARK` in `web/lib/color.ts`, keep in sync).
+- Trackpad gestures, no map buttons — `web/lib/useTrackpad.ts`; height follows the view — `web/lib/metrics.ts`.
+- Stories split into pages; Stories menu + Ask button in header — `web/components/TopBar.tsx`; Pitch yours removed.
+- Streets at building zoom — `pipeline/export_streets.py`, `streets.json`; one-row-per-business timelines — `web/components/cursed/Timeline.tsx`.
+- Cursed addresses map (fly-to, hover, pinch, streets) — `web/components/cursed/CursedMap.tsx`; 2020 as candlesticks — `web/components/sections/Covid.tsx`.
+- 7 research agents → "Deeper findings" in the Ask briefing; data fixes (bar neighbourhoods, cuisine synonyms, 2026 bodegas).
+- data/raw backed up to iCloud Drive `Backups/half-life-data-raw-2026-10-19.zip`; Claude Design brief in `design/polish_brief/` (not sent; mentions the removed Pitch yours).
 
-**Site features**
-- Home `/` is the full-screen map (deck.gl):
-  - Opens flat and north-up, with water gaps, parks and borough outlines.
-  - Gestures, with no on-map buttons (changed 2026-10-19, `web/lib/useTrackpad.ts`): drag pans, pinch zooms, a two-finger sideways swipe rotates, a vertical swipe tilts (up tilts into 3D), and a mouse wheel zooms. The map takes every wheel event over it.
-  - View, category, year and neighbourhood filters (`?n=<NTA>`); hover card; click opens the address page.
-  - Column height follows the view (added 2026-10-19, `buildingHeight`/`hexBins` in `web/lib/metrics.ts`). Churn uses tenant count. The other views use the colour value squared, so tall always means the red end. Heights animate over 500 ms, and the paragraph under the headline (`viewNote`) explains each view and notes the category filter.
-  - Street lines appear once you zoom to single buildings (added 2026-10-19). Source: NYC Street Centerline (inkn-q76z), exported by `pipeline/export_streets.py` to `web/public/data/streets.json` (4.4 MB, 1.3 MB gz, loaded lazily). Streets 60 ft or wider are drawn heavier. No names are drawn, though the raw cache has them.
-- Each story has its own page (split out 2026-10-19). The list is `web/lib/stories.ts`, the frame is `web/components/StoryPage.tsx` (header, then prev/next, then footer), and the header's "Stories" menu (☰ on phones) is `web/components/StoriesMenu.tsx`:
-  - `/cursed` 01 Cursed Addresses
-  - `/half-life` 02 Half-life
-  - `/rent-vs-risk` 03 Rent vs Risk
-  - `/beta` 04 Beta
-  - `/cursed-spot` 05 Cursed spot test
-  - `/2020` 06 2020 shock: half-yearly candlesticks of places open, with openings and closings as volume (`candles` in covid.json, from `covid()` in export_analysis.py)
-  - Pitch yours (07) was removed on 2026-10-19 at the user's request, along with its route, component, pitch.json and the pipeline step.
-- Address pages `/place/<id>` for ~45k buildings: timeline, business cards with DOHMH grades, acclaim and Google/Yelp links, and nearby addresses.
-- Search box: addresses, business names, neighbourhoods; NYC GeoSearch fallback.
-- Neighbourhood panel under the map when a neighbourhood is selected.
-- "Ask about the data" side panel: `web/app/api/ask/route.ts`.
-  - `claude-opus-5-5`, low effort, short answers, refusal fallback, input caps, best-effort per-IP limit of 10/hour.
-  - Briefing: `web/lib/ask/context.ts` (update its numbers if the pipeline is rerun).
-  - Key: `ANTHROPIC_API_KEY` in `web/.env.local` and in Vercel (Production). The user set up an Anthropic workspace with a monthly spend cap (see `docs/anthropic-key-setup.md`).
-- Mobile: flat hex map, sticky scrubber within the hero, tap sheet, search, picker.
+## Next steps (in order)
+**Launch blockers**
+1. Split addresses (IN PROGRESS 2026-10-20 in its own session, "Merge split addresses"): 3,437 addresses have two pages (bars keyed by lot `l…`, restaurants by BIN `b…`; e.g. 108 Avenue B = `b1005094` + `l1004020034`). Merge in `building_key()` in `pipeline/build_buildings.py`, rerun from build_buildings on, re-export, recheck cursed rankings.
+2. DONE 2026-10-20: bars reconciled. The Half-life row is now "Bar (licence only)" (`FAMILY_LABEL` in export_site.py), the briefing explains both figures, and the Manhattan median says 6.5.
+3. DONE 2026-10-20: laptop widths. The home control bar wraps below 1280px; Rent vs risk goes 3-column only from 1360px (the map spans below); Cursed list 320px plus a compact table; Beta columns reworked with "Show all"; header no longer wraps.
+4. Share previews (IN PROGRESS 2026-10-20 in its own session, "Add share previews"): no OG/Twitter tags, share image, `metadataBase` or robots/sitemap; every `/place/*` titled "Address — NYC Turnover" (needs `generateMetadata` reading the shard). Add `opengraph-image` per story and address.
+5. DONE 2026-10-20: phones. Charts draw at measured width (`web/lib/useWidth.ts`); on the Cursed map one finger scrolls the page and pinch zooms; a row tap scrolls the map into view; copy says tap; 2020 candles are tappable with a readout; tap targets are at least 40px.
 
-## Rebuild everything (about 10 minutes, all local)
-```
-.venv/bin/python -W ignore pipeline/fetch_analysis_inputs.py base cuisine chains operators operators2 storefront size rent age rrf
-cd pipeline
-../.venv/bin/python -W ignore build_lifespans.py && ../.venv/bin/python -W ignore build_businesses.py && ../.venv/bin/python -W ignore build_bodegas.py
-../.venv/bin/python -W ignore build_buildings.py && ../.venv/bin/python -W ignore build_attach.py && ../.venv/bin/python -W ignore build_checks.py
-../.venv/bin/python -W ignore analysis_survival.py && ../.venv/bin/python -W ignore analysis_cox.py && ../.venv/bin/python -W ignore analysis_beta.py
-../.venv/bin/python -W ignore export_site.py && ../.venv/bin/python -W ignore export_places.py && ../.venv/bin/python -W ignore export_analysis.py
-../.venv/bin/python -W ignore export_streets.py   # only when street data needs refreshing
-```
-Then `cd web && npm run build`, commit and push.
+**Polish**
+- Ask: DONE ("the site's data" wording, 30 s timeout with 1 retry, `maxDuration`, Escape closes, focus moves in and out). Still open: tell visitors there's no follow-up memory.
+- Stories menu: return focus on Escape, close when focus leaves.
+- `?n=` deep link doesn't fly on first load (`HeroMap.tsx` fly effect runs on first DeckGL mount); hover card doesn't clamp at edges (`HoverCard.tsx`); pinch zooms to centre not cursor (`useTrackpad.ts`); "Median lifespan 5.9" is static (`Hero.tsx`).
+- Timelines: DONE (closed rows with no close date end at open + life; labels go inside the bar when there's no room on either side).
+- A11y: story pages have no h1; maps need `role="img"` + label; light `--bodega-text` 4.29:1 (→ ~#856210) and `--bodega` marks 1.72:1; no `prefers-reduced-motion`.
+- Cursed map: hover card sticks after a fly; overlapping dots (3/12, 9/11) at city zoom.
+- `/half-life` Year-opened curves extrapolate to 10y for recent cohorts; `/beta` prose vs Ridgewood; `/cursed-spot` 1× line cuts labels; candles off by 2–13 places per period.
+- Search: GeoSearch takes the first result with no quality check; "katz" ranks Jeffrey Katz first; "NA" business names; mixed "2nd Ave"/"2 Avenue".
+- Add `nycturnover.vercel.app` in Vercel → Settings → Domains (user's step), then switch the personal-site link.
 
-## Open items (none started)
-- Design polish: the brief for sections 02 and 04–07 is written, with current screenshots, in `design/polish_brief/`. It hasn't been sent yet: the user takes it to Claude Design, and the returned handoff gets built in code.
-- Dark mode: done 2026-10-19 and follows the system setting (no toggle). Tokens live in `web/app/globals.css`, the map palette in `DARK` in `web/lib/color.ts`, and the two must stay in sync. The dark colours are my reading of the handoff's 1c reference, so confirm them with the designer.
-- Mobile map (resolved 2026-10-19): it was never broken. The in-app browser pane was hidden, and a hidden page gets no requestAnimationFrame, so deck.gl never measured or drew. Headless Chrome renders the map fine. The same investigation found a real bug: the mobile neighbourhood `<select>` grew to its longest option (487px) and widened the page to 503px. Fixed with `min-w-0`.
-- Mobile map: no rotate/tilt controls (flat by design).
-- Optional data: Zagat/NY Mag archived menus (stages exist in `pipeline/menus_wayback.py`; never run). Foursquare releases after 2025-02 need an HF_TOKEN.
-- Optional: point a subdomain of junaidrbhatti.com at the site. (It is already linked from junaidrbhatti.com/projects, pushed 2026-10-19.)
-- Backup: `data/raw` (3.0 GB, 2,996 files) was zipped on 2026-10-19 to iCloud Drive `Backups/half-life-data-raw-2026-10-19.zip` (2.3 GB). `unzip -t` passed and the file counts match. Make a new one if raw data is added.
-- Repo size: decided 2026-10-19 to keep `web/public/data/places/` in git. It has been committed once and the whole `.git` is 22 MB because the JSON compresses well. Moving it to Blob would add a token, an upload step and a second service. Revisit if `.git` grows past a few hundred MB.
+## Decisions made (and why)
+- Pending, user's call: headline survival 89/67/55% (5.9y) is generous vs 84/64/52% (5.4y) timed from first inspection — switch or footnote before press.
+- Places data stays in git — `.git` is ~22 MB; Blob adds a service for no gain yet.
+- "Half-life" stays as story 02's name — it's the statistic, not the brand.
 
-## Data issues found by the 2026-10-19 research agents
-Fixed 2026-10-19 (pipeline rerun, site JSON re-exported; headline numbers unchanged):
-- Liquor-licence-only bars (2,127) now get `nta2020` and `boro` by point-in-polygon (`assign_areas` in `pipeline/build_businesses.py`); 27 piers/shoreline points stay unassigned. Buildings with no neighbourhood fell from 2,112 to 355, and neighbourhood stats, borough survival and betas moved slightly.
-- DOHMH's retired 2019-20 cuisine labels are merged into their successors (`SYNONYMS` in `pipeline/ai_cuisine.py`; Delicatessen -> Sandwiches is a judgement call). Families didn't change; nothing on the site shows the fine labels, only the Ask briefing.
-- Bodegas: still-authorized SNAP stores count as open through the live date, and 2026 bodega openings/closings are `null` in `yearly.json`/`yearly_nta.json` (`SNAP_LAST_YEAR` in `export_site.py`); the scrubber draws null years as dashed "no data" stubs.
+## Ideas (from the ideas agent; ranked by impact for effort)
+- Features: OG share card per address ("Here lies 214 Bedford Ave: 6 tenants"); "What survives here?" odds on address pages; neighbourhood vs neighbourhood; time-lapse video export; monthly "newly closed" feed + RSS; embed widgets; "Survivors" hall of fame (Nathan's 1934).
+- New data: DOB sidewalk sheds; marshal commercial evictions (6z8x-wfk4); ACS income/education change by tract; rezonings (ZAP hgx4-8ukb); certificates of occupancy; rodent inspections; congestion-zone entries (2025); BID boundaries.
+- Launch: lead with one finding (3+ prior tenants = ~3× year-1 closure) to Eater NY/Gothamist/The City/Viewing NYC; r/nyc + r/dataisbeautiful time-lapse; Show HN on rebuilding a deleted dataset; BetaNYC Open Data Week (March); one-page methods note for recruiters/VCs.
 
-Still open:
-- `open_date` is often the permit-listing date. Timing from the first inspection instead gives survival of 84/64/52% at 1/3/5 years with a 5.4-year median, vs the site's 89/67/55% and 5.9. It also creates the apparent "year 2 cliff" and makes the 2020-21 cohort look strong. The Ask briefing now says this. The site's headline numbers have not been changed (needs the user's decision).
-- Bars still have no `ct2020`/`bin`, so they miss tract-level traffic/rent features; about 110 DOHMH rows have `boro` "0"/"MISSING".
-- The agents' detailed findings are in the "Deeper findings" section of `web/lib/ask/context.ts`.
-
-## Constraints
-- Raw data includes research-only sources (UCSD Google Local, the NYT reviews copy). Publish derived stats only, with credit. No review text or ratings on the site; link out instead.
-- Keep files under about 400 lines (`pipeline/dohmh_extra.py` is 562; split it when touched).
-- `.env.local` (root) holds GITHUB_TOKEN; `web/.env.local` holds ANTHROPIC_API_KEY and VERCEL_OIDC_TOKEN. Never print them.
-- `web/` is Next.js 16 with Cache Components: anything reading the URL needs a Suspense boundary, and dynamic routes need at least one `generateStaticParams` entry. Read `web/node_modules/next/dist/docs/` before using unfamiliar APIs.
+## Gotchas
+- Dev server (`web` in `.claude/launch.json`, port 3007) sometimes serves stale modules after edits — restart it if a change doesn't show.
+- The in-app browser pane only renders deck.gl while visible; for reliable checks use headless Chrome over CDP (template: session scratchpad `agents/qa/cdp-template.mjs`, may be gone — rewrite from `node` + `--remote-debugging-port`).
+- Rebuild order: `pipeline/fetch_analysis_inputs.py` → `build_lifespans, build_businesses, build_bodegas, build_buildings, build_attach, build_checks` → `analysis_survival, analysis_cox, analysis_beta` → `export_site, export_places, export_analysis` (`export_streets` only for street refreshes); run with `../.venv/bin/python -W ignore` from `pipeline/`, then `cd web && npm run build`.
+- Next.js 16 + Cache Components: URL-reading code needs Suspense; dynamic routes need a `generateStaticParams` entry; read `web/node_modules/next/dist/docs/` first.
+- Secrets: root `.env.local` (GITHUB_TOKEN), `web/.env.local` (ANTHROPIC_API_KEY, VERCEL_OIDC_TOKEN) — never print. No review text or ratings on the site (research-only sources). Ask API costs money and is limited to 10/hour per IP.

@@ -43,7 +43,7 @@ export default function NeighborhoodPanel() {
           <p className="kicker">Neighborhood · {hood.boro}</p>
           <h2 className="mt-2 text-[32px] leading-tight md:text-[40px]">{hood.name}</h2>
         </div>
-        <button type="button" onClick={() => setNta(null)} className="mono text-[11px] uppercase tracking-[0.06em] underline-offset-2 hover:underline">
+        <button type="button" onClick={() => setNta(null)} className="mono inline-flex min-h-10 items-center text-[11px] uppercase tracking-[0.06em] underline-offset-2 hover:underline">
           Show all of NYC
         </button>
       </div>

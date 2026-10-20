@@ -2,9 +2,8 @@
 
 import { QUADRANT_COLOR, QUADRANT_NAME, QUADRANT_TEXT, type Quadrant } from "@/lib/color";
 import type { RiskHood } from "@/lib/quadrants";
+import { useWidth } from "@/lib/useWidth";
 
-const W = 500;
-const H = 480;
 const PAD = { l: 44, r: 12, t: 12, b: 34 };
 const X_TICKS = [20, 30, 50, 100, 200, 400];
 const ALWAYS_LABEL = ["SoHo", "Midtown-Times Square", "Lower East Side", "Flushing", "Bushwick", "Upper West Side", "Sunset Park"];
@@ -19,6 +18,9 @@ interface Props {
 }
 
 export default function Scatter({ rows, rentMed, closeMed, selected, filter, onSelect }: Props) {
+  const [box, W] = useWidth(500);
+  const H = Math.round(Math.min(480, W * 0.96));
+  const quadSize = W < 440 ? 14 : 21; // the two top labels must fit side by side on a phone
   // Rent is skewed ($12 to ~$690/sq ft/yr), so the x axis is logarithmic.
   const xMin = Math.log(Math.min(...rows.map((r) => r.rent)) * 0.85);
   const xMax = Math.log(Math.max(...rows.map((r) => r.rent)) * 1.15);
@@ -31,7 +33,8 @@ export default function Scatter({ rows, rentMed, closeMed, selected, filter, onS
   const sorted = [...rows].sort((a, b) => b.places - a.places); // big dots underneath
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label="Rent versus three-year closure odds by neighborhood">
+    <div ref={box}>
+    <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} className="block max-w-full" role="img" aria-label="Rent versus three-year closure odds by neighborhood">
       <line x1={x(rentMed)} x2={x(rentMed)} y1={PAD.t} y2={H - PAD.b} stroke="var(--ink)" strokeDasharray="3 3" />
       <line x1={PAD.l} x2={W - PAD.r} y1={y(closeMed)} y2={y(closeMed)} stroke="var(--ink)" strokeDasharray="3 3" />
       <line x1={PAD.l} x2={PAD.l} y1={PAD.t} y2={H - PAD.b} stroke="var(--ink)" />
@@ -58,7 +61,7 @@ export default function Scatter({ rows, rentMed, closeMed, selected, filter, onS
       {/* Quadrant names go on top of the dots, with a page-coloured halo, so dots never cover them. */}
       {(["es", "ed", "cs", "cd"] as Quadrant[]).map((q) => (
         <text key={q} x={q[0] === "c" ? PAD.l + 8 : W - PAD.r - 8} y={q[1] === "d" ? PAD.t + 22 : H - PAD.b - 10}
-          textAnchor={q[0] === "c" ? "start" : "end"} fontStyle="italic" fontSize={21} fill={QUADRANT_TEXT[q]}
+          textAnchor={q[0] === "c" ? "start" : "end"} fontStyle="italic" fontSize={quadSize} fill={QUADRANT_TEXT[q]}
           stroke="var(--paper)" strokeWidth={4} paintOrder="stroke" className="pointer-events-none font-serif">
           {QUADRANT_NAME[q]}
         </text>
@@ -71,5 +74,6 @@ export default function Scatter({ rows, rentMed, closeMed, selected, filter, onS
         </text>
       ))}
     </svg>
+    </div>
   );
 }

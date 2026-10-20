@@ -1,7 +1,10 @@
+"use client";
+
+import { useState } from "react";
 import type { CovidData } from "@/lib/types";
+import { useWidth } from "@/lib/useWidth";
 import Section, { Stat } from "./Section";
 
-const W = 720;
 const PRICE_H = 230; // candle pane
 const GAP = 26; // year labels between the panes
 const VOL_H = 90; // volume pane
@@ -11,6 +14,8 @@ const k = (v: number) => `${(v / 1000).toFixed(1)}k`;
 
 /** Places open in the city as half-yearly candlesticks, with openings and closings as the volume. */
 export default function Covid({ data }: { data: CovidData }) {
+  const [box, W] = useWidth(720);
+  const [pick, setPick] = useState<number | null>(null);
   const n = data.periods.length;
   const bw = (W - P.l - P.r) / n;
   const lo = Math.min(...data.candles.map((c) => c.l));
@@ -37,7 +42,8 @@ export default function Covid({ data }: { data: CovidData }) {
       intro={<>Read it like a stock chart of how many places were open. Each candle is six months: the body runs from the count at the start to the count at the end, <span className="text-deli">green</span> if the city gained places and <span className="text-awning">red</span> if it lost them, and the thin wick shows the high and low in between. The bars underneath are the volume: places that opened and closed. 2020 is two long red candles on heavy closing volume.</>}
     >
       <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_260px]">
-        <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label="Places open in NYC as half-yearly candlesticks, 2017 to 2023, with openings and closings as volume">
+        <div ref={box} className="min-w-0">
+        <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} className="block max-w-full" role="img" aria-label="Places open in NYC as half-yearly candlesticks, 2017 to 2023, with openings and closings as volume">
           {/* 2020 shading across both panes */}
           <rect x={P.l + i2020 * bw} y={P.t} width={bw * 2} height={H - P.t} fill="var(--rule-soft)" />
           <text x={P.l + i2020 * bw + 4} y={P.t + 12} fontSize={10} fill="var(--awning)" className="mono">2020</text>
@@ -65,6 +71,12 @@ export default function Covid({ data }: { data: CovidData }) {
             );
           })}
 
+          {/* Full-height hit areas: tap or hover a half-year for its numbers. */}
+          {data.periods.map((p, i) => (
+            <rect key={`hit${p}`} x={P.l + i * bw} y={P.t} width={bw} height={H - P.t} fill={pick === i ? "var(--ink)" : "transparent"}
+              fillOpacity={pick === i ? 0.06 : 0} className="cursor-pointer" onMouseEnter={() => setPick(i)} onClick={() => setPick(i)} />
+          ))}
+
           {/* year labels between the panes */}
           {data.periods.map((p, i) =>
             p.endsWith("H1") ? (
@@ -89,6 +101,17 @@ export default function Covid({ data }: { data: CovidData }) {
             <tspan fill="var(--muted)">VOLUME · </tspan><tspan fill="var(--deli)">▮ OPENED </tspan><tspan fill="var(--awning)">▮ CLOSED</tspan>
           </text>
         </svg>
+        <p className="mono tnum mt-2 min-h-5 text-[12px]">
+          {pick == null ? <span className="text-muted">Tap or hover a candle for its numbers.</span> : (
+            <>
+              <span className="text-muted">{data.periods[pick].replace("H", " H")}: </span>
+              {data.candles[pick].o.toLocaleString()} → {data.candles[pick].c.toLocaleString()} open
+              <span className="text-muted"> (low {data.candles[pick].l.toLocaleString()}, high {data.candles[pick].h.toLocaleString()}) · </span>
+              <span className="text-deli">{data.open[pick].toLocaleString()} opened</span> · <span className="text-awning">{data.close[pick].toLocaleString()} closed</span>
+            </>
+          )}
+        </p>
+        </div>
         <div className="space-y-5 border-t border-ink pt-3">
           <Stat label="Closed, 2020" value={lost.toLocaleString()} tone="red" />
           <Stat label="Opened, 2020" value={opened.toLocaleString()} tone="green" />
@@ -96,7 +119,7 @@ export default function Covid({ data }: { data: CovidData }) {
           {iBack > 0 && <Stat label="Back above pre-COVID" value={data.periods[iBack].replace("H1", " H1").replace("H2", " H2")} />}
           <p className="label leading-relaxed">
             Health inspections paused from spring 2020 to mid-2021, so many 2020 closure dates are estimated from loans, grants and
-            outdoor-dining records, and are good to about a season. Hover a candle for its numbers.
+            outdoor-dining records, and are good to about a season.
           </p>
         </div>
       </div>

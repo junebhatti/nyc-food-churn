@@ -83,7 +83,7 @@ export default function HalfLife({ data }: { data: HalfLifeData }) {
               );
             })}
           </div>
-          <p className="label mt-3">Click a row to add or remove it (up to {MAX_LINES}). Recent openings are followed for fewer years.</p>
+          <p className="label mt-3">Tap a row to add or remove it (up to {MAX_LINES}). Recent openings are followed for fewer years.</p>
         </div>
       </div>
     </Section>
