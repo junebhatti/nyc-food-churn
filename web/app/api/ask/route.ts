@@ -7,7 +7,7 @@ import { SYSTEM_PROMPT } from "@/lib/ask/context";
 // (instances don't share it); the Anthropic workspace's monthly spend limit is the hard cap.
 
 const MODEL = "claude-opus-5-5"; // switch to "claude-haiku-5-5" for a much cheaper box
-const MAX_TOKENS = 1500; // ~150-word answers plus brief adaptive thinking
+const MAX_TOKENS = 1800; // ~180-word answers plus brief adaptive thinking
 const MAX_QUESTION = 500;
 const MAX_CONTEXT = 1500;
 const LIMIT = 10; // questions per visitor
