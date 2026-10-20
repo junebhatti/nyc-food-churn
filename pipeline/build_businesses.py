@@ -8,7 +8,8 @@
 3. A closed, non-chain business whose name reappears at another address within 365 days of its
    closure is flagged `relocated` (and the new one `relocated_from`).
 4. NYSLA bar/tavern and club premises with no DOHMH business within 60 m by name are added as
-   source="sla" businesses, with licence start/end dates (ends known from 2015 on).
+   source="sla" businesses, with licence start/end dates (ends known from 2015 on). Licences carry
+   only coordinates, so their neighbourhood (NTA 2020) and borough come from point-in-polygon.
 
 Reads data/processed/permits.parquet; writes data/processed/businesses.parquet.
 Run: .venv/bin/python pipeline/build_businesses.py
@@ -20,6 +21,7 @@ import re
 from difflib import SequenceMatcher
 
 import duckdb
+import geopandas as gpd
 import pandas as pd
 
 from build_lifespans import AI, OUT, RAW
@@ -150,6 +152,24 @@ def match_bars(bars: pd.DataFrame, b: pd.DataFrame) -> pd.DataFrame:
     """).df()
 
 
+def assign_areas(d: pd.DataFrame) -> pd.DataFrame:
+    """nta2020 and boro (upper case, as DOHMH writes it) for points, from the NTA 2020 polygons;
+    points just outside every NTA (piers, shoreline) get their borough from the borough outlines."""
+    pts = gpd.GeoDataFrame(d[["lat", "lon"]], geometry=gpd.points_from_xy(d["lon"], d["lat"]), crs="EPSG:4326")
+    out = pd.DataFrame(index=d.index, columns=["nta2020", "boro"], dtype=object)
+    for name in ["geo_nta2020", "geo_boroughs"]:
+        g = gpd.read_file(f"/vsigzip/{RAW / 'gov' / f'{name}.geojson.gz'}").to_crs("EPSG:4326")
+        cols = ["nta2020", "boroname"] if name == "geo_nta2020" else ["boroname"]
+        hit = gpd.sjoin(pts, g[[*cols, "geometry"]], how="left", predicate="within")
+        hit = hit[~hit.index.duplicated()]
+        if name == "geo_nta2020":
+            out["nta2020"] = hit["nta2020"]
+        out["boro"] = out["boro"].fillna(hit["boroname"].str.upper())
+    print(f"bars: area by point-in-polygon, {out['nta2020'].isna().sum():,} outside every NTA, "
+          f"{out['boro'].isna().sum():,} outside every borough")
+    return out
+
+
 def bar_businesses(b: pd.DataFrame, live: pd.Timestamp) -> tuple[pd.DataFrame, pd.Series]:
     """New bar-only businesses, and the DOHMH business_ids that hold a bar/club licence."""
     bars = bar_premises()
@@ -164,9 +184,10 @@ def bar_businesses(b: pd.DataFrame, live: pd.Timestamp) -> tuple[pd.DataFrame, p
     new["business_id"] = "S" + new["premise_key"].astype(str)
     new["source"] = "sla"
     new["left_censored"] = new["open_date"] < pd.Timestamp("2012-07-06")
+    new[["nta2020", "boro"]] = assign_areas(new)
     print(f"bars: {len(bars):,} premises, {len(matched):,} match a DOHMH business, {len(new):,} added")
     out = new.drop(columns=["dba"]).rename(columns={"name": "dba", "address": "street"})[
-        ["business_id", "dba", "street", "zip", "lat", "lon", "category", "open_date", "closed",
+        ["business_id", "dba", "street", "zip", "lat", "lon", "nta2020", "boro", "category", "open_date", "closed",
          "close_date", "end_date", "lifespan_days", "left_censored", "source"]]
     return out, pairs["business_id"]
 

@@ -31,6 +31,7 @@ WEB = OUT.parent.parent / "web" / "public" / "data"
 YEARS = list(range(2012, 2027))
 CATS = ["restaurant", "bar", "cafe", "bakery", "bodega"]
 LIVE = pd.Timestamp("2026-10-16")
+SNAP_LAST_YEAR = 2025  # bodega (SNAP) records stop at the end of this year
 MIN_NTA = 60
 PARK_MIN_ACRES = 12
 PARKS_URL = ("https://data.cityofnewyork.us/resource/enfh-gkve.geojson"
@@ -74,6 +75,10 @@ def load() -> pd.DataFrame:
     b["family"] = b["family"].where(b["source"] == "dohmh", b["site_category"])
     b["label"] = b["family"].map(FAMILY_LABEL).fillna("Other")
     b["o"], b["c"] = yfrac(b["open_date"]), yfrac(b["close_date"])
+    # a bodega still authorized when SNAP data stops is open now (as summary.openNow counts it),
+    # so it stays lit and alive through LIVE rather than ending on the last SNAP date
+    still = (b["source"] == "snap") & ~b["closed"].astype(bool)
+    b.loc[still, "end_date"] = LIVE
     return b
 
 
@@ -157,16 +162,20 @@ def buildings(b: pd.DataFrame, nta: dict) -> tuple[dict, list]:
     return {"columns": cols, "rows": rows}, tenants
 
 
-def year_series(d: pd.DataFrame) -> dict:
+def year_series(d: pd.DataFrame, bodega: bool = False) -> dict:
+    """Openings, closings and open counts per year. Bodega openings and closings after the SNAP
+    data ends are unknown, so those years are null (the scrubber draws them as "no data")."""
     end = d["end_date"].fillna(LIVE)
-    return {"open": [int((d["open_date"].dt.year == y).sum()) for y in YEARS],
-            "close": [int((d["event"] & (d["close_date"].dt.year == y)).sum()) for y in YEARS],
+    known = [not (bodega and y > SNAP_LAST_YEAR) for y in YEARS]
+    return {"open": [int((d["open_date"].dt.year == y).sum()) if k else None for y, k in zip(YEARS, known)],
+            "close": [int((d["event"] & (d["close_date"].dt.year == y)).sum()) if k else None
+                      for y, k in zip(YEARS, known)],
             "alive": [int(((d["open_date"] <= pd.Timestamp(f"{y}-12-31")) & (end >= pd.Timestamp(f"{y}-01-01"))).sum())
                       for y in YEARS]}
 
 
 def yearly(b: pd.DataFrame) -> dict:
-    out = {c: year_series(b if c == "all" else b[b["site_category"] == c]) for c in CATS + ["all"]}
+    out = {c: year_series(b if c == "all" else b[b["site_category"] == c], c == "bodega") for c in CATS + ["all"]}
     return {"years": YEARS, **out}
 
 
@@ -174,7 +183,8 @@ def yearly_by_nta(b: pd.DataFrame) -> dict:
     """The scrubber's openings/closings/open counts for each neighbourhood and category."""
     out = {}
     for code, d in b.dropna(subset=["nta2020"]).groupby("nta2020"):
-        out[code] = {c: year_series(d if c == "all" else d[d["site_category"] == c]) for c in CATS + ["all"]}
+        out[code] = {c: year_series(d if c == "all" else d[d["site_category"] == c], c == "bodega")
+                     for c in CATS + ["all"]}
     return out
 
 

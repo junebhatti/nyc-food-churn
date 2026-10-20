@@ -51,6 +51,21 @@ FAMILY = {
                             "Salads", "Soups", "Soups & Sandwiches", "Soups/Salads/Sandwiches"],
     "other_unknown": ["Other", "Not Listed/Not Applicable"],
 }
+# DOHMH retired these labels around 2019-20; only places still open were relabelled, so the old
+# label would mark mostly-closed places. Each maps to its successor (always in the same family).
+SYNONYMS = {
+    "Café/Coffee/Tea": "Coffee/Tea",
+    "Latin (Cuban, Dominican, Puerto Rican, South & Central American)": "Latin American",
+    "Ice Cream, Gelato, Yogurt, Ices": "Frozen Desserts",
+    "Bakery": "Bakery Products/Desserts",
+    "Asian": "Asian/Asian Fusion",
+    "Pizza/Italian": "Pizza",
+    "Steak": "Steakhouse",
+    "Soups & Sandwiches": "Soups/Salads/Sandwiches",
+    "Bottled beverages, including water, sodas, juices, etc.": "Bottled Beverages",
+    "Vietnamese/Cambodian/Malaysia": "Southeast Asian",
+    "Delicatessen": "Sandwiches",  # no clear successor; Sandwiches is the nearest current label
+}
 # families that are mostly counter / limited service (for a rough service-style split)
 LIMITED = {"burgers_hotdogs", "chicken", "pizza", "cafe_coffee_tea", "bakery_desserts", "juice_beverages",
            "deli_sandwich_salad"}
@@ -137,6 +152,7 @@ def build():
             code_desc[k] = r["later_text"]
             log.info("code %s not in official list; empirical -> %s (%.0f%%)", k, r["later_text"], 100 * r["share"])
     rows["value"] = rows["text"].fillna(rows["code"].map(code_desc))
+    rows["value"] = rows["value"].replace(SYNONYMS)
 
     fam = {v: f for f, vals in FAMILY.items() for v in vals}
     vals = (rows.dropna(subset=["value"]).groupby("value").camis.nunique().rename("n_camis").reset_index())

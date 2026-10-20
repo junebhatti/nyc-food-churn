@@ -42,8 +42,8 @@ export interface Building {
 export type TenantRow = [string, string | null, [string, number, string, number, number | null][]];
 
 export interface YearSeries {
-  open: number[];
-  close: number[];
+  open: (number | null)[]; // null: no data that year (bodegas after the SNAP data ends in 2025)
+  close: (number | null)[];
   alive: number[]; // businesses open at any point that year
 }
 

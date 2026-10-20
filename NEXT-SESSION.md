@@ -55,11 +55,15 @@ Then `cd web && npm run build`, commit and push.
 - Backup: `data/raw` (3.0 GB, 2,996 files) was zipped on 2026-10-19 to iCloud Drive `Backups/half-life-data-raw-2026-10-19.zip` (2.3 GB). `unzip -t` passed and the file counts match. Make a new one if raw data is added.
 - Repo size: decided 2026-10-19 to keep `web/public/data/places/` in git. It has been committed once and the whole `.git` is 22 MB because the JSON compresses well. Moving it to Blob would add a token, an upload step and a second service. Revisit if `.git` grows past a few hundred MB.
 
-## Data issues found by the 2026-10-19 research agents (not fixed yet)
-- About 2,127 bars that come only from liquor licences have null `nta2020` and `boro` (their lat/lon is fine), so neighbourhood and borough bar counts are low and the `?n=` filter likely misses them. Fix: assign neighbourhoods by point-in-polygon in the pipeline.
-- DOHMH renamed several cuisine labels around 2019-20, and only places still open got the new label. So `cuisine_clean` comparisons, and brand names via `dba`, are biased (old labels look deadly). Family-level groupings are fine. Merge synonyms before using the fine-grained labels.
-- `open_date` is often the permit-listing date. Timing from the first inspection instead gives survival of 84/64/52% at 1/3/5 years with a 5.4-year median, vs the site's 89/67/55% and 5.9. It also creates the apparent "year 2 cliff" and makes the 2020-21 cohort look strong. The Ask briefing now says this. The site's headline numbers have not been changed.
-- `yearly_nta.json` shows 0 bodegas in 2026 everywhere because the SNAP data stops in 2025. Hide 2026 bodegas, or label it.
+## Data issues found by the 2026-10-19 research agents
+Fixed 2026-10-19 (pipeline rerun, site JSON re-exported; headline numbers unchanged):
+- Liquor-licence-only bars (2,127) now get `nta2020` and `boro` by point-in-polygon (`assign_areas` in `pipeline/build_businesses.py`); 27 piers/shoreline points stay unassigned. Buildings with no neighbourhood fell from 2,112 to 355, and neighbourhood stats, borough survival and betas moved slightly.
+- DOHMH's retired 2019-20 cuisine labels are merged into their successors (`SYNONYMS` in `pipeline/ai_cuisine.py`; Delicatessen -> Sandwiches is a judgement call). Families didn't change; nothing on the site shows the fine labels, only the Ask briefing.
+- Bodegas: still-authorized SNAP stores count as open through the live date, and 2026 bodega openings/closings are `null` in `yearly.json`/`yearly_nta.json` (`SNAP_LAST_YEAR` in `export_site.py`); the scrubber draws null years as dashed "no data" stubs.
+
+Still open:
+- `open_date` is often the permit-listing date. Timing from the first inspection instead gives survival of 84/64/52% at 1/3/5 years with a 5.4-year median, vs the site's 89/67/55% and 5.9. It also creates the apparent "year 2 cliff" and makes the 2020-21 cohort look strong. The Ask briefing now says this. The site's headline numbers have not been changed (needs the user's decision).
+- Bars still have no `ct2020`/`bin`, so they miss tract-level traffic/rent features; about 110 DOHMH rows have `boro` "0"/"MISSING".
 - The agents' detailed findings are in the "Deeper findings" section of `web/lib/ask/context.ts`.
 
 ## Constraints

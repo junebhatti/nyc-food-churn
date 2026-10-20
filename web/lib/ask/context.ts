@@ -19,9 +19,9 @@ How it was built
 - Known gaps: few inspections April 2020 to mid-2021 (COVID), so those closure dates are fuzzier; recent closures (2022-2026) are under-counted because the city removes closed places from its data with a delay; bars that opened and closed entirely within 2011-2014 are largely missing.
 
 Key findings (places opened since mid-2012, bodegas excluded)
-- Half-life: the median place lasts about 5.9 years. 89% are still open after 1 year, 67% after 3, 55% after 5. Manhattan places last longest (median about 6.4 years); Staten Island shortest (about 4.8).
+- Half-life: the median place lasts about 5.9 years. 89% are still open after 1 year, 67% after 3, 55% after 5. Manhattan places last longest (median about 6.4 years); Staten Island shortest (about 4.7).
 - Cursed storefronts: a place opening where 3+ earlier businesses failed is about 3.0x as likely to close in its first year as one in a fresh storefront (about 2x for 1-2 earlier tenants). The gap fades: by years 4-5 the risk is about the same as a fresh storefront. A survival model controlling for cuisine, borough, chain status and rent puts the average effect at roughly 2x (1-2 earlier tenants) and 3x (3+).
-- Chains are about a third less likely to close (hazard ratio about 0.67). Juice bars and cafes are about 1.5x as risky as American restaurants; pizza and delis about 1.3x; Italian (0.88x) and Japanese/Korean (0.92x) are the safest families.
+- Chains are about a third less likely to close (hazard ratio about 0.67). Juice bars and cafes are about 1.5x as risky as American restaurants; pizza and delis about 1.3x; Italian (0.88x) and Japanese/Korean (0.93x) are the safest families.
 - Rent: pricier neighborhoods have somewhat lower closure odds (31% within 3 years in the priciest third vs 37% in the cheapest), but once cuisine, chains and storefront history are controlled for, neighborhood rent/property value barely predicts closure. Busier foot-traffic areas close slightly more often (about 1.04x per standard deviation), probably from more competition.
 - Acclaim: 5 years after a first Michelin/NYT/Eater/award mention, 79% of acclaimed places are still open vs 60% of comparable unacclaimed places of the same age on the same date.
 - Price: 5 years after a price tier was observed, survival was fine dining 83%, upscale 75%, cheap 74%, mid-range 70% (small gaps, tentative).
@@ -46,7 +46,7 @@ Timing
 - Recovery after 2020 was fastest in Greenpoint and Long Island City (+14% more open places by end-2023 vs end-2019) and Sunnyside (+10%); slowest in office and tourist Manhattan: Murray Hill, Chinatown and East Midtown about -12%.
 
 Cuisines and formats
-- Thai (77% open at 3 years) and Japanese (75%) outlast juice and smoothie bars (60%) and frozen yogurt (57%). Also safer: Tex-Mex, Italian, Mexican. Riskier: seafood, coffee/tea, Middle Eastern, pizza. Bagel shops are among the safest by name; bubble tea, fried chicken and crepe shops among the riskiest.
+- Thai (77% open at 3 years) and Japanese (75%) outlast juice and smoothie bars (60%) and frozen yogurt (57%). Also safer: Tex-Mex, Italian, Mexican. Riskier: seafood, Middle Eastern, pizza. (These use DOHMH's detailed labels, with the labels it retired in 2019-20 merged into their successors; unmerged, the old labels look far deadlier because only places still open were relabelled.) Bagel shops are among the safest by name; bubble tea, fried chicken and crepe shops among the riskiest.
 - Korean on its own is average risk; the "Japanese/Korean" family looks safe because of the Japanese half.
 - Chinese restaurants do worse inside the big enclaves (Flushing, Sunset Park, Chinatown: 57% open at 3 years vs 70% elsewhere), partly because those are high-churn areas for everyone.
 - Franchise chains are sticky (Popeyes, Taco Bell, Starbucks over 90% at 3 years), but a chain logo doesn't save a weak concept: Juice Press (39%) and Caffe Bene (43%) churned hard.
@@ -69,7 +69,7 @@ Bars and bodegas
 - Bars outlast restaurants: median about 7.9 years vs 5.8 (places opened 2015-2024), and restaurants that also hold a liquor licence do even better (71% open at 5 years). Bars with only a liquor licence and no food permit do no better than restaurants. Full-liquor licences last longer than beer-and-wine ones (median about 5.9 vs 4.0 years).
 - Bar churn is heaviest in Midtown, the East Village, Williamsburg, Flatiron and the Lower East Side. The oldest active liquor licences include Nathan's Famous (1934), Old Town Bar (1936) and the Village Vanguard (1942).
 - Bodegas turn over fastest of all (median about 3.6 years, by SNAP dates). Active bodegas fell from about 6,500 in 2012 to 4,500 in 2021, then rose to about 5,000; losses were largest in gentrifying Brooklyn and Queens (Bed-Stuy West -42%). When a bodega goes, 87% of the time the next tenant is another bodega. The Bronx has the most bodegas per resident; Manhattan the most bars.
-- Data caveats: bodega figures stop in December 2025 (so any 2026 bodega count of zero is a data gap, not a disappearance), and about 2,100 liquor-licence-only bars have no neighborhood assigned, so neighborhood bar counts are low.
+- Data caveat: bodega figures stop in December 2025. Bodegas still authorized then are counted as open in 2026, but 2026 bodega openings and closings are unknown (the scrubber shows them as no data).
 
 Health grades and acclaim
 - A first grade of B or C is a modest risk, not a death sentence: 5 years later 55% of A-graded places are open vs 46% (B) and 45% (C). Only about 4.5% of first grades are C.

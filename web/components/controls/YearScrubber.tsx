@@ -15,7 +15,7 @@ interface Props {
 export default function YearScrubber({ yearly, compact = false, openNow, series: override }: Props) {
   const { year, playing, category, setYear, togglePlay } = useAtlas();
   const series = override ?? yearly[category];
-  const max = Math.max(...series.open, ...series.close, 1);
+  const max = Math.max(...series.open.map((v) => v ?? 0), ...series.close.map((v) => v ?? 0), 1);
   const barH = compact ? 18 : 22;
 
   return (
@@ -37,6 +37,16 @@ export default function YearScrubber({ yearly, compact = false, openNow, series:
           {series.open.map((o, i) => {
             const y = FIRST_YEAR + i;
             const dim = y > year ? "opacity-25" : "";
+            if (o == null || series.close[i] == null) {
+              // unknown year: a hollow stub on each side of the axis instead of a zero
+              return (
+                <div key={y} className={`flex flex-1 flex-col ${dim}`} title={`No data for ${y}`}>
+                  <div className="flex items-end" style={{ height: barH }}><div className="h-1 w-full border border-b-0 border-dashed border-muted" /></div>
+                  <div className="h-px bg-ink" />
+                  <div style={{ height: barH }}><div className="h-1 w-full border border-t-0 border-dashed border-muted" /></div>
+                </div>
+              );
+            }
             return (
               <div key={y} className={`flex flex-1 flex-col ${dim}`}>
                 <div className="flex items-end" style={{ height: barH }}>
@@ -44,7 +54,7 @@ export default function YearScrubber({ yearly, compact = false, openNow, series:
                 </div>
                 <div className="h-px bg-ink" />
                 <div style={{ height: barH }}>
-                  <div className="w-full bg-awning" style={{ height: (series.close[i] / max) * barH }} />
+                  <div className="w-full bg-awning" style={{ height: ((series.close[i] ?? 0) / max) * barH }} />
                 </div>
               </div>
             );
