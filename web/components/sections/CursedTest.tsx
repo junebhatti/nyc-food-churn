@@ -7,6 +7,8 @@ const NAMES: Record<string, string> = { fresh: "Fresh storefront", "1-2 prior": 
 const BANDS = ["0-1y", "1-2y", "2-3y", "3-5y", "5-10y"];
 const BAND_LABEL: Record<string, string> = { "0-1y": "Year 1", "1-2y": "Year 2", "2-3y": "Year 3", "3-5y": "Years 4–5", "5-10y": "Years 6–10" };
 
+// The 45% / 26% predecessor figures come from the 2026-10-20 split-address rerun (also in lib/ask/context.ts);
+// update them if the pipeline is rerun.
 export default function CursedTest({ data, grid }: { data: CursedTestData; grid: number[] }) {
   const series: Series[] = ["fresh", "1-2 prior", "3+ prior"].map((k) => {
     const r = data.curves.find((c) => c.level === k);
@@ -20,8 +22,8 @@ export default function CursedTest({ data, grid }: { data: CursedTestData; grid:
     <Section
       id="cursed-test"
       kicker="05 — The cursed spot test"
-      title={<>A storefront&rsquo;s past haunts its first years, then lets go.</>}
-      intro={<>Places that open where three or more businesses already failed are <b>{firstYear.toFixed(1)}×</b> as likely to close in their first year as places in a fresh storefront. Survive to year four and the gap disappears, which suggests the curse is about winning over a block that&rsquo;s learned to expect closures, not about the space itself.</>}
+      title={<>A storefront&rsquo;s past barely predicts its next tenant.</>}
+      intro={<>Places that open where three or more businesses already failed are <b>{firstYear.toFixed(1)}×</b> as likely to close in their first year as places in a fresh storefront: close to no difference. The &ldquo;cursed spot&rdquo; is mostly a story we tell after the fact. What does carry over is how the last tenant fared, not how many came before it: when the previous place lasted under a year, about 45% of new openings close within three years, against about 26% when it lasted eight years or more.</>}
     >
       <div className="grid gap-12 lg:grid-cols-2">
         <div>
@@ -52,7 +54,7 @@ export default function CursedTest({ data, grid }: { data: CursedTestData; grid:
           </div>
           <p className="label mt-3">The ink line marks 1× (same risk as a fresh storefront). Single-storefront buildings, places opened since 2015.</p>
           <div className="mt-8 flex gap-10 border-t border-ink pt-3">
-            <Stat label="Year-1 risk, 3+ earlier tenants" value={`${firstYear.toFixed(1)}×`} tone="red" />
+            <Stat label="Year-1 risk, 3+ earlier tenants" value={`${firstYear.toFixed(1)}×`} />
             <Stat label="Years 4–5" value={`${hr("3+ prior", "3-5y").toFixed(1)}×`} />
           </div>
         </div>

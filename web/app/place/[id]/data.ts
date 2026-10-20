@@ -23,6 +23,15 @@ export async function getPlace(id: string): Promise<Place | null> {
   return shard[id] ?? null;
 }
 
+/** New id for an address page renamed when split addresses were merged (2026-10-20), or null.
+ *  public/data/aliases.json is a one-time map from that merge; keep it so old links still work. */
+export async function getAlias(id: string): Promise<string | null> {
+  "use cache";
+  if (!/^[0-9a-z]{1,32}$/.test(id)) return null;
+  const aliases = JSON.parse(await readFile(join(process.cwd(), "public/data/aliases.json"), "utf8")) as Record<string, string>;
+  return aliases[id] ?? null;
+}
+
 const yrs = (n: number) => `${n.toFixed(1)} year${n === 1 ? "" : "s"}`;
 
 export function describe(p: Place): string {

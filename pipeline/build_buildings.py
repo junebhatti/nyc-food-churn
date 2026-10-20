@@ -1,7 +1,8 @@
 """Step 3 of the merge: tenant history per building, and each business's predecessors.
 
-Building = BIN when valid, else tax lot (BBL), else street text. Bars from NYSLA have only
-coordinates, so they snap to the nearest PLUTO lot centroid within SNAP_M metres.
+Building = BIN when valid; else the BIN that PAD gives the address or the lot; else tax lot (BBL),
+else street text. Bars from NYSLA have only coordinates, so they snap to the nearest PLUTO lot
+centroid within SNAP_M metres.
 For each building: businesses seen since the first copy (2012-07-06), how many are open now,
 the most open at once (food halls and malls hold many), and median lifespan of closed ones.
 For each business: tenants that closed in the same building before it opened, the last one's
@@ -13,6 +14,8 @@ Run: .venv/bin/python pipeline/build_buildings.py
 """
 from __future__ import annotations
 
+import re
+
 import duckdb
 import numpy as np
 import pandas as pd
@@ -22,6 +25,11 @@ from build_lifespans import OUT, RAW
 FIRST_COPY = pd.Timestamp("2012-07-06")
 SNAP_M = 40
 MULTI_TENANT = 4
+ADDR_M = 150
+STREET_ABBR = {"AVE": "AVENUE", "AV": "AVENUE", "ST": "STREET", "STR": "STREET", "BLVD": "BOULEVARD", "PL": "PLACE",
+               "RD": "ROAD", "PKWY": "PARKWAY", "DR": "DRIVE", "LN": "LANE", "CT": "COURT", "TER": "TERRACE",
+               "HWY": "HIGHWAY", "TPKE": "TURNPIKE", "SQ": "SQUARE", "EXPY": "EXPRESSWAY", "BWAY": "BROADWAY",
+               "PLZ": "PLAZA", "CIR": "CIRCLE", "E": "EAST", "W": "WEST", "N": "NORTH", "S": "SOUTH"}
 
 
 def snap_to_lots(b: pd.DataFrame) -> pd.DataFrame:
@@ -45,12 +53,94 @@ def snap_to_lots(b: pd.DataFrame) -> pd.DataFrame:
     return b.drop(columns=["bbl_snap"])
 
 
+def norm_street(s: str) -> str:
+    """'W 4th St' and 'WEST    4 STREET' (PAD's spelling) both become 'WEST 4 STREET'."""
+    w = re.sub(r"[^A-Z0-9 ]", " ", str(s).upper()).split()
+    out = []
+    for i, t in enumerate(w):
+        t = re.sub(r"^(\d+)(ST|ND|RD|TH)$", r"\1", t)
+        if t == "ST" and i == 0 and len(w) > 1:
+            t = "SAINT"
+        elif t in STREET_ABBR and not (t in "NSEW" and i == len(w) - 1):
+            t = STREET_ABBR[t]
+        out.append(t)
+    return " ".join(out)
+
+
+def house_keys(building, street, boro) -> tuple[list[int], str]:
+    """PAD's numeric house keys (108 -> 108000, 37-25 -> 37025) and the street without the number.
+    Bars carry the number inside street; Queens numbers often lose their hyphen, so 9712 also tries 97-12."""
+    if isinstance(building, str) and building.strip():
+        h, st = building.strip().upper(), street
+    else:
+        m = re.match(r"^\s*(\d+(?:[- ]\d+)?[A-Z]?)\s+(.*)$", str(street).upper())
+        if not m:
+            return [], str(street)
+        h, st = m.groups()
+    m = re.fullmatch(r"(\d+)[- ](\d+)[A-Z]?", h)
+    if m:
+        return [int(m.group(1)) * 1000 + int(m.group(2))], st
+    m = re.fullmatch(r"(\d+)[A-Z]?", h)
+    if not m:
+        return [], st
+    n = int(m.group(1))
+    keys = [n * 1000]
+    if str(boro).upper() in ("QUEENS", "4") and n >= 1000:
+        keys.append(n // 100 * 1000 + n % 100)
+    return keys, st
+
+
+def bins_for_lots(b: pd.DataFrame, lot: pd.Series) -> pd.Series:
+    """BIN for businesses keyed by lot or text, so a bar and a restaurant in one building share a page.
+    First the address in PAD (one BIN, on the business's own lot if several, within ADDR_M of its point);
+    else the lot's BIN when PAD gives the lot (or condo billing lot) exactly one building."""
+    pad = pd.read_parquet(RAW / "gov" / "pad_addr.parquet",
+                          columns=["stname", "zipcode", "lkey", "hkey", "lhnd", "bin", "bbl", "bbl_billing"])
+    pad["bin"] = pad["bin"].astype(str)
+    pad = pad[pad["bin"].str.fullmatch(r"[1-5]\d{6}") & ~pad["bin"].str[1:].str.fullmatch(r"0+")]
+    pad["st"] = pad["stname"].map(norm_street)
+
+    rows = []
+    for idx, building, street, zip_, boro in zip(b.index, b["building"], b["street"], b["zip"], b["boro"]):
+        keys, st = house_keys(building, street, boro)
+        rows += [(idx, norm_street(st), str(zip_)[:5], k) for k in keys]
+    q = pd.DataFrame(rows, columns=["idx", "st", "zipcode", "k"])
+    m = q.merge(pad, on=["st", "zipcode"])
+    m = m[(m["k"] >= m["lkey"]) & (m["k"] <= m["hkey"]) & ((m["k"] // 1000 - m["lkey"] // 1000) % 2 == 0)].copy()
+    # several BINs: keep those on the business's lot, then prefer real addresses over PAD's "10 REAR", "10 GARAGE"
+    m["rowlot"] = lot.reindex(m["idx"]).values
+    m = m[m.groupby("idx")["bin"].transform("nunique").eq(1)
+          | (m["bbl"] == m["rowlot"]) | (m["bbl_billing"] == m["rowlot"])].copy()
+    m["plain"] = m["lhnd"].str.strip().str.fullmatch(r"\d+(-\d+)?[A-Z]?")
+    m = m[m.groupby("idx")["bin"].transform("nunique").eq(1) | m["plain"]
+          | ~m.groupby("idx")["plain"].transform("any")]
+    one = m.groupby("idx")["bin"].nunique()
+    hit = m[m["idx"].isin(one[one == 1].index)].drop_duplicates("idx").set_index("idx")
+    # guard against a same-named street elsewhere in the zip: the lot must sit near the business
+    pl = pd.read_parquet(RAW / "gov" / "pluto_slim.parquet", columns=["bbl", "lat", "lon"]).drop_duplicates("bbl").set_index("bbl")
+    cen = np.where(hit["bbl_billing"].isin(pl.index), hit["bbl_billing"], hit["bbl"])
+    d = 111320 * np.sqrt((pl["lat"].reindex(cen).values - b.loc[hit.index, "lat"].values) ** 2
+                         + ((pl["lon"].reindex(cen).values - b.loc[hit.index, "lon"].values) * 0.76) ** 2)
+    by_addr = hit.loc[~(d > ADDR_M), "bin"]
+
+    lots = pd.concat([pad[["bbl", "bin"]], pad[["bbl_billing", "bin"]].rename(columns={"bbl_billing": "bbl"})])
+    lot_bins = lots.dropna().drop_duplicates().groupby("bbl")["bin"].agg(list)
+    by_lot = lot.map(lot_bins[lot_bins.str.len() == 1].str[0])
+    out = by_addr.reindex(b.index).fillna(by_lot)
+    print(f"lot/text businesses {len(b):,}: BIN by address {len(by_addr):,}, by single-building lot "
+          f"{(out.notna().sum() - len(by_addr)):,}, unresolved {out.isna().sum():,}")
+    return out
+
+
 def building_key(b: pd.DataFrame) -> pd.Series:
     bin_ = b["bin"].astype(str).str.replace(r"\.0$", "", regex=True)
     bin_ok = bin_.str.fullmatch(r"[1-5]\d{6}") & ~bin_.str[1:].str.fullmatch(r"0+")
     bbl = b["bbl"].astype(str).str.replace(r"\.0$", "", regex=True)
     bbl_ok = bbl.str.fullmatch(r"[1-5]\d{9}") & ~bbl.str[1:].str.fullmatch(r"0+")
+    # businesses with their own BIN keep it, so existing b<BIN> place ids never change
+    found = bins_for_lots(b[~bin_ok], bbl.where(bbl_ok)[~bin_ok]).reindex(b.index)
     key = ("BBL:" + bbl).where(bbl_ok, "TXT:" + b["street"].fillna("") + "|" + b["zip"].fillna("").astype(str))
+    key = ("BIN:" + found).where(found.notna(), key)
     return ("BIN:" + bin_).where(bin_ok, key)
 
 

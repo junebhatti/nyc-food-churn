@@ -9,7 +9,7 @@ Style: plain text, no markdown headings or tables, at most about 180 words. Lead
 BRIEFING
 
 What it covers
-- Every NYC food and drink business seen since mid-2012: restaurants, bars, cafes, bakeries and bodegas. About 85,000 places have operated at some point since 2012; about 36,000 are open now (data through October 2026). They sit in about 45,000 buildings.
+- Every NYC food and drink business seen since mid-2012: restaurants, bars, cafes, bakeries and bodegas. About 85,000 places have operated at some point since 2012; about 36,000 are open now (data through October 2026). They sit in about 35,000 buildings.
 - Sources: NYC Health Department (DOHMH) restaurant inspection data, rebuilt from about 75 archived copies (2012-2026) because the live dataset deletes closed restaurants; NY State Liquor Authority licences (bars without a food permit); USDA SNAP retailer records (bodegas); NYC storefront registry rents (Local Law 157, 2019-2024); NYC Parks and Planning boundaries; MTA, taxi/Uber/Lyft, Census jobs and population (foot-traffic index); Michelin, NYT, Eater and award lists (acclaim); archived MenuPages menus and Google price levels (price tier). Census Business Dynamics statistics were used to validate closure rates.
 
 How it was built
@@ -20,8 +20,8 @@ How it was built
 
 Key findings (places opened since mid-2012, bodegas excluded)
 - Half-life: the median place lasts about 5.9 years. 89% are still open after 1 year, 67% after 3, 55% after 5. Manhattan places last longest (median about 6.5 years); Staten Island shortest (about 4.7).
-- Cursed storefronts: a place opening where 3+ earlier businesses failed is about 3.0x as likely to close in its first year as one in a fresh storefront (about 2x for 1-2 earlier tenants). The gap fades: by years 4-5 the risk is about the same as a fresh storefront. A survival model controlling for cuisine, borough, chain status and rent puts the average effect at roughly 2x (1-2 earlier tenants) and 3x (3+).
-- Chains are about a third less likely to close (hazard ratio about 0.67). Juice bars and cafes are about 1.5x as risky as American restaurants; pizza and delis about 1.3x; Italian (0.88x) and Japanese/Korean (0.93x) are the safest families.
+- Cursed storefronts: the curse is weak. A place opening where 3+ earlier businesses failed is only about 1.1x as likely to close in its first year as one in a fresh storefront (about 1.0x for 1-2 earlier tenants), peaking around 1.3x in year two. A survival model controlling for cuisine, borough, chain status and rent puts the average effect at about 1.1x (1-2 earlier tenants) and 1.3x (3+). An earlier version of the site reported about 3x; that came from bars and short-lived restaurants being filed under a different building id than their neighbours, which has since been fixed.
+- Chains are about a third less likely to close (hazard ratio about 0.64). Juice bars and cafes are about 1.5x as risky as American restaurants; pizza and delis about 1.4x; Italian (0.88x) and Japanese/Korean (0.95x) are the safest families.
 - Rent: pricier neighborhoods have somewhat lower closure odds (31% within 3 years in the priciest third vs 37% in the cheapest), but once cuisine, chains and storefront history are controlled for, neighborhood rent/property value barely predicts closure. Busier foot-traffic areas close slightly more often (about 1.04x per standard deviation), probably from more competition.
 - Acclaim: 5 years after a first Michelin/NYT/Eater/award mention, 79% of acclaimed places are still open vs 60% of comparable unacclaimed places of the same age on the same date.
 - Price: 5 years after a price tier was observed, survival was fine dining 83%, upscale 75%, cheap 74%, mid-range 70% (small gaps, tentative).
@@ -54,10 +54,10 @@ Cuisines and formats
 - Trends 2013-2025: coffee/tea places doubled (about 1,000 to 2,100), juice bars and Korean grew, halal openings tripled in 2024-25, matcha is rising; American and Chinese shrank. Poke was a fad: openings peaked in 2017-18 and poke places survived worse than average.
 
 Cursed and immortal storefronts
-- The single best predictor of a new place failing is how long the last tenant lasted: 65% close within 3 years when the predecessor lasted under a year, vs 23% when it lasted 8+ years. That explains much of the "3+ earlier tenants" curse.
-- Small storefronts churn more (34% 3-year closure in the smallest quarter vs 27% in the largest; cursed spots average about 960 sq ft vs 1,480 for spots with one long-term tenant). Corners help a little; building age barely matters; spots in office buildings do slightly worse.
-- A fast re-let isn't a warning sign, and opening the same cuisine as the last tenant isn't riskier overall.
-- The most cursed addresses tend to be small, cheap counter-service spots that keep re-letting to the same kind of business (2146 Starling Ave in Parkchester had 7 mostly South Asian tenants with a median life of about 6 months; 8744 Parsons Blvd in Jamaica had three pizzerias each lasting under 10 months).
+- The single best predictor of a new place failing is how long the last tenant lasted: about 45% close within 3 years when the predecessor lasted under a year, vs about 26% when it lasted 8+ years. The number of earlier tenants matters much less than how the last one fared.
+- Building features matter only a little: smaller storefronts and office-building spots look somewhat riskier, corners slightly safer, and building age barely matters (estimates from before an address-matching fix; treat as tentative).
+- Opening the same cuisine as the last tenant isn't riskier overall.
+- The most cursed addresses tend to be small, cheap counter-service spots that keep re-letting to the same kind of business (109-11 Farmers Blvd in St. Albans had 9 tenants since 2012, mostly pizza and fried chicken, with a median life of about 7 months; 2146 Starling Ave in Parkchester had 8 mostly South Asian tenants with a median life of about 6 months; 87-44 Parsons Blvd in Jamaica had three pizzerias each lasting under 10 months).
 
 Neighborhood change (2013 to 2025)
 - Growth went to the outer boroughs and new high-rise districts: Bushwick West +79%, Long Island City +75%, Downtown Brooklyn-DUMBO +67%, Greenpoint +51%. Almost every neighborhood that shrank is in Manhattan (Tribeca -12%, Gramercy -11%, Upper East Side -10%), even though Manhattan places that do open last longer.
