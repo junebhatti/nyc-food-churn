@@ -7,7 +7,7 @@ import { useAtlas } from "@/lib/store";
 import { useBuildings, useLand, useNeighborhoods, useParks, useTenants, useYearlyByNta } from "@/lib/data";
 import { placeHref } from "@/lib/places";
 import { LEGEND_CHIPS } from "@/lib/color";
-import { HEIGHT_NOTE, LEGEND } from "@/lib/metrics";
+import { LEGEND, viewNote } from "@/lib/metrics";
 import { useIsMobile } from "@/lib/useIsMobile";
 import type { Summary, Yearly } from "@/lib/types";
 import YearScrubber from "../controls/YearScrubber";
@@ -114,7 +114,7 @@ export default function Hero({ summary, yearly }: Props) {
         <div className="pointer-events-none absolute left-10 top-10 w-[440px]">
           {headline}
           <p className="prose-hl mt-4 max-w-[400px]">
-            Every column is a building that has housed a restaurant, bar, café, bakery or bodega since 2012. {HEIGHT_NOTE[view]}
+            {viewNote(view, category)}
           </p>
           <div className="mt-5 flex gap-10 border-t border-ink pt-3">
             <div><div className="label">Open in {year}{hoodName ? ` · ${hoodName.split("-")[0]}` : ""}</div><div className="mono tnum text-[26px]">{openInYear.toLocaleString()}</div></div>

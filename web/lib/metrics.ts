@@ -30,14 +30,32 @@ export function rawValue(b: Building, view: View, hoods: Neighborhood[]): number
 
 export type Scale = (v: number | null) => number | null;
 
-/** What a column's height means in each view (the line under the hero headline). Tall always
- *  matches the red end of the legend. */
-export const HEIGHT_NOTE: Record<View, string> = {
-  churn: "Height is how many have come and gone.",
-  lifespan: "Height is how short-lived its places are.",
-  risk: "Height is the area's odds of closing within three years.",
-  rent: "Height is the area's storefront rent.",
+const PLACES: Record<CategoryFilter, string> = {
+  all: "a restaurant, bar, café, bakery or bodega",
+  restaurant: "a restaurant",
+  bar: "a bar",
+  cafe: "a café",
+  bakery: "a bakery",
+  bodega: "a bodega",
 };
+const ONLY: Record<CategoryFilter, string> = {
+  all: "", restaurant: " Restaurants only.", bar: " Bars only.", cafe: " Cafés only.", bakery: " Bakeries only.", bodega: " Bodegas only.",
+};
+
+/** The paragraph under the hero headline: what colour and height mean in this view. Tall and red
+ *  always mean the same end of the legend. */
+export function viewNote(view: View, category: CategoryFilter): string {
+  switch (view) {
+    case "churn":
+      return `Every column is a building that has housed ${PLACES[category]} since 2012. Height and colour both show how many have come and gone: tall and red is a revolving door.`;
+    case "lifespan":
+      return `How long places last at each building, by the median lifespan of its businesses. Tall, red columns are where they close fastest; short, green ones are where they stay for years.${ONLY[category]}`;
+    case "risk":
+      return `The odds that a new opening closes within three years, measured for each neighborhood. Tall, red blocks are where most new places don't make it; low, green ones are the safest bets.${ONLY[category]}`;
+    case "rent":
+      return `Average storefront rent per square foot in each neighborhood. Tall, red blocks are the priciest areas; low, green ones the cheapest. Switch to Risk to see whether rent and closures line up.${ONLY[category]}`;
+  }
+}
 
 const BUILDING_BASE = 0.15; // a stub so buildings with no value (or the cheap, safe end) stay visible
 const BUILDING_UNITS = 8; // ~ the tenant count of a busy building, so views share one elevation scale
