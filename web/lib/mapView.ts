@@ -29,6 +29,11 @@ const BOROUGH_LABELS = [
 
 type Ring = GeoJSON.Position[];
 
+/** For layers lying flat on the ground (land, parks, streets, coastlines). They're all at z=0, so
+ *  depth-testing them against each other makes the GPU flicker between them (white slivers when
+ *  zoomed in). They're drawn in a fixed order before the columns, which still cover them. */
+export const GROUND = { depthCompare: "always" } as const;
+
 /** Borough coastlines as thin ink lines, so the columns sit on a recognisable map. */
 export function outlineLayer(id: string, landPolys: GeoJSON.Position[][][], p: Palette) {
   const rings: Ring[] = landPolys.flatMap((p) => p);
@@ -39,6 +44,7 @@ export function outlineLayer(id: string, landPolys: GeoJSON.Position[][][], p: P
     getColor: [...p.ink, 150],
     getWidth: 1.1,
     widthUnits: "pixels",
+    parameters: GROUND,
   });
 }
 
@@ -78,6 +84,7 @@ export function parksLayer(id: string, parks: GeoJSON.FeatureCollection, p: Pale
     data: landPolygons(parks),
     getPolygon: (p) => p as unknown as [number, number][][],
     getFillColor: p.park,
+    parameters: GROUND,
   });
 }
 
@@ -96,6 +103,7 @@ export function streetLayers(id: string, streets: { major: number[][]; minor: nu
       widthMinPixels: minPx,
       capRounded: true,
       jointRounded: true,
+      parameters: GROUND,
     });
   return [layer("minor", 5, 0.8, p.street), layer("major", 10, 1.4, p.streetMajor)];
 }

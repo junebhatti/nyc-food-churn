@@ -6,7 +6,7 @@ import { AmbientLight, DirectionalLight, LightingEffect, type MapViewState } fro
 import { ColumnLayer, SolidPolygonLayer } from "@deck.gl/layers";
 import { useAtlas } from "@/lib/store";
 import { hasCategory, useStreets } from "@/lib/data";
-import { boroughLabels, clampView, landPolygons, makeLandTest, NYC_CENTER, outlineLayer, parksLayer, streetLayers } from "@/lib/mapView";
+import { boroughLabels, clampView, GROUND, landPolygons, makeLandTest, NYC_CENTER, outlineLayer, parksLayer, streetLayers } from "@/lib/mapView";
 import { usePalette } from "@/lib/usePalette";
 import { buildingColor, buildingHeight, hexBins, makeScale, rawValue, type Cell } from "@/lib/metrics";
 import type { Building, Neighborhood } from "@/lib/types";
@@ -127,6 +127,7 @@ export default function HeroMap({ buildings, hoods, land, parks, flat = false, i
       getPolygon: (p) => p as unknown as [number, number][][], // GeoJSON rings are number[] positions
       getFillColor: palette.land,
       _full3d: false,
+      parameters: GROUND,
     }),
     ...(parks ? [parksLayer("parks", parks, palette)] : []),
     ...(showBuildings && streets.data ? streetLayers("streets", streets.data, palette) : []),

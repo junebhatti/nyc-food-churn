@@ -109,6 +109,9 @@ export default function Hero({ summary, yearly }: Props) {
       <div className="relative min-h-0 flex-1">
         <div className="absolute inset-y-0 left-[18%] right-0" onMouseLeave={() => setHover(null)}>
           {map}
+          {/* Fades the map's left edge into the page: hides the canvas edge, which shows as a seam
+              once zoomed in, and keeps the headline readable over the columns. */}
+          <div className="pointer-events-none absolute inset-y-0 left-0 w-[360px] bg-gradient-to-r from-paper from-15% to-transparent" />
           {hover && <HoverCard row={tenants.data?.[hover.building]} hood={hoodOf(hover.building)} x={hover.x} y={hover.y} />}
         </div>
         <div className="pointer-events-none absolute left-10 top-10 w-[440px]">
