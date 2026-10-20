@@ -32,12 +32,6 @@ export default function Scatter({ rows, rentMed, closeMed, selected, filter, onS
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label="Rent versus three-year closure odds by neighborhood">
-      {(["es", "ed", "cs", "cd"] as Quadrant[]).map((q) => (
-        <text key={q} x={q[0] === "c" ? PAD.l + 8 : W - PAD.r - 8} y={q[1] === "d" ? PAD.t + 22 : H - PAD.b - 10}
-          textAnchor={q[0] === "c" ? "start" : "end"} fontStyle="italic" fontSize={21} fill={QUADRANT_TEXT[q]} className="font-serif">
-          {QUADRANT_NAME[q]}
-        </text>
-      ))}
       <line x1={x(rentMed)} x2={x(rentMed)} y1={PAD.t} y2={H - PAD.b} stroke="var(--ink)" strokeDasharray="3 3" />
       <line x1={PAD.l} x2={W - PAD.r} y1={y(closeMed)} y2={y(closeMed)} stroke="var(--ink)" strokeDasharray="3 3" />
       <line x1={PAD.l} x2={PAD.l} y1={PAD.t} y2={H - PAD.b} stroke="var(--ink)" />
@@ -61,6 +55,14 @@ export default function Scatter({ rows, rentMed, closeMed, selected, filter, onS
           </g>
         );
       })}
+      {/* Quadrant names go on top of the dots, with a page-coloured halo, so dots never cover them. */}
+      {(["es", "ed", "cs", "cd"] as Quadrant[]).map((q) => (
+        <text key={q} x={q[0] === "c" ? PAD.l + 8 : W - PAD.r - 8} y={q[1] === "d" ? PAD.t + 22 : H - PAD.b - 10}
+          textAnchor={q[0] === "c" ? "start" : "end"} fontStyle="italic" fontSize={21} fill={QUADRANT_TEXT[q]}
+          stroke="var(--paper)" strokeWidth={4} paintOrder="stroke" className="pointer-events-none font-serif">
+          {QUADRANT_NAME[q]}
+        </text>
+      ))}
       {rows.filter((r) => labelled.has(r.id) || r.id === selected).map((r) => (
         <text key={`t${r.id}`} x={x(r.rent) > W - 110 ? x(r.rent) - 8 : x(r.rent) + 8} y={y(r.closure3y) - 8}
           textAnchor={x(r.rent) > W - 110 ? "end" : "start"} fontSize={13} className="pointer-events-none font-serif"
