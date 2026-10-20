@@ -204,6 +204,7 @@ def cursed(b: pd.DataFrame, names: dict, nta_life: dict, n: int = 50) -> list[di
         street = f"{last['building']} {last['street']}" if isinstance(last.get("building"), str) else str(last["street"])
         out.append({"rank": rank, "id": place_id(r["building_key"]), "address": address_of(last),
                     "neighborhood": names.get(last["nta2020"], ""), "boro": str(last["boro"]).title(),
+                    "lat": round(float(d["lat"].median()), 5), "lon": round(float(d["lon"].median()), 5),
                     "tenants": len(d), "medianLife": clean(round(float(d.loc[d["event"], "years"].median()), 2)),
                     "vacantPct": round(float(1 - cover.mean()), 3), "areaMedianLife": nta_life.get(last["nta2020"]),
                     "timeline": [{"name": str(t["dba"]).strip(), "cuisine": t["label"], "price": clean(t.get("price_tier")),

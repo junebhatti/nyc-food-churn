@@ -1,9 +1,14 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useState } from "react";
+import { useLand, useParks } from "@/lib/data";
 import type { CursedAddress } from "@/lib/types";
 import TimelineStrip from "./Timeline";
+
+// deck.gl only runs in the browser.
+const CursedMap = dynamic(() => import("./CursedMap"), { ssr: false });
 
 const LIST_SIZE = 12;
 const yr = (y: number) => Math.floor(y);
@@ -13,6 +18,8 @@ export default function CursedAddresses({ addresses }: { addresses: CursedAddres
   const [selected, setSelected] = useState(0);
   const a = addresses[selected];
   const list = addresses.slice(0, LIST_SIZE);
+  const land = useLand();
+  const parks = useParks();
 
   return (
     <section id="cursed" className="border-t border-ink px-4 py-14 md:px-10">
@@ -45,7 +52,16 @@ export default function CursedAddresses({ addresses }: { addresses: CursedAddres
           ))}
         </div>
 
-        <div className="min-w-0 self-start border border-ink bg-paper-raised p-5 md:p-7">
+        <div className="min-w-0 self-start">
+        <div className="relative mb-6 h-[340px] border border-ink bg-paper md:h-[420px]">
+          {land.data ? (
+            <CursedMap addresses={list} land={land.data} parks={parks.data} selected={selected} onSelect={setSelected} />
+          ) : (
+            <div className="label flex h-full items-center justify-center">{land.error ? `Map failed to load: ${land.error}` : "Loading the map…"}</div>
+          )}
+          <div className="label pointer-events-none absolute left-3 top-3 bg-paper/85 px-2 py-1">Top {LIST_SIZE} · click a dot or a row</div>
+        </div>
+        <div className="border border-ink bg-paper-raised p-5 md:p-7">
           <div className="flex flex-wrap items-end justify-between gap-6">
             <div className="min-w-0">
               <div className="label">Rank {a.rank} · {a.neighborhood}</div>
@@ -87,6 +103,7 @@ export default function CursedAddresses({ addresses }: { addresses: CursedAddres
               </tbody>
             </table>
           </div>
+        </div>
         </div>
       </div>
     </section>

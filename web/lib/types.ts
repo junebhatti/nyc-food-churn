@@ -65,6 +65,8 @@ export interface CursedAddress {
   address: string;
   neighborhood: string;
   boro: string;
+  lat: number;
+  lon: number;
   tenants: number;
   medianLife: number | null;
   vacantPct: number;
