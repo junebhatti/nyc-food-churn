@@ -42,8 +42,8 @@ function BetaBars({ rows }: { rows: BetaRow[] }) {
   return (
     <div>
       <div className="label mb-2 grid grid-cols-[minmax(0,200px)_1fr_48px_70px_70px] gap-3 border-b border-ink pb-2">
-        <span>Group</span><span>Beta (1 = moves with the city)</span><span className="text-right">β</span>
-        <span className="text-right">Spread</span><span className="text-right">2019–21</span>
+        <span>Group</span><span>Steadier ← 1 → hit harder</span><span className="text-right">Beta</span>
+        <span className="text-right">Normal yrs</span><span className="text-right">2019–21</span>
       </div>
       <div className="max-h-[520px] overflow-y-auto">
         {sorted.map((r) => (
@@ -58,11 +58,16 @@ function BetaBars({ rows }: { rows: BetaRow[] }) {
               }} />
             </div>
             <span className="mono tnum text-right text-[13px]">{r.beta.toFixed(2)}</span>
-            <span className={`mono tnum text-right text-[12px] ${r.spread_bp > 0 ? "text-awning" : "text-deli"}`}>{r.spread_bp > 0 ? "+" : ""}{r.spread_bp} bp</span>
+            <span className={`mono tnum text-right text-[12px] ${r.spread_bp > 0 ? "text-awning" : "text-deli"}`}>{r.spread_bp > 0 ? "+" : ""}{(r.spread_bp / 100).toFixed(1)} pts</span>
             <span className="mono tnum text-right text-[12px] text-muted">{r.covid_excess_pts > 0 ? "+" : ""}{r.covid_excess_pts.toFixed(1)} pts</span>
           </div>
         ))}
       </div>
+      <p className="label mt-3 leading-relaxed">
+        <span className="text-awning">Red</span>: hit harder than the city in bad years. <span className="text-deli">Green</span>: steadier.
+        Normal yrs: how much more (+) or less (−) often places close here in an ordinary year than across the city, in percentage points.
+        2019–21: the extra closures in the COVID years, in points. Hover a row for its baseline.
+      </p>
     </div>
   );
 }
@@ -76,7 +81,7 @@ export default function Beta({ data }: { data: BetaData }) {
       id="beta"
       kicker="04 — Beta"
       title={<>Who gets hit when the city has a bad year.</>}
-      intro={<>A stock&rsquo;s beta says how hard it swings with the market. Here the market is the citywide closure rate, and each neighborhood or kind of place gets a beta: above 1 amplifies the city&rsquo;s bad years, below 1 shrugs them off. With one shock this size, beta is mostly a measure of 2020. <b>Spread</b> is the normal-year closure rate above or below the city&rsquo;s, in basis points.</>}
+      intro={<>When the whole city has a bad year, some places get hit much harder than others. Each neighborhood and type of place gets a score called <b>beta</b> (borrowed from finance). A beta of 1 means its closures rise and fall in step with the city&rsquo;s. Above 1, bad years hit it harder: at 1.8, when the city&rsquo;s closure rate jumps, its jumps about 80% more. Below 1, it barely notices. Because 2020 was by far the worst year, beta is mostly a ranking of who 2020 hit hardest.</>}
     >
       <div className="grid gap-12 lg:grid-cols-[360px_minmax(0,1fr)]">
         <div>

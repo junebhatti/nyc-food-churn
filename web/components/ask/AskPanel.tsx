@@ -2,7 +2,8 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { ChatCircleText, PaperPlaneRight, X } from "@phosphor-icons/react";
+import { PaperPlaneRight, X } from "@phosphor-icons/react";
+import { OPEN_ASK } from "./AskButton";
 import { fetchPlace } from "@/lib/places";
 
 const SUGGESTIONS = [
@@ -31,7 +32,7 @@ async function pageContext(path: string): Promise<string | undefined> {
     `Businesses (newest first): ${lines.join("; ")}`].join("\n").slice(0, 1500);
 }
 
-/** A side tab that opens a small "ask about the data" panel. */
+/** The "ask about the data" panel; the header's AskButton opens it. */
 export default function AskPanel() {
   const path = usePathname();
   const [open, setOpen] = useState(false);
@@ -43,6 +44,12 @@ export default function AskPanel() {
   useEffect(() => {
     end.current?.scrollIntoView({ block: "end" });
   }, [turns]);
+
+  useEffect(() => {
+    const show = () => setOpen(true);
+    window.addEventListener(OPEN_ASK, show);
+    return () => window.removeEventListener(OPEN_ASK, show);
+  }, []);
 
   const ask = async (question: string) => {
     const text = question.trim();
@@ -71,14 +78,7 @@ export default function AskPanel() {
     setBusy(false);
   };
 
-  if (!open) {
-    return (
-      <button type="button" onClick={() => setOpen(true)} aria-label="Ask about the data"
-        className="mono fixed right-0 top-1/2 z-40 flex -translate-y-1/2 items-center gap-1.5 border border-r-0 border-ink bg-paper-raised px-2 py-3 text-[11px] uppercase tracking-[0.06em] [writing-mode:vertical-rl] hover:bg-paper">
-        <ChatCircleText size={14} className="rotate-90" /> Ask about the data
-      </button>
-    );
-  }
+  if (!open) return null;
 
   return (
     <aside role="dialog" aria-label="Ask about the data"

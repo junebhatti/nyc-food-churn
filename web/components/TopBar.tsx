@@ -1,6 +1,7 @@
 import Link from "next/link";
 import SearchBox from "./search/SearchBox";
 import StoriesMenu from "./StoriesMenu";
+import AskButton from "./ask/AskButton";
 
 /** Header on every page: name, address search and the stories menu. */
 export default function TopBar({ current }: { current?: string }) {
@@ -11,7 +12,10 @@ export default function TopBar({ current }: { current?: string }) {
         <span className="label hidden lg:inline">An atlas of restaurant churn, 2012–2026</span>
       </Link>
       <div className="order-last w-full md:order-none md:ml-auto md:w-[300px]"><SearchBox compact /></div>
-      <StoriesMenu current={current} />
+      <div className="flex items-center gap-2">
+        <AskButton />
+        <StoriesMenu current={current} />
+      </div>
     </header>
   );
 }
