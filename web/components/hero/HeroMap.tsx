@@ -8,7 +8,7 @@ import { useAtlas } from "@/lib/store";
 import { hasCategory, useStreets } from "@/lib/data";
 import { boroughLabels, clampView, landPolygons, makeLandTest, NYC_CENTER, outlineLayer, parksLayer, streetLayers } from "@/lib/mapView";
 import { usePalette } from "@/lib/usePalette";
-import { buildingColor, hexBins, makeScale, rawValue, type Cell } from "@/lib/metrics";
+import { buildingColor, buildingHeight, hexBins, makeScale, rawValue, type Cell } from "@/lib/metrics";
 import type { Building, Neighborhood } from "@/lib/types";
 import { useTrackpad } from "@/lib/useTrackpad";
 import { FLY, focusOutline, frameGeometry } from "@/lib/focus";
@@ -97,11 +97,12 @@ export default function HeroMap({ buildings, hoods, land, parks, flat = false, i
   const showBuildings = !flat && viewState.zoom > BUILDING_ZOOM;
   const streets = useStreets(showBuildings);
   const cells = useMemo<Cell[]>(
-    () => (showBuildings ? [] : hexBins(buildings, flat ? MOBILE_HEX_RADIUS_M : HEX_RADIUS_M, value, year, category, palette, onLand, inFocus)),
-    [buildings, value, year, category, palette, showBuildings, flat, onLand, inFocus],
+    () => (showBuildings ? [] : hexBins(buildings, flat ? MOBILE_HEX_RADIUS_M : HEX_RADIUS_M, value, year, category, palette, view, onLand, inFocus)),
+    [buildings, value, year, category, palette, view, showBuildings, flat, onLand, inFocus],
   );
 
-  // Tallest hexes (99th percentile) rise ~2.5 km, so the whole city reads as one relief.
+  // Tallest hexes (99th percentile) rise ~2.5 km in every view, so the whole city reads as one relief.
+  // The scale is baked into each elevation (not elevationScale) so a view change animates smoothly.
   const hexScale = useMemo(() => {
     const h = cells.map((c) => c.height).sort((a, b) => a - b);
     return h.length ? 2500 / Math.max(1, h[Math.floor(0.99 * (h.length - 1))]) : 1;
@@ -140,12 +141,12 @@ export default function HeroMap({ buildings, hoods, land, parks, flat = false, i
           extruded: true,
           elevationScale: 22,
           getPosition: (b) => [b.lon, b.lat],
-          getElevation: (b) => (hasCategory(b, category) && inFocus(b) ? b.tenants : b.tenants * 0.15),
+          getElevation: (b) => buildingHeight(view, b.tenants, value(b)) * (hasCategory(b, category) && inFocus(b) ? 1 : 0.15),
           getFillColor: (b) => buildingColor(b, value(b), year, category, palette, inFocus(b)),
           material: MATERIAL,
           pickable: true,
-          updateTriggers: { getFillColor: [year, view, category, ntaIdx, palette], getElevation: [category, ntaIdx] },
-          transitions: { getFillColor: 300 },
+          updateTriggers: { getFillColor: [year, view, category, ntaIdx, palette], getElevation: [category, ntaIdx, view] },
+          transitions: { getFillColor: 300, getElevation: 500 },
         })
       : new ColumnLayer<Cell>({
           id: "hexes",
@@ -153,13 +154,13 @@ export default function HeroMap({ buildings, hoods, land, parks, flat = false, i
           diskResolution: 6,
           radius: (flat ? MOBILE_HEX_RADIUS_M : HEX_RADIUS_M) * HEX_FILL,
           extruded: !flat,
-          elevationScale: hexScale,
           getPosition: (c) => [c.lon, c.lat],
-          getElevation: (c) => c.height,
+          getElevation: (c) => c.height * hexScale,
           getFillColor: (c) => c.color,
           material: MATERIAL,
           pickable: true,
-          transitions: { getFillColor: 300 },
+          updateTriggers: { getElevation: [hexScale] },
+          transitions: { getFillColor: 300, getElevation: 500 },
         }),
     ...(focusHood ? [focusOutline(focusHood.geometry, palette)] : []),
     boroughLabels("boroughs", (viewState.pitch ?? 0) > 5 ? 2800 : 0, palette),

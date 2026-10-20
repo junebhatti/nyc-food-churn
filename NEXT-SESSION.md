@@ -14,6 +14,7 @@ Data gathering, merge, analysis and the site are all done and live. Nothing is r
   - Opens flat and north-up, with water gaps, parks and borough outlines.
   - Gestures, with no on-map buttons (changed 2026-10-19, `web/lib/useTrackpad.ts`): drag pans, pinch zooms, a two-finger sideways swipe rotates, a vertical swipe tilts (up tilts into 3D), and a mouse wheel zooms. The map takes every wheel event over it.
   - View, category, year and neighbourhood filters (`?n=<NTA>`); hover card; click opens the address page.
+  - Column height follows the view (added 2026-10-19, `buildingHeight`/`hexBins` in `web/lib/metrics.ts`). Churn uses tenant count. The other views use the colour value squared, so tall always means the red end. Heights animate over 500 ms, and the line under the headline (`HEIGHT_NOTE`) changes with the view.
   - Street lines appear once you zoom to single buildings (added 2026-10-19). Source: NYC Street Centerline (inkn-q76z), exported by `pipeline/export_streets.py` to `web/public/data/streets.json` (4.4 MB, 1.3 MB gz, loaded lazily). Streets 60 ft or wider are drawn heavier. No names are drawn, though the raw cache has them.
 - Each story has its own page (split out 2026-10-19). The list is `web/lib/stories.ts`, the frame is `web/components/StoryPage.tsx` (header, then prev/next, then footer), and the header's "Stories" menu (☰ on phones) is `web/components/StoriesMenu.tsx`:
   - `/cursed` 01 Cursed Addresses

@@ -30,6 +30,28 @@ export function rawValue(b: Building, view: View, hoods: Neighborhood[]): number
 
 export type Scale = (v: number | null) => number | null;
 
+/** What a column's height means in each view (the line under the hero headline). Tall always
+ *  matches the red end of the legend. */
+export const HEIGHT_NOTE: Record<View, string> = {
+  churn: "Height is how many have come and gone.",
+  lifespan: "Height is how short-lived its places are.",
+  risk: "Height is the area's odds of closing within three years.",
+  rent: "Height is the area's storefront rent.",
+};
+
+const BUILDING_BASE = 0.15; // a stub so buildings with no value (or the cheap, safe end) stay visible
+const BUILDING_UNITS = 8; // ~ the tenant count of a busy building, so views share one elevation scale
+
+/** Squared so the middle of the range stays low and the red end rises sharply; without it most of
+ *  the city averages out to the same mid height. */
+const lift = (t: number) => Math.min(1, Math.max(0, t)) ** 2;
+
+/** Column height for one building: tenants in churn view, otherwise its 0-1 colour value. */
+export function buildingHeight(view: View, tenants: number, t: number | null): number {
+  if (view === "churn") return tenants;
+  return (BUILDING_BASE + lift(t ?? 0)) * BUILDING_UNITS;
+}
+
 export function makeScale(buildings: Building[], view: View, hoods: Neighborhood[]): Scale {
   const vals = buildings.map((b) => rawValue(b, view, hoods)).filter((v): v is number => v != null);
   const [lo, hi] = quantileDomain(vals);
@@ -57,11 +79,12 @@ export function hexBins(
   year: number,
   category: CategoryFilter,
   palette: Palette,
+  view: View,
   onLand?: (id: string, lon: number, lat: number) => boolean,
   inFocus: (b: Building) => boolean = () => true,
 ): Cell[] {
   const size = radiusM;
-  const cells = new Map<string, { q: number; r: number; h: number; sum: number; n: number; lit: boolean; top: number; topN: number; lon: number; lat: number; k: number }>();
+  const cells = new Map<string, { q: number; r: number; h: number; hSum: number; hN: number; sum: number; n: number; lit: boolean; top: number; topN: number; lon: number; lat: number; k: number }>();
   for (const b of buildings) {
     if (!hasCategory(b, category)) continue;
     const x = (b.lon + 74) * M_PER_DEG_LON;
@@ -76,9 +99,16 @@ export function hexBins(
     else if (dr > ds) r = -q - s;
     const key = `${q},${r}`;
     let c = cells.get(key);
-    if (!c) cells.set(key, (c = { q, r, h: 0, sum: 0, n: 0, lit: false, top: b.idx, topN: -1, lon: 0, lat: 0, k: 0 }));
+    if (!c) cells.set(key, (c = { q, r, h: 0, hSum: 0, hN: 0, sum: 0, n: 0, lit: false, top: b.idx, topN: -1, lon: 0, lat: 0, k: 0 }));
     const focus = inFocus(b);
     c.h += focus ? b.tenants : b.tenants * 0.15; // outside the chosen neighbourhood: low and dark
+    // Other views: the hex's average value over every building it holds (not only those lit this
+    // year), so heights hold still while the year scrubs.
+    const hv = value(b);
+    if (hv != null) {
+      c.hSum += hv * (focus ? 1 : 0.15);
+      c.hN += 1;
+    }
     c.lon += b.lon;
     c.lat += b.lat;
     c.k += 1;
@@ -110,7 +140,7 @@ export function hexBins(
       id,
       lon,
       lat,
-      height: c.h,
+      height: view === "churn" ? c.h : 0.04 + lift(c.hN ? c.hSum / c.hN : 0),
       color: c.lit && t != null ? ramp(t, palette) : palette.dead,
       top: c.top,
     };
