@@ -13,6 +13,11 @@ const TABS = [
 ] as const;
 const MAX_LINES = 5;
 const yrs = (m: number | null) => (m == null ? "10y+" : `${m.toFixed(1)}y`);
+const DATA_END = 2026.8;
+/** Years a "Year opened" group has actually been followed (from its first year), or 10 for other tabs. */
+const followed = (tab: string, level: string) => (tab === "cohort" ? Math.min(10, DATA_END - Number(level.slice(0, 4))) : 10);
+/** Median label: "not yet" when a recent cohort hasn't reached 50% within the years it's been followed. */
+const median = (tab: string, level: string, m: number | null) => (m == null && followed(tab, level) < 10 ? "not yet" : yrs(m));
 
 export default function HalfLife({ data }: { data: HalfLifeData }) {
   const [tab, setTab] = useState<(typeof TABS)[number]["id"]>("boro");
@@ -30,7 +35,7 @@ export default function HalfLife({ data }: { data: HalfLifeData }) {
 
   const series: Series[] = [
     { label: "All places", values: all.curve, color: "var(--ink)", strong: true, dashed: true },
-    ...rows.filter((r) => chosen.includes(r.level)).map((r, i) => ({ label: r.level, values: r.curve, color: SERIES_COLORS[(i + 1) % SERIES_COLORS.length] })),
+    ...rows.filter((r) => chosen.includes(r.level)).map((r, i) => ({ label: r.level, values: r.curve.map((s, k) => (data.grid[k] <= followed(tab, r.level) ? s : null)), color: SERIES_COLORS[(i + 1) % SERIES_COLORS.length] })),
   ];
 
   return (
@@ -75,7 +80,7 @@ export default function HalfLife({ data }: { data: HalfLifeData }) {
                     <span className="inline-block h-[3px] w-3 shrink-0" style={{ background: color }} />
                     <span className="truncate">{r.level}</span>
                   </span>
-                  <span className="tnum text-right">{yrs(r.median)}</span>
+                  <span className="tnum text-right">{median(tab, r.level, r.median)}</span>
                   <span className="tnum text-right text-muted">{pct(r.s1)}</span>
                   <span className="tnum text-right text-muted">{pct(r.s3)}</span>
                   <span className="tnum text-right">{pct(r.s5)}</span>

@@ -39,7 +39,7 @@ export const LIGHT: Palette = {
   paper: hex("#F3EEE4"),
   filteredOut: hex("#E2DACB"),
   blockBase: hex("#F4EEE2"),
-  quadrant: { cs: hex("#1E5B3A"), es: hex("#1C1B18"), cd: hex("#E2B13C"), ed: hex("#B8321D") },
+  quadrant: { cs: hex("#1E5B3A"), es: hex("#1C1B18"), cd: hex("#AD7F22"), ed: hex("#B8321D") },
 };
 
 /** Dark variant from the handoff's 1c reference: navy ground, hues lifted for contrast. */

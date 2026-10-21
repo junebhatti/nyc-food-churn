@@ -9,6 +9,7 @@ import { loadIndex, NICKNAMES, norm, searchIndex, type Hit } from "@/lib/search"
 import { useAtlas } from "@/lib/store";
 import type { SearchRow } from "@/lib/types";
 import { lookupAddress, type Nearest } from "./geosearch";
+import { scrollBehavior } from "@/lib/motion";
 
 type Option =
   | { kind: "place"; hit: Hit }
@@ -57,7 +58,7 @@ export default function SearchBox({ compact = false }: { compact?: boolean }) {
     if (o.kind === "place") return router.push(placeHref(o.hit.id));
     setNta(o.id);
     if (path !== "/") router.push(`/?n=${o.id}`);
-    else window.scrollTo({ top: 0, behavior: "smooth" });
+    else window.scrollTo({ top: 0, behavior: scrollBehavior() });
   };
 
   const lookup = async () => {
@@ -106,10 +107,13 @@ export default function SearchBox({ compact = false }: { compact?: boolean }) {
               )}
             </button>
           ))}
+          {rows && !options.length && !looksLikeAddress && (
+            <p className="label px-3 py-3">No addresses, businesses or neighborhoods match “{q.trim()}”.</p>
+          )}
           {rows && looksLikeAddress && (
             <div className="border-t border-ink p-3">
               {geo === null && (
-                <button type="button" onClick={lookup} className="mono text-[11px] uppercase tracking-[0.06em] underline-offset-2 hover:underline">
+                <button type="button" onClick={lookup} className="mono min-h-10 text-[11px] uppercase tracking-[0.06em] underline-offset-2 hover:underline">
                   {options.length ? "Not here? Look up this address" : "No match. Look up this address"}
                 </button>
               )}
@@ -117,10 +121,12 @@ export default function SearchBox({ compact = false }: { compact?: boolean }) {
               {geo && geo !== "loading" && (
                 <div>
                   <p className="text-[14px]">{geo.label}</p>
-                  <p className="label mt-1">No food or drink business recorded here since 2012. Nearest that had one:</p>
+                  <p className="label mt-1">{geo.nearest[0]?.metres <= 25
+                    ? "This address is in the atlas:"
+                    : "No food or drink business recorded here since 2012. Nearest that had one:"}</p>
                   {geo.nearest.map((n) => (
                     <button key={n.id} type="button" onClick={() => { setOpen(false); router.push(placeHref(n.id)); }}
-                      className="flex w-full justify-between py-1 text-left text-[14px] hover:underline">
+                      className="flex min-h-10 w-full items-center justify-between py-1 text-left text-[14px] hover:underline">
                       <span>{n.address}</span><span className="mono text-[11px] text-muted">{n.metres} m</span>
                     </button>
                   ))}

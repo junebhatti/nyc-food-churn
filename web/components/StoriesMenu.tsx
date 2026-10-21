@@ -5,15 +5,20 @@ import Link from "next/link";
 import { CaretDown, List, X } from "@phosphor-icons/react";
 import { STORIES, storyHref } from "@/lib/stories";
 
-/** "Stories" dropdown in the header: the seven story pages, plus the map. ☰ on phones. */
+/** "Stories" dropdown in the header: the six story pages, plus the map. ☰ on phones. */
 export default function StoriesMenu({ current }: { current?: string }) {
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!open) return;
     const close = (e: PointerEvent | KeyboardEvent) => {
-      if (e instanceof KeyboardEvent ? e.key === "Escape" : !box.current?.contains(e.target as Node)) setOpen(false);
+      if (e instanceof KeyboardEvent) {
+        if (e.key !== "Escape") return;
+        setOpen(false);
+        trigger.current?.focus(); // keyboard users land back on the button, not the page body
+      } else if (!box.current?.contains(e.target as Node)) setOpen(false);
     };
     document.addEventListener("pointerdown", close);
     document.addEventListener("keydown", close);
@@ -24,8 +29,11 @@ export default function StoriesMenu({ current }: { current?: string }) {
   }, [open]);
 
   return (
-    <div ref={box} className="relative">
-      <button type="button" aria-expanded={open} aria-haspopup="true" onClick={() => setOpen(!open)}
+    <div ref={box} className="relative" onBlur={(e) => {
+      // Tabbing out of the menu closes it.
+      if (open && !box.current?.contains(e.relatedTarget as Node | null)) setOpen(false);
+    }}>
+      <button ref={trigger} type="button" aria-expanded={open} aria-haspopup="true" onClick={() => setOpen(!open)}
         aria-label="Stories"
         className="mono flex h-11 items-center justify-center gap-1.5 text-[11px] uppercase tracking-[0.06em] max-md:w-11 md:h-9 md:border md:border-ink md:px-3 md:hover:bg-paper-raised">
         <span className="md:hidden">{open ? <X size={22} /> : <List size={22} />}</span>

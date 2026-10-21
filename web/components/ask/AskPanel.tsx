@@ -100,7 +100,7 @@ export default function AskPanel() {
       <div className="flex items-center justify-between border-b border-rule px-4 py-3">
         <div>
           <div className="kicker">Ask about the data</div>
-          <div className="label mt-0.5">Answers come from Claude, grounded in how this site was built</div>
+          <div className="label mt-0.5">Answers come from Claude, using the site's data. Each question is answered on its own, so include the details.</div>
         </div>
         <button type="button" onClick={close} aria-label="Close" className="flex h-11 w-11 items-center justify-center border border-ink"><X size={14} /></button>
       </div>

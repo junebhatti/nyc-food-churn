@@ -9,6 +9,7 @@ import { placeHref } from "@/lib/places";
 import { LEGEND_CHIPS } from "@/lib/color";
 import { LEGEND, viewNote } from "@/lib/metrics";
 import { useIsMobile } from "@/lib/useIsMobile";
+import { useWidth } from "@/lib/useWidth";
 import type { Summary, Yearly } from "@/lib/types";
 import YearScrubber from "../controls/YearScrubber";
 import { CategoryButtons, ViewToggle } from "../controls/Toggles";
@@ -45,7 +46,10 @@ export default function Hero({ summary, yearly }: Props) {
   const series = ntaSeries ?? yearly[category];
   const openInYear = series.alive[year - yearly.years[0]];
   const hoodName = nta ? hoods.data?.find((h) => h.id === nta)?.name : undefined;
+  // The citywide median, or the chosen neighbourhood's (its places opened since 2012, all categories).
+  const hoodLife = nta ? hoods.data?.find((h) => h.id === nta)?.medianLife ?? null : null;
   const legend = LEGEND[view];
+  const [mapArea, mapW, mapH] = useWidth(1000);
 
   const map = ready ? (
     <HeroMap
@@ -107,12 +111,12 @@ export default function Hero({ summary, yearly }: Props) {
     <section className="relative flex h-svh min-h-[720px] flex-col">
       <TopBar current="map" />
       <div className="relative min-h-0 flex-1">
-        <div className="absolute inset-y-0 left-[18%] right-0" onMouseLeave={() => setHover(null)}>
+        <div ref={mapArea} className="absolute inset-y-0 left-[18%] right-0" onMouseLeave={() => setHover(null)}>
           {map}
           {/* Fades the map's left edge into the page: hides the canvas edge, which shows as a seam
               once zoomed in, and keeps the headline readable over the columns. */}
           <div className="pointer-events-none absolute inset-y-0 left-0 w-[360px] bg-gradient-to-r from-paper from-15% to-transparent" />
-          {hover && <HoverCard row={tenants.data?.[hover.building]} hood={hoodOf(hover.building)} x={hover.x} y={hover.y} />}
+          {hover && <HoverCard row={tenants.data?.[hover.building]} hood={hoodOf(hover.building)} x={hover.x} y={hover.y} bounds={{ width: mapW, height: mapH }} />}
         </div>
         <div className="pointer-events-none absolute left-10 top-10 w-[440px]">
           {headline}
@@ -121,7 +125,7 @@ export default function Hero({ summary, yearly }: Props) {
           </p>
           <div className="mt-5 flex gap-10 border-t border-ink pt-3">
             <div><div className="label">Open in {year}{hoodName ? ` · ${hoodName.split("-")[0]}` : ""}</div><div className="mono tnum text-[26px]">{openInYear.toLocaleString()}</div></div>
-            <div><div className="label">Median lifespan</div><div className="mono tnum text-[26px]">{summary.medianLife} yrs</div></div>
+            <div><div className="label">Median lifespan{nta && hoodLife != null ? ` · ${hoodName?.split("-")[0]}` : ""}</div><div className="mono tnum text-[26px]">{nta && hoodLife != null ? hoodLife.toFixed(1) : summary.medianLife} yrs</div></div>
           </div>
         </div>
         <div className="absolute right-10 top-6 flex flex-col items-end text-right">

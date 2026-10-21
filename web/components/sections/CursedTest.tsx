@@ -42,9 +42,10 @@ export default function CursedTest({ data, grid }: { data: CursedTestData; grid:
                     const v = hr(p, b);
                     return (
                       <div key={p} className="relative flex h-4 items-center">
-                        <div className="h-full" style={{ width: `${(v / max) * 100}%`, background: COLORS[p] }} />
-                        <span className="mono tnum ml-2 text-[11px]">{v.toFixed(1)}×</span>
                         <div className="absolute inset-y-[-3px] w-px bg-ink" style={{ left: `${(1 / max) * 100}%` }} />
+                        <div className="relative h-full" style={{ width: `${(v / max) * 100}%`, background: COLORS[p] }} />
+                        {/* Paper behind the label so the 1× line never cuts through it. */}
+                        <span className="mono tnum relative ml-1 bg-paper px-1 text-[11px]">{v.toFixed(1)}×</span>
                       </div>
                     );
                   })}

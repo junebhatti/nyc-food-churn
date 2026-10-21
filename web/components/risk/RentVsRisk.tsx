@@ -36,7 +36,7 @@ export default function RentVsRisk() {
       <div className="grid gap-6 md:grid-cols-2">
         <div>
           <p className="kicker">03 — Is the rent worth the risk?</p>
-          <h2 className="mt-3 text-[34px] leading-[1.04] tracking-[-0.015em] md:text-[44px]">Pricier streets are a little safer. Rent isn&rsquo;t why.</h2>
+          <h1 className="mt-3 text-[34px] leading-[1.04] tracking-[-0.015em] md:text-[44px]">Pricier streets are a little safer. Rent isn&rsquo;t why.</h1>
         </div>
         <p className="prose-hl self-end">
           One dot per neighborhood. Across: storefront rent per square foot per year. Up: the odds a new place closes within three years.
@@ -53,7 +53,7 @@ export default function RentVsRisk() {
         <Scatter rows={rows} rentMed={rentMed} closeMed={closeMed} selected={sel.id} filter={filter} onSelect={setSelected} />
         {mobile === false && land.data && (
           <div className="lg:col-span-2 min-[1360px]:col-span-1">
-            <div className="relative h-[480px]"><RiskMap rows={rows} land={land.data} selected={sel.id} filter={filter} onSelect={setSelected} /></div>
+            <div className="relative h-[480px]" role="region" aria-label="3D map: one block per neighborhood, raised by its 3-year closure odds; the same data is in the scatter plot."><RiskMap rows={rows} land={land.data} selected={sel.id} filter={filter} onSelect={setSelected} /></div>
             <p className="label mt-2">Block height = 3-yr closure odds · Colour = quadrant</p>
           </div>
         )}

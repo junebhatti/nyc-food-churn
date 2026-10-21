@@ -28,8 +28,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return pageMeta(`${place.address} — NYC Turnover`, describe(place), `/place/${id}`);
 }
 
-// An unknown id renders the not-found page. Crawlers (which get blocking metadata) see a 404
-// status; browsers get the prerendered shell first, so theirs is a 200 with noindex.
+// An unknown id renders the not-found page (see the note on Page below).
+// The id is read before the Suspense boundary on purpose: it lets renamed ids answer with a real 308 and
+// unknown ids with a 404. Next's dev overlay warns that this can slow navigation; correct status codes matter
+// more here (old shared links, crawlers).
 export default async function Page({ params }: Props) {
   const { id } = await params;
   if (!(await getPlace(id))) return missing(id);

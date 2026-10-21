@@ -7,12 +7,14 @@ interface Props {
   hood: Neighborhood | undefined;
   x: number;
   y: number;
+  /** Size of the map area, so the card can flip away from its right and bottom edges. */
+  bounds: { width: number; height: number };
 }
 
 const fmtLife = (o: number, c: number | null, now: number) => `${((c ?? now) - o).toFixed(1)}y`;
 
 /** 252px card with a 9px ink square on the building and a 28px leader to the card. */
-export default function HoverCard({ row, hood, x, y }: Props) {
+export default function HoverCard({ row, hood, x, y, bounds }: Props) {
   if (!row) return null;
   const [address, , tenants] = row;
   const now = 2026.8;
@@ -21,11 +23,15 @@ export default function HoverCard({ row, hood, x, y }: Props) {
   const closedLives = tenants.filter((t) => t[4] != null).map((t) => (t[4] as number) - t[3]).sort((a, b) => a - b);
   const median = closedLives.length ? closedLives[Math.floor(closedLives.length / 2)] : null;
 
+  const flipX = x + 300 > bounds.width;
+  const flipY = bounds.height > 0 && y + 240 > bounds.height;
+
   return (
     <div className="pointer-events-none absolute z-20" style={{ left: x - 4, top: y - 4 }}>
       <div className="h-[9px] w-[9px] bg-ink" />
-      <div className="absolute left-1 top-1 h-px w-7 bg-ink" />
-      <div className="absolute left-8 top-[-12px] w-[252px] border border-ink bg-paper-raised p-3">
+      <div className="absolute top-1 h-px w-7 bg-ink" style={flipX ? { right: 4 } : { left: 4 }} />
+      <div className="absolute w-[252px] border border-ink bg-paper-raised p-3"
+        style={{ ...(flipX ? { right: 32 } : { left: 32 }), ...(flipY ? { bottom: -12 } : { top: -12 }) }}>
         <div className="text-[19px] leading-tight">{address}</div>
         <div className="label mt-1">
           {hood?.name ?? "—"} · {tenants.length} tenant{tenants.length === 1 ? "" : "s"} since 2012

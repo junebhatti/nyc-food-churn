@@ -12,6 +12,7 @@ import { buildingColor, buildingHeight, hexBins, makeScale, rawValue, type Cell 
 import type { Building, Neighborhood } from "@/lib/types";
 import { useTrackpad } from "@/lib/useTrackpad";
 import { FLY, focusOutline, frameGeometry } from "@/lib/focus";
+import { motionMs, reducedMotion } from "@/lib/motion";
 
 // Matte plaster relief: soft ambient plus one light from the west/north-west, no gloss.
 const lighting = new LightingEffect({
@@ -110,14 +111,19 @@ export default function HeroMap({ buildings, hoods, land, parks, flat = false, i
 
 
   // Fly to the chosen neighbourhood (or back out to the city when it's cleared).
+  // On first load (a ?n= link) jump straight there: deck.gl drops a transition started in the same
+  // render that first mounts it.
   const lastNta = useRef<string | null>(null);
+  const firstFrame = useRef(true);
   useEffect(() => {
     if (!size || nta === lastNta.current) return;
     lastNta.current = nta;
     const to = focusHood
       ? frameGeometry(focusHood.geometry, size, viewRef.current)
       : { ...viewRef.current, ...NYC_CENTER, zoom: initialZoom };
-    setViewState({ ...to, transitionDuration: "auto", transitionInterpolator: FLY } as MapViewState);
+    const jump = firstFrame.current || reducedMotion();
+    firstFrame.current = false;
+    setViewState((jump ? to : { ...to, transitionDuration: "auto", transitionInterpolator: FLY }) as MapViewState);
   }, [nta, focusHood, size, initialZoom]);
 
   const layers = [
@@ -147,7 +153,7 @@ export default function HeroMap({ buildings, hoods, land, parks, flat = false, i
           material: MATERIAL,
           pickable: true,
           updateTriggers: { getFillColor: [year, view, category, ntaIdx, palette], getElevation: [category, ntaIdx, view] },
-          transitions: { getFillColor: 300, getElevation: 500 },
+          transitions: { getFillColor: motionMs(300), getElevation: motionMs(500) },
         })
       : new ColumnLayer<Cell>({
           id: "hexes",
@@ -161,14 +167,14 @@ export default function HeroMap({ buildings, hoods, land, parks, flat = false, i
           material: MATERIAL,
           pickable: true,
           updateTriggers: { getElevation: [hexScale] },
-          transitions: { getFillColor: 300, getElevation: 500 },
+          transitions: { getFillColor: motionMs(300), getElevation: motionMs(500) },
         }),
     ...(focusHood ? [focusOutline(focusHood.geometry, palette)] : []),
     boroughLabels("boroughs", (viewState.pitch ?? 0) > 5 ? 2800 : 0, palette),
   ];
 
   return (
-    <div ref={box} className="absolute inset-0">
+    <div ref={box} className="absolute inset-0" role="region" aria-label="3D map of NYC food and drink businesses. Use the view, category and year controls, or search for an address.">
     {size && <DeckGL
       width={size.width}
       height={size.height}

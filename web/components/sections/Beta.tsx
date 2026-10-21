@@ -39,6 +39,14 @@ function CityRate({ city }: { city: BetaData["city"] }) {
 }
 
 const SHOW = 15;
+
+/** The three highest- or lowest-beta groups, as "A, B and C" (names cut at their first hyphen). */
+function extremes(rows: BetaRow[], group: string, top: boolean): string {
+  // Licence-only bars are left out here as in the table (their end dates only exist from 2015).
+  const names = rows.filter((r) => r.group === group && r.level !== "bar").sort((a, b) => (top ? b.beta - a.beta : a.beta - b.beta))
+    .slice(0, 3).map((r) => r.label.split("-")[0].trim());
+  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+}
 // Phones: name, bar, beta. From md: plus the normal-year and COVID columns.
 const COLS = "grid grid-cols-[minmax(0,1fr)_minmax(80px,1fr)_40px] gap-3 md:grid-cols-[minmax(0,1fr)_minmax(110px,1.3fr)_44px_64px_64px]";
 const pts = (v: number) => `${v > 0 ? "+" : ""}${v.toFixed(1)} pts`;
@@ -106,8 +114,8 @@ export default function Beta({ data }: { data: BetaData }) {
           <div className="label mb-2">Citywide closure rate, share of open places closing each year</div>
           <CityRate city={data.city} />
           <p className="mt-4 text-[15px] leading-snug text-ink-2">
-            Office, tourist and commuter districts like the Financial District, Tribeca and Chinatown amplified the 2020 shock;
-            residential Queens (Sunnyside, Astoria) barely moved. Delis and cafés, which live on the office lunch, swing hardest.
+            Hit hardest: {extremes(data.rows, "nta2020", true)}. Steadiest: {extremes(data.rows, "nta2020", false)}. Among kinds of
+            place, {extremes(data.rows, "family_top", true)} swing hardest, while {extremes(data.rows, "family_top", false)} hold steadiest.
           </p>
           <p className="label mt-4">Closure dates are good to about a season, and 2018–19 closures partly land in 2020. Read beta as a ranking.</p>
         </div>

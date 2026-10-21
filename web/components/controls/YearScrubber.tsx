@@ -33,6 +33,8 @@ export default function YearScrubber({ yearly, compact = false, openNow, series:
         {openNow != null && <div className="label mt-1 tnum">{openNow.toLocaleString()} open</div>}
       </div>
       <div className="min-w-0 flex-1">
+        {/* Each year's column is a shortcut to that year (the slider below is the keyboard control); green above the line is
+            openings, red below is closings, and each column's tooltip gives the counts. */}
         <div className="flex items-stretch gap-[3px]" aria-hidden>
           {series.open.map((o, i) => {
             const y = FIRST_YEAR + i;
@@ -40,7 +42,7 @@ export default function YearScrubber({ yearly, compact = false, openNow, series:
             if (o == null || series.close[i] == null) {
               // unknown year: a hollow stub on each side of the axis instead of a zero
               return (
-                <div key={y} className={`flex flex-1 flex-col ${dim}`} title={`No data for ${y}`}>
+                <div key={y} className={`flex flex-1 cursor-pointer flex-col ${dim}`} title={`No data for ${y}`} onClick={() => setYear(y)}>
                   <div className="flex items-end" style={{ height: barH }}><div className="h-1 w-full border border-b-0 border-dashed border-muted" /></div>
                   <div className="h-px bg-ink" />
                   <div style={{ height: barH }}><div className="h-1 w-full border border-t-0 border-dashed border-muted" /></div>
@@ -48,7 +50,8 @@ export default function YearScrubber({ yearly, compact = false, openNow, series:
               );
             }
             return (
-              <div key={y} className={`flex flex-1 flex-col ${dim}`}>
+              <div key={y} className={`flex flex-1 cursor-pointer flex-col hover:opacity-100 ${dim} ${y === year ? "outline outline-1 outline-offset-1 outline-ink" : ""}`}
+                title={`${y}: ${o.toLocaleString()} opened · ${(series.close[i] ?? 0).toLocaleString()} closed`} onClick={() => setYear(y)}>
                 <div className="flex items-end" style={{ height: barH }}>
                   <div className="w-full bg-deli" style={{ height: (o / max) * barH }} />
                 </div>
@@ -71,11 +74,11 @@ export default function YearScrubber({ yearly, compact = false, openNow, series:
           className={`mt-1 w-full ${compact ? "h-7" : ""}`}
         />
         {!compact && (
-          <div className="label flex justify-between">
-            <span>{FIRST_YEAR}</span>
-            <span>▲ openings · ▼ closings</span>
-            <span>2020 shock</span>
-            <span>{LAST_YEAR}</span>
+          <div className="label relative h-4">
+            <span className="absolute left-0">{FIRST_YEAR}</span>
+            {/* Centred under the 2020 column. */}
+            <span className="absolute -translate-x-1/2" style={{ left: `${((2020 - FIRST_YEAR + 0.5) / (LAST_YEAR - FIRST_YEAR + 1)) * 100}%` }}>2020 shock</span>
+            <span className="absolute right-0">{LAST_YEAR}</span>
           </div>
         )}
       </div>

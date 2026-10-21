@@ -10,6 +10,7 @@ import { useStreets } from "@/lib/data";
 import { FLY } from "@/lib/focus";
 import { boroughLabels, clampView, GROUND, landPolygons, NYC_CENTER, outlineLayer, parksLayer, streetLayers } from "@/lib/mapView";
 import type { CursedAddress } from "@/lib/types";
+import { motionMs } from "@/lib/motion";
 
 interface Props {
   addresses: CursedAddress[];
@@ -56,7 +57,7 @@ export default function CursedMap({ addresses, land, parks, selected, onSelect }
       return;
     }
     const a = addresses[selected];
-    setViewState((v) => ({ ...v, longitude: a.lon, latitude: a.lat, zoom: FOCUS_ZOOM, transitionDuration: 900, transitionInterpolator: FLY }) as MapViewState);
+    setViewState((v) => ({ ...v, longitude: a.lon, latitude: a.lat, zoom: FOCUS_ZOOM, transitionDuration: motionMs(900), transitionInterpolator: FLY }) as MapViewState);
   }, [selected, addresses]);
 
   // Pinch (ctrl+wheel) zooms the map; ordinary scrolling is left to the page.
@@ -117,10 +118,14 @@ export default function CursedMap({ addresses, land, parks, selected, onSelect }
   const zoomedIn = viewState.zoom > CITY.zoom + 0.5;
 
   return (
-    <div ref={box} className="absolute inset-0">
+    <div ref={box} className="absolute inset-0" role="region" aria-label="Map of the most cursed addresses; the same addresses are listed beside it.">
       <DeckGL
         viewState={viewState}
-        onViewStateChange={({ viewState: v }) => setViewState(clampView(v as MapViewState, MIN_ZOOM))}
+        onViewStateChange={({ viewState: v, interactionState }) => {
+          // The map moved under the cursor (a fly or a drag), so the hover card no longer points at its dot.
+          if (interactionState?.inTransition || interactionState?.isDragging) setHover(null);
+          setViewState(clampView(v as MapViewState, MIN_ZOOM));
+        }}
         controller={{ scrollZoom: false, dragRotate: false, touchRotate: false, doubleClickZoom: true, dragPan: !touch }}
         touchAction={touch ? "pan-y" : "none"}
         layers={layers}
@@ -132,7 +137,9 @@ export default function CursedMap({ addresses, land, parks, selected, onSelect }
         }}
         onClick={(info) => {
           const d = info.object as Dot | undefined;
-          if (d) onSelect(d.i);
+          if (!d) return;
+          setHover(null);
+          onSelect(d.i);
         }}
       />
       {tip && hover && (
@@ -143,7 +150,7 @@ export default function CursedMap({ addresses, land, parks, selected, onSelect }
         </div>
       )}
       {zoomedIn && (
-        <button type="button" onClick={() => setViewState({ ...CITY, transitionDuration: 700, transitionInterpolator: FLY } as MapViewState)}
+        <button type="button" onClick={() => setViewState({ ...CITY, transitionDuration: motionMs(700), transitionInterpolator: FLY } as MapViewState)}
           className="mono absolute right-3 top-3 z-10 flex h-9 items-center gap-1.5 border border-ink bg-paper-raised px-3 text-[11px] uppercase tracking-[0.06em] hover:bg-paper">
           <ArrowsOut size={13} /> Whole city
         </button>

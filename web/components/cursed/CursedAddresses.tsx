@@ -7,6 +7,7 @@ import { useLand, useParks } from "@/lib/data";
 import { useIsMobile } from "@/lib/useIsMobile";
 import type { CursedAddress } from "@/lib/types";
 import TimelineStrip from "./Timeline";
+import { scrollBehavior } from "@/lib/motion";
 
 // deck.gl only runs in the browser.
 const CursedMap = dynamic(() => import("./CursedMap"), { ssr: false });
@@ -25,7 +26,7 @@ export default function CursedAddresses({ addresses }: { addresses: CursedAddres
   // On phones the map sits below the list, so a row tap brings it into view to show the fly-to.
   const pick = (i: number) => {
     setSelected(i);
-    if (mobile) mapBox.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (mobile) mapBox.current?.scrollIntoView({ behavior: scrollBehavior(), block: "center" });
   };
   const parks = useParks();
 
@@ -34,7 +35,7 @@ export default function CursedAddresses({ addresses }: { addresses: CursedAddres
       <div className="grid gap-12 lg:grid-cols-[320px_1fr] xl:grid-cols-[400px_1fr]">
         <div>
           <p className="kicker">01 — Cursed addresses</p>
-          <h2 className="mt-3 text-[34px] leading-[1.04] tracking-[-0.015em] md:text-[42px]">The storefronts that can&rsquo;t keep a tenant.</h2>
+          <h1 className="mt-3 text-[34px] leading-[1.04] tracking-[-0.015em] md:text-[42px]">The storefronts that can&rsquo;t keep a tenant.</h1>
           <p className="prose-hl mt-4">
             Single storefronts ranked by how many restaurants, bars, cafés and bakeries have come and gone since 2012.
           </p>

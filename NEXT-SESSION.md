@@ -22,14 +22,14 @@ NYC Turnover (formerly Half-Life) is live at https://half-life-nyc.vercel.app; e
 5. DONE 2026-10-20: phones. Charts draw at measured width (`web/lib/useWidth.ts`); on the Cursed map one finger scrolls the page and pinch zooms; a row tap scrolls the map into view; copy says tap; 2020 candles are tappable with a readout; tap targets are at least 40px.
 
 **Polish**
-- Ask: DONE ("the site's data" wording, 30 s timeout with 1 retry, `maxDuration`, Escape closes, focus moves in and out). Still open: tell visitors there's no follow-up memory.
-- Stories menu: return focus on Escape, close when focus leaves.
-- `?n=` deep link doesn't fly on first load (`HeroMap.tsx` fly effect runs on first DeckGL mount); hover card doesn't clamp at edges (`HoverCard.tsx`); pinch zooms to centre not cursor (`useTrackpad.ts`); "Median lifespan 5.9" is static (`Hero.tsx`).
+- Ask: DONE (wording, timeout, Escape/focus, and a note that each question is answered on its own).
+- Stories menu: DONE (Escape returns focus to the button; tabbing out closes it).
+- Home map: DONE (`?n=` links jump on first load, the hover card flips at edges, pinch and mouse wheel zoom toward the cursor, the median follows the chosen neighbourhood). Still open: neighbourhood framing ignores the headline column (`frameGeometry` in `lib/focus.ts`).
 - Timelines: DONE (closed rows with no close date end at open + life; labels go inside the bar when there's no room on either side).
-- A11y: story pages have no h1; maps need `role="img"` + label; light `--bodega-text` 4.29:1 (→ ~#856210) and `--bodega` marks 1.72:1; no `prefers-reduced-motion`.
-- Cursed map: hover card sticks after a fly; overlapping dots (3/12, 9/11) at city zoom.
-- `/half-life` Year-opened curves extrapolate to 10y for recent cohorts; `/beta` prose vs Ridgewood; `/cursed-spot` 1× line cuts labels; candles off by 2–13 places per period.
-- Search: GeoSearch takes the first result with no quality check; "katz" ranks Jeffrey Katz first; "NA" business names; mixed "2nd Ave"/"2 Avenue".
+- A11y: DONE (story titles are h1; maps have region labels and a focus ring; light `--bodega` is now `#ad7f22` and `--bodega-text` is `#856210`; `lib/motion.ts` honours reduced motion).
+- Cursed map: hover card no longer sticks. Still open: some dots overlap at city zoom (clicking flies in, and the list has every address).
+- Stories: DONE (recent cohorts' curves stop where their data ends and their medians say "not yet"; the Beta paragraph is generated from the data; cursed-spot labels sit above the 1× line). Still open: candles don't exactly add up (start + opened − closed is off by 2–13 places per period).
+- Search: DONE (names that start with the query rank first, so Katz's beats Jeffrey Katz; west/w, fifth/5 and so on are normalised; placeholder names are hidden; a no-match message; the GeoSearch fallback rejects low-confidence matches and dedupes the nearest list). Year slider: columns are clickable with counts, and "2020 shock" sits under 2020.
 - Add `nycturnover.vercel.app` in Vercel → Settings → Domains (user's step), then switch the personal-site link.
 
 - Address redirects: `web/public/data/aliases.json` maps 13,069 old address ids (renamed by the 2026-10-20 merge) to their new page; `/place/<old>` sends a 308 (`missing()` in `web/app/place/[id]/page.tsx`). It's a one-time map, so keep it; reruns keep `b…` ids stable.

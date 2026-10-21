@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, type RefObject } from "react";
-import type { MapViewState } from "@deck.gl/core";
+import { WebMercatorViewport, type MapViewState } from "@deck.gl/core";
 
 const ZOOM_PER_PINCH = 0.012; // per wheel pixel while pinching (ctrl+wheel in Chrome/Firefox)
 const ZOOM_PER_NOTCH = 0.5; // per mouse-wheel click
@@ -34,15 +34,25 @@ export function useTrackpad({ el, getView, setView, enabled }: Options) {
     const node = el.current;
     if (!node || !enabled) return;
 
+    // Zoom keeping the point under the cursor fixed, like a map app.
+    const zoomAt = (e: WheelEvent, v: MapViewState, zoom: number) => {
+      const r = node.getBoundingClientRect();
+      const px: [number, number] = [e.clientX - r.left, e.clientY - r.top];
+      const size = { width: r.width, height: r.height };
+      const lngLat = new WebMercatorViewport({ ...v, ...size }).unproject(px) as [number, number];
+      const { longitude, latitude } = new WebMercatorViewport({ ...v, ...size, zoom }).panByPosition(lngLat, px);
+      setView({ ...v, zoom, longitude: longitude ?? v.longitude, latitude: latitude ?? v.latitude });
+    };
+
     const onWheel = (e: WheelEvent) => {
       e.preventDefault(); // the map owns every wheel event over it, including browser zoom
       const v = getView();
       if (e.ctrlKey) {
-        setView({ ...v, zoom: v.zoom - e.deltaY * ZOOM_PER_PINCH });
+        zoomAt(e, v, v.zoom - e.deltaY * ZOOM_PER_PINCH);
         return;
       }
       if (isMouseWheel(e)) {
-        setView({ ...v, zoom: v.zoom - Math.sign(e.deltaY) * ZOOM_PER_NOTCH });
+        zoomAt(e, v, v.zoom - Math.sign(e.deltaY) * ZOOM_PER_NOTCH);
         return;
       }
       // Follow the dominant axis so a vertical swipe doesn't also drift the bearing.

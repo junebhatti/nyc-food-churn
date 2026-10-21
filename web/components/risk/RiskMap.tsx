@@ -10,6 +10,7 @@ import type { RiskHood } from "@/lib/quadrants";
 import { boroughLabels, clampView, NYC_CENTER, outlineLayer } from "@/lib/mapView";
 import type { MapViewState } from "@deck.gl/core";
 import { useState } from "react";
+import { motionMs } from "@/lib/motion";
 
 const lighting = new LightingEffect({
   ambient: new AmbientLight({ color: [255, 252, 245], intensity: 0.9 }),
@@ -62,7 +63,7 @@ export default function RiskMap({ rows, land, selected, filter, onSelect }: Prop
       material: MATERIAL,
       pickable: true,
       updateTriggers: { getFillColor: [selected, filter, palette], getElevation: [filter] },
-      transitions: { getElevation: 300 },
+      transitions: { getElevation: motionMs(300) },
     }),
     new TextLayer({
       id: "callout",

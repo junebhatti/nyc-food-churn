@@ -17,7 +17,7 @@ export default function Section({
       <div className="grid gap-6 md:grid-cols-2">
         <div>
           <p className="kicker">{kicker}</p>
-          <h2 className="mt-3 text-[34px] leading-[1.04] tracking-[-0.015em] md:text-[42px]">{title}</h2>
+          <h1 className="mt-3 text-[34px] leading-[1.04] tracking-[-0.015em] md:text-[42px]">{title}</h1>
         </div>
         {intro && <div className="prose-hl self-end">{intro}</div>}
       </div>

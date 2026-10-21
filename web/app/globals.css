@@ -11,8 +11,8 @@
   --rule-soft: #e4dccd;
   --awning: #b8321d;
   --deli: #1e5b3a;
-  --bodega: #e2b13c;
-  --bodega-text: #8f6a12;
+  --bodega: #ad7f22; /* deepened from the handoff's #e2b13c to meet 3:1 for chart marks */
+  --bodega-text: #856210; /* 4.8:1 on paper */
   --land: #e7e0d2;
   --dead: #dad2c3;
   --violet: #7a6f9b;
@@ -119,6 +119,12 @@ body {
 :focus-visible {
   outline: 2px solid var(--ink);
   outline-offset: 2px;
+}
+
+/* deck.gl sets an inline outline:none on its focusable map layer; keep a visible ring for keyboard users. */
+.deck-events-root:focus-visible {
+  outline: 2px solid var(--ink) !important;
+  outline-offset: -2px;
 }
 
 input[type="range"] {
